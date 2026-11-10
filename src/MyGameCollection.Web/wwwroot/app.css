@@ -1,0 +1,65 @@
+/* ---- Layout & branding ---- */
+.app-bar { backdrop-filter: blur(8px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+.brand { display: flex; align-items: center; color: inherit; text-decoration: none; margin-left: 4px; }
+.brand-text { font-family: 'Press Start 2P', monospace; font-size: 0.9rem; letter-spacing: 1px; }
+@media (max-width: 400px) { .brand-text { font-size: 0.7rem; } }
+.page-title { font-weight: 700 !important; letter-spacing: -0.5px; overflow-wrap: anywhere; }
+.cursor-pointer { cursor: pointer; }
+a.stat-card-link, a.platform-bar { color: inherit; text-decoration: none; display: block; }
+.stat-card { transition: transform .12s ease, border-color .12s ease; }
+.stat-card-link:hover .stat-card { transform: translateY(-2px); border-color: var(--mud-palette-primary); }
+.stat-value { font-weight: 700 !important; }
+
+/* ---- Thumbnails ---- */
+.thumb { display: flex; align-items: center; justify-content: center; overflow: hidden;
+         background: var(--mud-palette-background-gray); border-radius: 8px; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+.thumb-placeholder { font-size: 2.5rem !important; opacity: .35; }
+.thumb-sm { width: 48px; height: 48px; }
+.thumb-sm .thumb-placeholder { font-size: 1.4rem !important; }
+.preview-thumb { width: 100%; aspect-ratio: 3 / 4; max-height: 360px; }
+.preview-thumb img { object-fit: contain; }
+
+/* ---- Card grid ---- */
+.card-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+@media (max-width: 600px) { .card-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
+.item-card { cursor: pointer; overflow: hidden; transition: transform .12s ease, border-color .12s ease; height: 100%; }
+.item-card:hover { transform: translateY(-3px); border-color: var(--mud-palette-primary); }
+.item-card-thumb { width: 100%; aspect-ratio: 1 / 1; border-radius: 0; }
+.item-card-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600 !important; }
+
+/* ---- Photos ---- */
+.photo-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.photo-tile { position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 1 / 1;
+              border: 2px solid transparent; background: var(--mud-palette-background-gray); }
+.photo-tile.is-primary { border-color: var(--mud-palette-warning); }
+.photo-tile img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; display: block; }
+.photo-actions { position: absolute; top: 4px; right: 4px; display: flex; gap: 2px;
+                 background: rgba(0,0,0,.55); border-radius: 8px; }
+.photo-actions .mud-icon-button { color: #fff; }
+.photo-empty { text-align: center; padding: 32px 16px; border: 2px dashed var(--mud-palette-lines-default); border-radius: 12px; }
+.photo-empty-highlight { border-color: var(--mud-palette-primary); }
+.cover-fallback { max-width: 100%; max-height: 320px; border-radius: 8px; }
+.photo-viewer { position: relative; background: #000; display: flex; align-items: center; justify-content: center; min-height: 50vh; }
+.photo-viewer img { max-width: 100%; max-height: 78vh; object-fit: contain; }
+.viewer-nav { position: absolute !important; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,.45) !important; color: #fff !important; }
+.viewer-prev { left: 8px; } .viewer-next { right: 8px; }
+.viewer-counter { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); color: #fff; background: rgba(0,0,0,.5); padding: 2px 8px; border-radius: 8px; }
+
+/* ---- Details ---- */
+.detail-list { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+.detail-list dt { color: var(--mud-palette-text-secondary); font-size: .875rem; }
+.detail-list dd { margin: 0; font-size: .875rem; font-weight: 500; overflow-wrap: anywhere; }
+
+/* ---- Scanner ---- */
+.scanner-viewport { position: relative; width: 100%; min-height: 240px; background: #000; border-radius: 10px; overflow: hidden; }
+.scanner-video video { width: 100% !important; height: auto !important; display: block; }
+.scanner-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+
+/* ---- Blazor error UI ---- */
+#blazor-error-ui { background: #ffe08a; color: #000; bottom: 0; box-shadow: 0 -1px 2px rgba(0,0,0,.2); display: none;
+                   left: 0; padding: .6rem 1.25rem .7rem 1.25rem; position: fixed; width: 100%; z-index: 2000; }
+#blazor-error-ui .dismiss { cursor: pointer; position: absolute; right: .75rem; top: .5rem; }
+
+/* Safe area for installed PWA on notched phones */
+.mud-appbar { padding-top: env(safe-area-inset-top); }

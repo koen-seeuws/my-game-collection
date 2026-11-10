@@ -1,0 +1,12 @@
+<MudNavMenu Class="pt-2">
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Dashboard">Dashboard</MudNavLink>
+    <MudNavLink Href="/collection" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.GridView">Collection</MudNavLink>
+    <MudNavLink Href="/collection?type=game" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.SportsEsports" Class="pl-4">Games</MudNavLink>
+    <MudNavLink Href="/collection?type=console" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.VideogameAsset" Class="pl-4">Consoles</MudNavLink>
+    <MudNavLink Href="/collection?status=wishlist" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.FavoriteBorder" Class="pl-4">Wishlist</MudNavLink>
+    <MudDivider Class="my-2" />
+    <MudNavLink Href="/items/new?scan=true" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.QrCodeScanner">Scan barcode</MudNavLink>
+    <MudNavLink Href="/items/new" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.AddBox">Add manually</MudNavLink>
+    <MudDivider Class="my-2" />
+    <MudNavLink Href="/platforms" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Outlined.Memory">Platforms</MudNavLink>
+</MudNavMenu>

@@ -1,0 +1,283 @@
+@page "/collection"
+@implements IDisposable
+@inject ISender Sender
+@inject CollectionFilterState State
+@inject NavigationManager Nav
+
+<PageTitle>Collection · Game Vault</PageTitle>
+
+<div class="d-flex flex-wrap align-center justify-space-between gap-3 mb-4">
+    <MudText Typo="Typo.h4" Class="page-title">@PageHeading</MudText>
+    <div class="d-flex gap-2 align-center">
+        <MudToggleGroup T="bool" Value="State.GridView" ValueChanged="v => State.GridView = v" Size="Size.Small" Outlined="true" Color="Color.Primary">
+            <MudToggleItem Value="true"><MudIcon Icon="@Icons.Material.Filled.GridView" Size="Size.Small" /></MudToggleItem>
+            <MudToggleItem Value="false"><MudIcon Icon="@Icons.Material.Filled.ViewList" Size="Size.Small" /></MudToggleItem>
+        </MudToggleGroup>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Href="@($"/items/new{(Filter.Type == ItemType.Console ? "?type=console" : "")}")">Add</MudButton>
+    </div>
+</div>
+
+<MudPaper Outlined="true" Class="pa-3 mb-4">
+    <MudGrid Spacing="2">
+        <MudItem xs="12" md="4">
+            <MudTextField T="string" Value="Filter.Search" ValueChanged="OnSearchChanged" Placeholder="Search title, barcode, notes, location…"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" DebounceInterval="300"
+                          Clearable="true" Variant="Variant.Outlined" Margin="Margin.Dense" />
+        </MudItem>
+        <MudItem xs="6" md="2">
+            <MudSelect T="ItemType?" Value="Filter.Type" ValueChanged="v => Update(Filter with { Type = v })" Label="Type" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                <MudSelectItem T="ItemType?" Value="null">Everything</MudSelectItem>
+                <MudSelectItem T="ItemType?" Value="ItemType.Game">Games</MudSelectItem>
+                <MudSelectItem T="ItemType?" Value="ItemType.Console">Consoles</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="6" md="3">
+            <MudSelect T="Guid" MultiSelection="true" SelectedValues="Filter.PlatformIds" SelectedValuesChanged="v => Update(Filter with { PlatformIds = v.ToList() })"
+                       Label="Platform" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Clearable="true"
+                       ToStringFunc="PlatformName" MaxHeight="400">
+                @foreach (var p in _platforms)
+                {
+                    <MudSelectItem T="Guid" Value="p.Id">@p.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="6" md="3">
+            <MudSelect T="ItemStatus" MultiSelection="true" SelectedValues="Filter.Statuses" SelectedValuesChanged="v => Update(Filter with { Statuses = v.ToList() })"
+                       Label="Status" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Clearable="true" ToStringFunc="s => s.ToLabel()">
+                @foreach (var s in Enum.GetValues<ItemStatus>())
+                {
+                    <MudSelectItem T="ItemStatus" Value="s">@s.ToLabel()</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        @if (_showMore)
+        {
+            <MudItem xs="6" md="3">
+                <MudSelect T="Region" MultiSelection="true" SelectedValues="Filter.Regions" SelectedValuesChanged="v => Update(Filter with { Regions = v.ToList() })"
+                           Label="Region" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Clearable="true" ToStringFunc="r => r.ToLabel()">
+                    @foreach (var r in Enum.GetValues<Region>())
+                    {
+                        <MudSelectItem T="Region" Value="r">@r.ToLabel()</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="6" md="3">
+                <MudSelect T="ItemCondition?" Value="Filter.MinimumCondition" ValueChanged="v => Update(Filter with { MinimumCondition = v })"
+                           Label="Condition at least" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                    <MudSelectItem T="ItemCondition?" Value="null">Any</MudSelectItem>
+                    @foreach (var c in Enum.GetValues<ItemCondition>().Where(c => c != ItemCondition.Unknown))
+                    {
+                        <MudSelectItem T="ItemCondition?" Value="c">@c.ToLabel()</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="6" md="2">
+                <MudSelect T="bool?" Value="Filter.HasPhotos" ValueChanged="v => Update(Filter with { HasPhotos = v })"
+                           Label="Photos" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                    <MudSelectItem T="bool?" Value="null">Any</MudSelectItem>
+                    <MudSelectItem T="bool?" Value="true">With photos</MudSelectItem>
+                    <MudSelectItem T="bool?" Value="false">Without photos</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="6" md="2" Class="d-flex align-center">
+                <MudSwitch T="bool" Value="Filter.CompleteOnly" ValueChanged="v => Update(Filter with { CompleteOnly = v })" Color="Color.Primary" Label="CIB only" />
+            </MudItem>
+        }
+
+        <MudItem xs="12" md="@(_showMore ? 2 : 12)" Class="d-flex align-center justify-end gap-1 flex-wrap">
+            <MudSelect T="ItemSortField" Value="Filter.SortBy" ValueChanged="v => Update(Filter with { SortBy = v })" Label="Sort" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Style="min-width: 140px">
+                <MudSelectItem Value="ItemSortField.Title">Title</MudSelectItem>
+                <MudSelectItem Value="ItemSortField.Platform">Platform</MudSelectItem>
+                <MudSelectItem Value="ItemSortField.CreatedAt">Date added</MudSelectItem>
+                <MudSelectItem Value="ItemSortField.PurchaseDate">Purchase date</MudSelectItem>
+                <MudSelectItem Value="ItemSortField.PurchasePrice">Price paid</MudSelectItem>
+                <MudSelectItem Value="ItemSortField.EstimatedValue">Value</MudSelectItem>
+            </MudSelect>
+            <MudIconButton Icon="@(Filter.Descending ? Icons.Material.Filled.ArrowDownward : Icons.Material.Filled.ArrowUpward)"
+                           OnClick="() => Update(Filter with { Descending = !Filter.Descending })" aria-label="Sort direction" />
+            <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="() => _showMore = !_showMore"
+                       EndIcon="@(_showMore ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)">
+                @(_showMore ? "Less" : "More filters")
+            </MudButton>
+            @if (HasActiveFilters)
+            {
+                <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Secondary" OnClick="ClearFilters">Clear</MudButton>
+            }
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@if (_loading && _result is null)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (_result is not null)
+{
+    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+        @_result.TotalCount item@(_result.TotalCount == 1 ? "" : "s")
+        @if (_loading) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="ml-2" /> }
+    </MudText>
+
+    @if (_result.TotalCount == 0)
+    {
+        <MudPaper Outlined="true" Class="pa-8 text-center">
+            <MudText Typo="Typo.h6">No items found</MudText>
+            <MudText Color="Color.Secondary">Try other filters, or add something new.</MudText>
+        </MudPaper>
+    }
+    else if (State.GridView)
+    {
+        <div class="card-grid">
+            @foreach (var item in _result.Items)
+            {
+                <ItemCard Item="item" @key="item.Id" />
+            }
+        </div>
+    }
+    else
+    {
+        <MudTable T="ItemListDto" Items="_result.Items" Hover="true" Dense="true" Breakpoint="Breakpoint.Sm" Outlined="true" Elevation="0"
+                  OnRowClick="OpenRow" RowClass="cursor-pointer">
+            <HeaderContent>
+                <MudTh Style="width:64px"></MudTh>
+                <MudTh>Title</MudTh>
+                <MudTh>Platform</MudTh>
+                <MudTh>Region</MudTh>
+                <MudTh>Completeness</MudTh>
+                <MudTh>Condition</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh Style="text-align:right">Paid</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd><ItemThumbnail PhotoId="context.PrimaryPhotoId" CoverUrl="context.CoverImageUrl" Type="context.Type" Class="thumb-sm" /></MudTd>
+                <MudTd DataLabel="Title">
+                    <div class="d-flex align-center gap-1">
+                        <MudIcon Icon="@context.Type.ToIcon()" Size="Size.Small" Color="Color.Secondary" />
+                        <MudText Typo="Typo.body2" Class="font-weight-medium">@context.Title</MudText>
+                    </div>
+                </MudTd>
+                <MudTd DataLabel="Platform">@context.PlatformName</MudTd>
+                <MudTd DataLabel="Region">@context.Region.ToLabel()</MudTd>
+                <MudTd DataLabel="Completeness">@Labels.Completeness(context.HasBox, context.HasManual, context.IsSealed)</MudTd>
+                <MudTd DataLabel="Condition"><MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="context.Condition.ToColor()">@context.Condition.ToLabel()</MudChip></MudTd>
+                <MudTd DataLabel="Status"><MudChip T="string" Size="Size.Small" Color="context.Status.ToColor()">@context.Status.ToLabel()</MudChip></MudTd>
+                <MudTd DataLabel="Paid" Style="text-align:right">@Labels.Money(context.PurchasePrice)</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+
+    @if (PageCount > 1)
+    {
+        <div class="d-flex justify-center mt-4">
+            <MudPagination Count="PageCount" Selected="Filter.Page + 1" SelectedChanged="p => Update(Filter with { Page = p - 1 }, resetPage: false)" Color="Color.Primary" />
+        </div>
+    }
+}
+
+@code {
+    private IReadOnlyList<PlatformDto> _platforms = [];
+    private PagedResult<ItemListDto>? _result;
+    private bool _loading = true;
+    private bool _showMore;
+    private CancellationTokenSource? _cts;
+
+    private ItemFilter Filter => State.Filter;
+
+    private int PageCount => _result is null ? 0 : (int)Math.Ceiling(_result.TotalCount / (double)_result.PageSize);
+
+    private bool HasActiveFilters =>
+        !string.IsNullOrWhiteSpace(Filter.Search) || Filter.Type is not null || Filter.PlatformIds.Count > 0 ||
+        Filter.Regions.Count > 0 || Filter.Statuses.Count > 0 || Filter.MinimumCondition is not null ||
+        Filter.CompleteOnly || Filter.HasPhotos is not null;
+
+    private string PageHeading => Filter.Type switch
+    {
+        ItemType.Game => "Games",
+        ItemType.Console => "Consoles",
+        _ when Filter.Statuses.Count == 1 && Filter.Statuses.Contains(ItemStatus.Wishlist) => "Wishlist",
+        _ => "Collection"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _platforms = await Sender.Send(new GetPlatformsQuery());
+        Nav.LocationChanged += OnLocationChanged;
+        ApplyQueryString();
+        await LoadAsync();
+    }
+
+    /// <summary>Links like /collection?type=game or ?platform=… (from the menu / dashboard) set the filter.</summary>
+    private void ApplyQueryString()
+    {
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.Count == 0) return;
+
+        var filter = new ItemFilter { PageSize = Filter.PageSize, SortBy = Filter.SortBy, Descending = Filter.Descending };
+        if (query.TryGetValue("type", out var type) && Enum.TryParse<ItemType>(type, true, out var t))
+            filter = filter with { Type = t };
+        if (query.TryGetValue("status", out var status) && Enum.TryParse<ItemStatus>(status, true, out var s))
+            filter = filter with { Statuses = [s] };
+        if (query.TryGetValue("platform", out var platform) && Guid.TryParse(platform, out var p))
+            filter = filter with { PlatformIds = [p] };
+        if (query.TryGetValue("cib", out var cib) && bool.TryParse(cib, out var c))
+            filter = filter with { CompleteOnly = c };
+        State.Filter = filter;
+    }
+
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (!e.Location.Contains("/collection", StringComparison.OrdinalIgnoreCase)) return;
+        ApplyQueryString();
+        await InvokeAsync(LoadAsync);
+    }
+
+    private Task OnSearchChanged(string? value) => Update(Filter with { Search = value });
+
+    private Task ClearFilters() => Update(new ItemFilter { PageSize = Filter.PageSize, SortBy = Filter.SortBy, Descending = Filter.Descending });
+
+    private Task Update(ItemFilter filter, bool resetPage = true)
+    {
+        State.Filter = resetPage ? filter with { Page = 0 } : filter;
+        return LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
+        var token = _cts.Token;
+
+        _loading = true;
+        StateHasChanged();
+        try
+        {
+            var result = await Sender.Send(new SearchItemsQuery(Filter), token);
+            if (!token.IsCancellationRequested) _result = result;
+        }
+        catch (OperationCanceledException) { }
+        finally
+        {
+            if (!token.IsCancellationRequested)
+            {
+                _loading = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void OpenRow(TableRowClickEventArgs<ItemListDto> e)
+    {
+        if (e.Item is not null) Nav.NavigateTo($"/items/{e.Item.Id}");
+    }
+
+    private string PlatformName(Guid id) => _platforms.FirstOrDefault(p => p.Id == id)?.Name ?? "";
+
+    public void Dispose()
+    {
+        Nav.LocationChanged -= OnLocationChanged;
+        _cts?.Cancel();
+        _cts?.Dispose();
+    }
+}

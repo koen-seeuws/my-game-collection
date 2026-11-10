@@ -1,0 +1,101 @@
+@page "/platforms"
+@inject ISender Sender
+@inject IDialogService Dialogs
+@inject ISnackbar Snackbar
+
+<PageTitle>Platforms · Game Vault</PageTitle>
+
+<div class="d-flex flex-wrap align-center justify-space-between gap-3 mb-4">
+    <MudText Typo="Typo.h4" Class="page-title">Platforms</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="() => EditAsync(null)">Add platform</MudButton>
+</div>
+
+<MudTable T="PlatformDto" Items="_platforms" Hover="true" Dense="true" Breakpoint="Breakpoint.Sm" Outlined="true" Elevation="0" Loading="_loading"
+          Filter="Matches" GroupBy="_groupBy" GroupHeaderStyle="font-weight:600">
+    <ToolBarContent>
+        <MudTextField @bind-Value="_search" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                      Immediate="true" Margin="Margin.Dense" Variant="Variant.Outlined" Clearable="true" Style="max-width: 320px" />
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Name</MudTh>
+        <MudTh>Year</MudTh>
+        <MudTh>Also known as</MudTh>
+        <MudTh Style="text-align:right">Games</MudTh>
+        <MudTh Style="text-align:right">Consoles</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <GroupHeaderTemplate>
+        <MudTh colspan="6">@context.Key</MudTh>
+    </GroupHeaderTemplate>
+    <RowTemplate>
+        <MudTd DataLabel="Name"><MudLink Href="@($"/collection?platform={context.Id}")">@context.Name</MudLink></MudTd>
+        <MudTd DataLabel="Year">@context.ReleaseYear</MudTd>
+        <MudTd DataLabel="Also known as"><MudText Typo="Typo.caption" Color="Color.Secondary">@string.Join(", ", context.Aliases)</MudText></MudTd>
+        <MudTd DataLabel="Games" Style="text-align:right">@context.GameCount</MudTd>
+        <MudTd DataLabel="Consoles" Style="text-align:right">@context.ConsoleCount</MudTd>
+        <MudTd Style="text-align:right; white-space:nowrap">
+            <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="() => EditAsync(context)" aria-label="Edit" />
+            <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => DeleteAsync(context)"
+                           Disabled="context.GameCount + context.ConsoleCount > 0" aria-label="Delete" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    private IReadOnlyList<PlatformDto> _platforms = [];
+    private bool _loading = true;
+    private string? _search;
+
+    private readonly TableGroupDefinition<PlatformDto> _groupBy = new() { Selector = p => p.Manufacturer };
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _platforms = await Sender.Send(new GetPlatformsQuery());
+        _loading = false;
+    }
+
+    private bool Matches(PlatformDto p) =>
+        string.IsNullOrWhiteSpace(_search) ||
+        p.Name.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+        p.Manufacturer.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+        p.Aliases.Any(a => a.Contains(_search, StringComparison.OrdinalIgnoreCase));
+
+    private async Task EditAsync(PlatformDto? platform)
+    {
+        var parameters = new DialogParameters<PlatformDialog>
+        {
+            { x => x.PlatformId, platform?.Id },
+            {
+                x => x.Model, new PlatformEditModel
+                {
+                    Name = platform?.Name ?? string.Empty,
+                    Manufacturer = platform?.Manufacturer ?? string.Empty,
+                    ReleaseYear = platform?.ReleaseYear,
+                    Aliases = platform is null ? null : string.Join(", ", platform.Aliases)
+                }
+            }
+        };
+        var dialog = await Dialogs.ShowAsync<PlatformDialog>(platform is null ? "Add platform" : $"Edit {platform.Name}", parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        var result = await dialog.Result;
+        if (result is { Canceled: false }) await LoadAsync();
+    }
+
+    private async Task DeleteAsync(PlatformDto platform)
+    {
+        var confirm = await Dialogs.ShowMessageBoxAsync("Delete platform", $"Delete {platform.Name}?", yesText: "Delete", cancelText: "Cancel");
+        if (confirm != true) return;
+        try
+        {
+            await Sender.Send(new DeletePlatformCommand(platform.Id));
+            await LoadAsync();
+        }
+        catch (ValidationException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Warning);
+        }
+    }
+}

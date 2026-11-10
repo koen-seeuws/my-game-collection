@@ -1,0 +1,24 @@
+@* Shows the item's primary photo, otherwise the looked-up cover art, otherwise a placeholder icon. *@
+<div class="@($"thumb {Class}")" style="@Style">
+    @if (PhotoId is { } id)
+    {
+        <img src="@($"/photos/{id}/thumb")" alt="@Alt" loading="lazy" />
+    }
+    else if (!string.IsNullOrWhiteSpace(CoverUrl))
+    {
+        <img src="@CoverUrl" alt="@Alt" loading="lazy" referrerpolicy="no-referrer" />
+    }
+    else
+    {
+        <MudIcon Icon="@Type.ToIcon()" Class="thumb-placeholder" />
+    }
+</div>
+
+@code {
+    [Parameter] public Guid? PhotoId { get; set; }
+    [Parameter] public string? CoverUrl { get; set; }
+    [Parameter] public ItemType Type { get; set; }
+    [Parameter] public string? Alt { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public string? Style { get; set; }
+}

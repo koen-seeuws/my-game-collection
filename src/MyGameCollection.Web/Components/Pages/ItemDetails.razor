@@ -1,0 +1,223 @@
+@page "/items/{Id:guid}"
+@inject ISender Sender
+@inject IDialogService Dialogs
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+
+<PageTitle>@(_item?.Title ?? "Item") · Game Vault</PageTitle>
+
+@if (_item is null)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <div class="d-flex flex-wrap align-center gap-2 mb-4">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Href="/collection" aria-label="Back" />
+        <div class="flex-grow-1" style="min-width:0">
+            <MudText Typo="Typo.h4" Class="page-title">@_item.Title</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                <MudIcon Icon="@_item.Type.ToIcon()" Size="Size.Small" Style="vertical-align: middle" /> @_item.Type.ToLabel() · @_item.PlatformName (@_item.PlatformManufacturer)
+            </MudText>
+        </div>
+        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Edit" Href="@($"/items/{Id}/edit")">Edit</MudButton>
+        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="DeleteAsync" aria-label="Delete" />
+    </div>
+
+    <MudGrid Spacing="3">
+        @* --- Photos --- *@
+        <MudItem xs="12" md="7">
+            <MudPaper Outlined="true" Class="pa-4">
+                <div class="d-flex align-center justify-space-between mb-3">
+                    <MudText Typo="Typo.h6">Photos</MudText>
+                    <MudFileUpload T="IReadOnlyList<IBrowserFile>" Accept="image/*" FilesChanged="UploadAsync" MaximumFileCount="20">
+                        <CustomContent>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AddAPhoto"
+                                       OnClick="@context.OpenFilePickerAsync" Disabled="_uploading">
+                                @(_uploading ? $"Uploading {_uploadDone}/{_uploadTotal}…" : "Add photos")
+                            </MudButton>
+                        </CustomContent>
+                    </MudFileUpload>
+                </div>
+                @if (_uploading)
+                {
+                    <MudProgressLinear Value="@(_uploadTotal == 0 ? 0 : 100.0 * _uploadDone / _uploadTotal)" Color="Color.Primary" Class="mb-3" />
+                }
+
+                @if (_item.Photos.Count == 0)
+                {
+                    <div class="photo-empty @(HighlightPhotos ? "photo-empty-highlight" : "")">
+                        @if (!string.IsNullOrWhiteSpace(_item.CoverImageUrl))
+                        {
+                            <img src="@_item.CoverImageUrl" alt="Cover" class="cover-fallback" referrerpolicy="no-referrer" />
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block mt-2">Cover art from lookup. Add your own photos of this copy.</MudText>
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.PhotoCamera" Size="Size.Large" Color="Color.Secondary" />
+                            <MudText Color="Color.Secondary" Class="mt-2">No photos yet. Snap the front, back, cartridge/disc and manual.</MudText>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="photo-grid">
+                        @foreach (var photo in _item.Photos)
+                        {
+                            <div class="photo-tile @(photo.IsPrimary ? "is-primary" : "")" @key="photo.Id">
+                                <img src="@($"/photos/{photo.Id}/thumb")" alt="@photo.OriginalFileName" loading="lazy" @onclick="() => OpenPhoto(photo)" />
+                                <div class="photo-actions">
+                                    <MudIconButton Size="Size.Small" Icon="@(photo.IsPrimary ? Icons.Material.Filled.Star : Icons.Material.Outlined.StarBorder)"
+                                                   Color="@(photo.IsPrimary ? Color.Warning : Color.Default)" OnClick="() => SetPrimaryAsync(photo)"
+                                                   aria-label="Use as cover" Disabled="photo.IsPrimary" />
+                                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => DeletePhotoAsync(photo)" aria-label="Delete photo" />
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </MudPaper>
+        </MudItem>
+
+        @* --- Details --- *@
+        <MudItem xs="12" md="5">
+            <MudPaper Outlined="true" Class="pa-4">
+                <div class="d-flex flex-wrap gap-1 mb-3">
+                    <MudChip T="string" Color="_item.Status.ToColor()">@_item.Status.ToLabel()</MudChip>
+                    <MudChip T="string" Variant="Variant.Outlined" Color="_item.Condition.ToColor()">@_item.Condition.ToLabel()</MudChip>
+                    <MudChip T="string" Variant="Variant.Outlined">@_item.Region.ToLabel()</MudChip>
+                    <MudChip T="string" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Inventory2">@Labels.Completeness(_item.HasBox, _item.HasManual, _item.IsSealed)</MudChip>
+                </div>
+
+                <dl class="detail-list">
+                    @if (_item.Type == ItemType.Game)
+                    {
+                        <DetailRow Label="Publisher" Value="@_item.Publisher" />
+                        <DetailRow Label="Developer" Value="@_item.Developer" />
+                        <DetailRow Label="Genre" Value="@_item.Genre" />
+                        <DetailRow Label="Released" Value="@_item.ReleaseYear?.ToString()" />
+                    }
+                    else
+                    {
+                        <DetailRow Label="Model" Value="@_item.Model" />
+                        <DetailRow Label="Serial number" Value="@_item.SerialNumber" />
+                        <DetailRow Label="Colour / edition" Value="@_item.Edition" />
+                    }
+                    <DetailRow Label="Barcode" Value="@_item.Barcode" />
+                    <DetailRow Label="Price paid" Value="@(_item.PurchasePrice is null ? null : Labels.Money(_item.PurchasePrice))" />
+                    <DetailRow Label="Purchased" Value="@_item.PurchaseDate?.ToString("d MMM yyyy")" />
+                    <DetailRow Label="Estimated value" Value="@(_item.EstimatedValue is null ? null : Labels.Money(_item.EstimatedValue))" />
+                    <DetailRow Label="Location" Value="@_item.StorageLocation" />
+                    <DetailRow Label="Added" Value="@_item.CreatedAt.ToLocalTime().ToString("d MMM yyyy")" />
+                </dl>
+
+                @if (!string.IsNullOrWhiteSpace(_item.Notes))
+                {
+                    <MudDivider Class="my-3" />
+                    <MudText Typo="Typo.overline" Color="Color.Secondary">Notes</MudText>
+                    <MudText Typo="Typo.body2" Style="white-space: pre-wrap">@_item.Notes</MudText>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    private const int FullSize = 2048;
+    private const int ThumbSize = 480;
+
+    [Parameter] public Guid Id { get; set; }
+    [SupplyParameterFromQuery(Name = "photos")] public bool HighlightPhotos { get; set; }
+
+    private ItemDetailsDto? _item;
+    private bool _uploading;
+    private int _uploadDone;
+    private int _uploadTotal;
+
+    protected override Task OnParametersSetAsync() => ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        try
+        {
+            _item = await Sender.Send(new GetItemDetailsQuery(Id));
+        }
+        catch (NotFoundException)
+        {
+            Nav.NavigateTo("/not-found");
+        }
+    }
+
+    private async Task UploadAsync(IReadOnlyList<IBrowserFile>? files)
+    {
+        if (files is null || files.Count == 0) return;
+
+        _uploading = true;
+        _uploadDone = 0;
+        _uploadTotal = files.Count;
+        var failed = 0;
+
+        foreach (var file in files)
+        {
+            try
+            {
+                // Resize in the browser (canvas), so a 12MP phone photo doesn't travel over SignalR in full
+                // and the server needs no image library. Gives a large image plus a grid thumbnail.
+                var full = await file.RequestImageFileAsync("image/jpeg", FullSize, FullSize);
+                var thumb = await file.RequestImageFileAsync("image/jpeg", ThumbSize, ThumbSize);
+
+                await using var fullStream = full.OpenReadStream(PhotoRules.MaxPhotoBytes);
+                await using var thumbStream = thumb.OpenReadStream(PhotoRules.MaxPhotoBytes);
+                await Sender.Send(new AddPhotoCommand(Id, new PhotoUpload(fullStream, thumbStream, "image/jpeg", file.Name, full.Size)));
+            }
+            catch (Exception ex)
+            {
+                failed++;
+                Snackbar.Add($"Couldn't upload {file.Name}: {ex.Message}", Severity.Error);
+            }
+            _uploadDone++;
+            StateHasChanged();
+        }
+
+        _uploading = false;
+        if (failed < files.Count)
+            Snackbar.Add($"{files.Count - failed} photo{(files.Count - failed == 1 ? "" : "s")} added.", Severity.Success);
+        await ReloadAsync();
+    }
+
+    private async Task SetPrimaryAsync(PhotoDto photo)
+    {
+        await Sender.Send(new SetPrimaryPhotoCommand(Id, photo.Id));
+        await ReloadAsync();
+    }
+
+    private async Task DeletePhotoAsync(PhotoDto photo)
+    {
+        var confirm = await Dialogs.ShowMessageBoxAsync("Delete photo", "Delete this photo? This can't be undone.", yesText: "Delete", cancelText: "Cancel");
+        if (confirm != true) return;
+        await Sender.Send(new DeletePhotoCommand(Id, photo.Id));
+        await ReloadAsync();
+    }
+
+    private async Task OpenPhoto(PhotoDto photo)
+    {
+        var parameters = new DialogParameters<PhotoViewerDialog>
+        {
+            { x => x.PhotoIds, _item!.Photos.Select(p => p.Id).ToList() },
+            { x => x.StartPhotoId, photo.Id }
+        };
+        await Dialogs.ShowAsync<PhotoViewerDialog>(_item.Title, parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true, CloseOnEscapeKey = true });
+    }
+
+    private async Task DeleteAsync()
+    {
+        var confirm = await Dialogs.ShowMessageBoxAsync("Delete item",
+            $"Delete \"{_item!.Title}\" and all its photos? This can't be undone.", yesText: "Delete", cancelText: "Cancel");
+        if (confirm != true) return;
+
+        await Sender.Send(new DeleteItemCommand(Id));
+        Snackbar.Add("Item deleted.", Severity.Info);
+        Nav.NavigateTo("/collection");
+    }
+}

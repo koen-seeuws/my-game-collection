@@ -1,0 +1,9 @@
+# SITE_ADDRESS: a hostname that resolves to your server (e.g. gamevault.home.arpa via your router / Pi-hole DNS),
+# or a public domain if you expose it. TLS_MODE "internal" uses Caddy's own CA (trust its root cert on your
+# devices: docker compose cp caddy:/data/caddy/pki/authorities/local/root.crt .). Set TLS_MODE to your
+# e-mail address to get a real Let's Encrypt certificate for a public domain instead.
+{$SITE_ADDRESS} {
+	tls {$TLS_MODE}
+	encode zstd gzip
+	reverse_proxy web:8080
+}

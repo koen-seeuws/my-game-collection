@@ -1,0 +1,110 @@
+@page "/"
+@inject ISender Sender
+
+<PageTitle>Dashboard · Game Vault</PageTitle>
+
+<div class="d-flex flex-wrap align-center justify-space-between gap-3 mb-4">
+    <MudText Typo="Typo.h4" Class="page-title">Dashboard</MudText>
+    <div class="d-flex gap-2 flex-wrap">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.QrCodeScanner" Href="/items/new?scan=true">Scan</MudButton>
+        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.SportsEsports" Href="/items/new?type=game">Add game</MudButton>
+        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.VideogameAsset" Href="/items/new?type=console">Add console</MudButton>
+    </div>
+</div>
+
+@if (_stats is null)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <MudGrid Spacing="3">
+        <MudItem xs="6" md="3">
+            <StatCard Label="Games" Value="@_stats.GameCount.ToString()" Icon="@Icons.Material.Filled.SportsEsports" Color="Color.Primary" Href="/collection?type=game" />
+        </MudItem>
+        <MudItem xs="6" md="3">
+            <StatCard Label="Consoles" Value="@_stats.ConsoleCount.ToString()" Icon="@Icons.Material.Filled.VideogameAsset" Color="Color.Secondary" Href="/collection?type=console" />
+        </MudItem>
+        <MudItem xs="6" md="3">
+            <StatCard Label="Complete in box" Value="@_stats.CompleteCount.ToString()" Icon="@Icons.Material.Filled.Inventory2" Color="Color.Success" Href="/collection?cib=true" />
+        </MudItem>
+        <MudItem xs="6" md="3">
+            <StatCard Label="Wishlist" Value="@_stats.WishlistCount.ToString()" Icon="@Icons.Material.Filled.Favorite" Color="Color.Tertiary" Href="/collection?status=wishlist" />
+        </MudItem>
+
+        <MudItem xs="12" md="5">
+            <MudPaper Outlined="true" Class="pa-4 h-100">
+                <MudText Typo="Typo.h6" Class="mb-3">Value</MudText>
+                <div class="d-flex justify-space-between mb-2">
+                    <MudText Color="Color.Secondary">Total spent</MudText>
+                    <MudText Typo="Typo.h6">@Labels.Money(_stats.TotalSpent)</MudText>
+                </div>
+                <div class="d-flex justify-space-between">
+                    <MudText Color="Color.Secondary">Estimated value</MudText>
+                    <MudText Typo="Typo.h6">@Labels.Money(_stats.TotalEstimatedValue)</MudText>
+                </div>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="7">
+            <MudPaper Outlined="true" Class="pa-4 h-100">
+                <MudText Typo="Typo.h6" Class="mb-3">Top platforms</MudText>
+                @if (_stats.TopPlatforms.Count == 0)
+                {
+                    <MudText Color="Color.Secondary">Nothing here yet.</MudText>
+                }
+                else
+                {
+                    var max = _stats.TopPlatforms.Max(p => p.Games + p.Consoles);
+                    @foreach (var p in _stats.TopPlatforms)
+                    {
+                        <a class="platform-bar" href="@($"/collection?platform={p.PlatformId}")">
+                            <div class="d-flex justify-space-between">
+                                <MudText Typo="Typo.body2">@p.Platform</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@p.Games games · @p.Consoles consoles</MudText>
+                            </div>
+                            <MudProgressLinear Value="@(100.0 * (p.Games + p.Consoles) / max)" Color="Color.Primary" Rounded="true" Size="Size.Small" Class="mt-1 mb-3" />
+                        </a>
+                    }
+                }
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12">
+            <div class="d-flex align-center justify-space-between mb-2 mt-2">
+                <MudText Typo="Typo.h6">Recently added</MudText>
+                <MudButton Variant="Variant.Text" Href="/collection" EndIcon="@Icons.Material.Filled.ChevronRight">View all</MudButton>
+            </div>
+            @if (_recent.Count == 0)
+            {
+                <MudPaper Outlined="true" Class="pa-8 text-center">
+                    <MudIcon Icon="@Icons.Material.Filled.SportsEsports" Size="Size.Large" Color="Color.Primary" />
+                    <MudText Typo="Typo.h6" Class="mt-2">Your vault is empty</MudText>
+                    <MudText Color="Color.Secondary" Class="mb-4">Scan a barcode or add your first game by hand.</MudText>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/items/new?scan=true" StartIcon="@Icons.Material.Filled.QrCodeScanner">Scan a barcode</MudButton>
+                </MudPaper>
+            }
+            else
+            {
+                <div class="card-grid">
+                    @foreach (var item in _recent)
+                    {
+                        <ItemCard Item="item" />
+                    }
+                </div>
+            }
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    private CollectionStatistics? _stats;
+    private IReadOnlyList<ItemListDto> _recent = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var dashboard = await Sender.Send(new GetDashboardQuery());
+        _recent = dashboard.RecentlyAdded;
+        _stats = dashboard.Statistics;
+    }
+}

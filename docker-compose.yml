@@ -1,0 +1,60 @@
+name: mygamecollection
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mygamecollection
+      POSTGRES_USER: ${POSTGRES_USER:-gamevault}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d mygamecollection"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    image: mygamecollection-web:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Default: "Host=db;Port=5432;Database=mygamecollection;Username=${POSTGRES_USER:-gamevault};Password=${POSTGRES_PASSWORD}"
+      Rawg__ApiKey: ${RAWG_API_KEY:-}
+      MEDIATR_LICENSE_KEY: ${MEDIATR_LICENSE_KEY:-}
+      TZ: ${TZ:-Europe/Brussels}
+    ports:
+      - "${WEB_PORT:-8080}:8080"
+    volumes:
+      # Photos and data-protection keys live on the host's disk.
+      # The container runs as UID 1654 - see README for the one-time chown.
+      - ${DATA_PATH:-./data}/photos:/data/photos
+      - ${DATA_PATH:-./data}/keys:/data/keys
+
+  # Optional HTTPS reverse proxy. Camera scanning and installing the PWA require HTTPS.
+  # Enable with: docker compose --profile https up -d
+  caddy:
+    image: caddy:2-alpine
+    profiles: ["https"]
+    restart: unless-stopped
+    depends_on: [web]
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-gamevault.home.arpa}
+      TLS_MODE: ${TLS_MODE:-internal}
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

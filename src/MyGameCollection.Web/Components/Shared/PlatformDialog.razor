@@ -1,0 +1,46 @@
+@inject ISender Sender
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="Model" OnValidSubmit="SaveAsync" id="platform-form">
+            <DataAnnotationsValidator />
+            <MudTextField @bind-Value="Model.Name" For="() => Model.Name" Label="Name" Variant="Variant.Outlined" Class="mb-3" AutoFocus="true" />
+            <MudTextField @bind-Value="Model.Manufacturer" For="() => Model.Manufacturer" Label="Manufacturer" Variant="Variant.Outlined" Class="mb-3" />
+            <MudNumericField T="int?" @bind-Value="Model.ReleaseYear" For="() => Model.ReleaseYear" Label="Release year" Variant="Variant.Outlined" HideSpinButtons="true" Class="mb-3" />
+            <MudTextField @bind-Value="Model.Aliases" For="() => Model.Aliases" Label="Aliases (comma separated)" Variant="Variant.Outlined"
+                          HelperText="Other names shops use, e.g. 'SNES, Super Famicom'. Used to recognise the platform when scanning." />
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => Dialog.Cancel()">Cancel</MudButton>
+        <MudButton ButtonType="ButtonType.Submit" form="platform-form" Color="Color.Primary" Variant="Variant.Filled" Disabled="_saving">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = default!;
+    [Parameter] public Guid? PlatformId { get; set; }
+    [Parameter] public PlatformEditModel Model { get; set; } = new();
+
+    private bool _saving;
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        try
+        {
+            if (PlatformId is { } id) await Sender.Send(new UpdatePlatformCommand(id, Model));
+            else await Sender.Send(new CreatePlatformCommand(Model));
+            Dialog.Close(DialogResult.Ok(true));
+        }
+        catch (ValidationException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Warning);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

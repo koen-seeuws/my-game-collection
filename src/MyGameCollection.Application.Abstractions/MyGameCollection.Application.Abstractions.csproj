@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyGameCollection.Domain\MyGameCollection.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Only the request/handler marker interfaces (Apache-2.0, no dependencies); the MediatR runtime lives in Application. -->
+    <PackageReference Include="MediatR.Contracts" Version="2.0.1" />
+  </ItemGroup>
+
+</Project>

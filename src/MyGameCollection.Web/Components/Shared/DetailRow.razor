@@ -1,0 +1,10 @@
+@if (!string.IsNullOrWhiteSpace(Value))
+{
+    <dt>@Label</dt>
+    <dd>@Value</dd>
+}
+
+@code {
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public string? Value { get; set; }
+}

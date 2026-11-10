@@ -1,0 +1,21 @@
+<MudCard Class="item-card" Elevation="0" Outlined="true" @onclick="Open">
+    <ItemThumbnail PhotoId="Item.PrimaryPhotoId" CoverUrl="Item.CoverImageUrl" Type="Item.Type" Alt="@Item.Title" Class="item-card-thumb" />
+    <MudCardContent Class="pa-3">
+        <MudText Typo="Typo.subtitle2" Class="item-card-title" title="@Item.Title">@Item.Title</MudText>
+        <MudText Typo="Typo.caption" Color="Color.Secondary">@Item.PlatformName · @Item.Region.ToLabel()</MudText>
+        <div class="d-flex flex-wrap gap-1 mt-2">
+            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Icon="@Item.Type.ToIcon()">@Labels.Completeness(Item.HasBox, Item.HasManual, Item.IsSealed)</MudChip>
+            @if (Item.Status != ItemStatus.Owned)
+            {
+                <MudChip T="string" Size="Size.Small" Color="Item.Status.ToColor()">@Item.Status.ToLabel()</MudChip>
+            }
+        </div>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter, EditorRequired] public ItemListDto Item { get; set; } = default!;
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+
+    private void Open() => Nav.NavigateTo($"/items/{Item.Id}");
+}

@@ -1,0 +1,49 @@
+@inherits LayoutComponentBase
+@inject ThemeState ThemeState
+@inject NavigationManager Nav
+
+<MudThemeProvider Theme="AppTheme.Theme" @bind-IsDarkMode="ThemeState.IsDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="0" Class="app-bar">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="() => _drawerOpen = !_drawerOpen" aria-label="Menu" />
+        <a href="/" class="brand">
+            <MudIcon Icon="@Icons.Material.Filled.SportsEsports" Class="mr-2" />
+            <span class="brand-text">GAME VAULT</span>
+        </a>
+        <MudSpacer />
+        <MudTooltip Text="Scan a barcode">
+            <MudIconButton Icon="@Icons.Material.Filled.QrCodeScanner" Color="Color.Inherit" Href="/items/new?scan=true" aria-label="Scan barcode" />
+        </MudTooltip>
+        <MudTooltip Text="Add item">
+            <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Inherit" Href="/items/new" aria-label="Add item" />
+        </MudTooltip>
+        <MudTooltip Text="@(ThemeState.IsDarkMode ? "Light mode" : "Dark mode")">
+            <MudIconButton Icon="@(ThemeState.IsDarkMode ? Icons.Material.Outlined.LightMode : Icons.Material.Outlined.DarkMode)"
+                           Color="Color.Inherit" OnClick="() => ThemeState.IsDarkMode = !ThemeState.IsDarkMode" aria-label="Toggle theme" />
+        </MudTooltip>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="0" Variant="DrawerVariant.Responsive">
+        <NavMenu />
+    </MudDrawer>
+
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-4 py-sm-6">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+    private bool _drawerOpen = true;
+}

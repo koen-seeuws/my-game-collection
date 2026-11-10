@@ -1,0 +1,374 @@
+@page "/items/new"
+@page "/items/{Id:guid}/edit"
+@inject ISender Sender
+@inject IDialogService Dialogs
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+
+<PageTitle>@(IsNew ? "Add item" : "Edit item") · Game Vault</PageTitle>
+
+<div class="d-flex align-center gap-2 mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Href="@(IsNew ? "/collection" : $"/items/{Id}")" aria-label="Back" />
+    <MudText Typo="Typo.h4" Class="page-title">@(IsNew ? $"Add {_model.Type.ToLabel().ToLower()}" : $"Edit {_model.Title}")</MudText>
+</div>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <MudGrid Spacing="3">
+        <MudItem xs="12" md="8">
+            @* --- Barcode lookup --- *@
+            <MudPaper Outlined="true" Class="pa-4 mb-3">
+                <div class="d-flex align-center gap-2 mb-2">
+                    <MudIcon Icon="@Icons.Material.Filled.QrCode2" Color="Color.Primary" />
+                    <MudText Typo="Typo.h6">Barcode</MudText>
+                </div>
+                <div class="d-flex flex-wrap gap-2 align-start">
+                    <MudTextField @bind-Value="_model.Barcode" Label="EAN / UPC" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  InputMode="InputMode.numeric" Class="flex-grow-1" Style="min-width: 200px" OnKeyUp="OnBarcodeKeyUp" Immediate="true" />
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.QrCodeScanner" OnClick="ScanAsync" Class="mt-1">Scan</MudButton>
+                    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Search" OnClick="() => LookupAsync(_model.Barcode)"
+                               Disabled="string.IsNullOrWhiteSpace(_model.Barcode) || _lookingUp" Class="mt-1">Look up</MudButton>
+                </div>
+
+                @if (_lookingUp)
+                {
+                    <MudProgressLinear Indeterminate="true" Color="Color.Secondary" Class="mt-3" />
+                }
+                @if (_lookup is not null)
+                {
+                    @if (_lookup.Found)
+                    {
+                        <MudAlert Severity="Severity.Success" Dense="true" Class="mt-3">
+                            Prefilled from <b>@_lookup.Source</b>@(string.IsNullOrEmpty(_lookup.RawTitle) || _lookup.RawTitle == _lookup.Title ? "" : $" (\"{_lookup.RawTitle}\")"). Check the details below.
+                        </MudAlert>
+                        @if (_lookup.PlatformId is null)
+                        {
+                            <MudAlert Severity="Severity.Info" Dense="true" Class="mt-2">Couldn't tell the platform from the barcode data — please pick it.</MudAlert>
+                        }
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-3">
+                            No product found for <b>@_lookup.Barcode</b>. Older games often aren't in the free databases — fill it in by hand@(_metadataSearchEnabled ? " or use \"Find details by title\"" : "").
+                        </MudAlert>
+                    }
+                    @if (_lookup.ExistingItems.Count > 0 && IsNew)
+                    {
+                        <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-2" Icon="@Icons.Material.Filled.ContentCopy">
+                            You already have @_lookup.ExistingItems.Count item@(_lookup.ExistingItems.Count == 1 ? "" : "s") with this barcode:
+                            @foreach (var existing in _lookup.ExistingItems)
+                            {
+                                <MudLink Href="@($"/items/{existing.Id}")" Class="ml-1">@existing.Title (@existing.Status.ToLabel())</MudLink>
+                            }
+                        </MudAlert>
+                    }
+                }
+            </MudPaper>
+
+            @* --- Main form --- *@
+            <EditForm Model="_model" OnValidSubmit="SaveAsync" Context="editContext">
+                <DataAnnotationsValidator />
+                <MudPaper Outlined="true" Class="pa-4">
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12">
+                            <MudToggleGroup T="ItemType" @bind-Value="_model.Type" Color="Color.Primary" Outlined="true" Disabled="!IsNew" Class="type-toggle">
+                                <MudToggleItem Value="ItemType.Game"><MudIcon Icon="@Icons.Material.Filled.SportsEsports" Size="Size.Small" Class="mr-1" /> Game</MudToggleItem>
+                                <MudToggleItem Value="ItemType.Console"><MudIcon Icon="@Icons.Material.Filled.VideogameAsset" Size="Size.Small" Class="mr-1" /> Console</MudToggleItem>
+                            </MudToggleGroup>
+                        </MudItem>
+
+                        <MudItem xs="12" sm="8">
+                            <MudTextField @bind-Value="_model.Title" For="() => _model.Title" Label="Title" Variant="Variant.Outlined" Required="true"
+                                          Placeholder="@(_model.Type == ItemType.Game ? "e.g. The Legend of Zelda: A Link to the Past" : "e.g. Super Nintendo (SNSP-001A)")" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudSelect T="Guid?" @bind-Value="_model.PlatformId" For="() => _model.PlatformId" Label="Platform" Variant="Variant.Outlined"
+                                       ToStringFunc="PlatformName" MaxHeight="420" Required="true">
+                                @foreach (var group in _platforms.GroupBy(p => p.Manufacturer))
+                                {
+                                    <MudListSubheader>@group.Key</MudListSubheader>
+                                    @foreach (var p in group)
+                                    {
+                                        <MudSelectItem T="Guid?" Value="p.Id">@p.Name</MudSelectItem>
+                                    }
+                                }
+                            </MudSelect>
+                        </MudItem>
+
+                        @if (_model.Type == ItemType.Game && _metadataSearchEnabled)
+                        {
+                            <MudItem xs="12" Class="pt-0">
+                                <MudButton Variant="Variant.Text" Size="Size.Small" StartIcon="@Icons.Material.Filled.AutoAwesome" OnClick="SearchByTitleAsync"
+                                           Disabled="string.IsNullOrWhiteSpace(_model.Title) || _lookingUp">Find details by title</MudButton>
+                            </MudItem>
+                        }
+
+                        <MudItem xs="6" sm="4">
+                            <MudSelect T="Region" @bind-Value="_model.Region" Label="Region" Variant="Variant.Outlined" ToStringFunc="r => r.ToLabel()">
+                                @foreach (var r in Enum.GetValues<Region>())
+                                {
+                                    <MudSelectItem Value="r">@r.ToLabel()</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="6" sm="4">
+                            <MudSelect T="ItemCondition" @bind-Value="_model.Condition" Label="Condition" Variant="Variant.Outlined" ToStringFunc="c => c.ToLabel()">
+                                @foreach (var c in Enum.GetValues<ItemCondition>())
+                                {
+                                    <MudSelectItem Value="c">@c.ToLabel()</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudSelect T="ItemStatus" @bind-Value="_model.Status" Label="Status" Variant="Variant.Outlined" ToStringFunc="s => s.ToLabel()">
+                                @foreach (var s in Enum.GetValues<ItemStatus>())
+                                {
+                                    <MudSelectItem Value="s">@s.ToLabel()</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+
+                        <MudItem xs="12" Class="d-flex flex-wrap gap-4">
+                            <MudCheckBox T="bool" @bind-Value="_model.HasBox" Label="Box" Color="Color.Primary" />
+                            <MudCheckBox T="bool" @bind-Value="_model.HasManual" Label="Manual" Color="Color.Primary" />
+                            <MudCheckBox T="bool" @bind-Value="_model.IsSealed" Label="Sealed" Color="Color.Primary" />
+                        </MudItem>
+
+                        @if (_model.Type == ItemType.Game)
+                        {
+                            <MudItem xs="12" sm="6"><MudTextField @bind-Value="_model.Publisher" For="() => _model.Publisher" Label="Publisher" Variant="Variant.Outlined" /></MudItem>
+                            <MudItem xs="12" sm="6"><MudTextField @bind-Value="_model.Developer" For="() => _model.Developer" Label="Developer" Variant="Variant.Outlined" /></MudItem>
+                            <MudItem xs="8" sm="8"><MudTextField @bind-Value="_model.Genre" For="() => _model.Genre" Label="Genre" Variant="Variant.Outlined" /></MudItem>
+                            <MudItem xs="4" sm="4"><MudNumericField T="int?" @bind-Value="_model.ReleaseYear" For="() => _model.ReleaseYear" Label="Year" Variant="Variant.Outlined" HideSpinButtons="true" /></MudItem>
+                        }
+                        else
+                        {
+                            <MudItem xs="12" sm="4"><MudTextField @bind-Value="_model.Model" For="() => _model.Model" Label="Model / revision" Placeholder="e.g. SCPH-1002" Variant="Variant.Outlined" /></MudItem>
+                            <MudItem xs="12" sm="4"><MudTextField @bind-Value="_model.SerialNumber" For="() => _model.SerialNumber" Label="Serial number" Variant="Variant.Outlined" /></MudItem>
+                            <MudItem xs="12" sm="4"><MudTextField @bind-Value="_model.Edition" For="() => _model.Edition" Label="Colour / edition" Variant="Variant.Outlined" /></MudItem>
+                        }
+
+                        <MudItem xs="12"><MudDivider Class="my-1" /></MudItem>
+
+                        <MudItem xs="6" sm="4">
+                            <MudNumericField T="decimal?" @bind-Value="_model.PurchasePrice" For="() => _model.PurchasePrice" Label="Price paid" Variant="Variant.Outlined"
+                                             Adornment="Adornment.Start" AdornmentText="€" HideSpinButtons="true" Min="0" />
+                        </MudItem>
+                        <MudItem xs="6" sm="4">
+                            <MudDatePicker @bind-Date="_model.PurchaseDate" Label="Purchase date" Variant="Variant.Outlined" Editable="true" Clearable="true" DateFormat="dd/MM/yyyy" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField T="decimal?" @bind-Value="_model.EstimatedValue" For="() => _model.EstimatedValue" Label="Estimated value" Variant="Variant.Outlined"
+                                             Adornment="Adornment.Start" AdornmentText="€" HideSpinButtons="true" Min="0" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_model.StorageLocation" For="() => _model.StorageLocation" Label="Storage location" Placeholder="e.g. Shelf B, box 3" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_model.CoverImageUrl" For="() => _model.CoverImageUrl" Label="Cover image URL" Variant="Variant.Outlined" Clearable="true" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudTextField @bind-Value="_model.Notes" For="() => _model.Notes" Label="Notes" Variant="Variant.Outlined" Lines="3" Sizing="InputSizing.Auto" MaxLines="10" />
+                        </MudItem>
+
+                        <MudItem xs="12" Class="d-flex justify-end gap-2">
+                            <MudButton Variant="Variant.Text" Href="@(IsNew ? "/collection" : $"/items/{Id}")">Cancel</MudButton>
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving"
+                                       StartIcon="@Icons.Material.Filled.Save">
+                                @(_saving ? "Saving…" : IsNew ? "Save & add photos" : "Save")
+                            </MudButton>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </EditForm>
+        </MudItem>
+
+        <MudItem xs="12" md="4">
+            <MudPaper Outlined="true" Class="pa-4 preview-card">
+                <MudText Typo="Typo.overline" Color="Color.Secondary">Preview</MudText>
+                <ItemThumbnail CoverUrl="@_model.CoverImageUrl" Type="_model.Type" Class="preview-thumb mt-2" Alt="Cover" />
+                <MudText Typo="Typo.h6" Class="mt-3">@(string.IsNullOrWhiteSpace(_model.Title) ? "Untitled" : _model.Title)</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    @PlatformName(_model.PlatformId) · @_model.Region.ToLabel() · @Labels.Completeness(_model.HasBox, _model.HasManual, _model.IsSealed)
+                </MudText>
+                @if (IsNew)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block mt-3">You can upload your own photos right after saving.</MudText>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+    [SupplyParameterFromQuery(Name = "type")] public string? TypeQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "barcode")] public string? BarcodeQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "scan")] public bool Scan { get; set; }
+
+    private bool IsNew => Id is null;
+    private ItemEditModel _model = new();
+    private IReadOnlyList<PlatformDto> _platforms = [];
+    private BarcodeLookupResult? _lookup;
+    private bool _loading = true;
+    private bool _lookingUp;
+    private bool _saving;
+    private bool _autoScanDone;
+    private bool _metadataSearchEnabled;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _platforms = await Sender.Send(new GetPlatformsQuery());
+        _metadataSearchEnabled = (await Sender.Send(new GetLookupCapabilitiesQuery())).MetadataSearchEnabled;
+        _lookup = null;
+
+        if (Id is { } id)
+        {
+            try
+            {
+                _model = await Sender.Send(new GetItemForEditQuery(id));
+            }
+            catch (NotFoundException)
+            {
+                Nav.NavigateTo("/not-found");
+                return;
+            }
+        }
+        else
+        {
+            _model = new ItemEditModel
+            {
+                Type = string.Equals(TypeQuery, "console", StringComparison.OrdinalIgnoreCase) ? ItemType.Console : ItemType.Game
+            };
+            _autoScanDone = false;
+        }
+        _loading = false;
+
+        if (IsNew && !string.IsNullOrWhiteSpace(BarcodeQuery))
+            await LookupAsync(BarcodeQuery);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (IsNew && Scan && !_autoScanDone && !_loading)
+        {
+            _autoScanDone = true;
+            await ScanAsync();
+        }
+    }
+
+    private async Task ScanAsync()
+    {
+        var dialog = await Dialogs.ShowAsync<BarcodeScannerDialog>(string.Empty, new DialogOptions
+        {
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true,
+            CloseButton = true,
+            CloseOnEscapeKey = true
+        });
+        var result = await dialog.Result;
+        if (result is { Canceled: false, Data: string code })
+            await LookupAsync(code);
+    }
+
+    private async Task OnBarcodeKeyUp(KeyboardEventArgs e)
+    {
+        // Bluetooth / USB barcode scanners "type" the code and finish with Enter.
+        if (e.Key == "Enter") await LookupAsync(_model.Barcode);
+    }
+
+    private async Task LookupAsync(string? barcode)
+    {
+        if (string.IsNullOrWhiteSpace(barcode)) return;
+        _lookingUp = true;
+        StateHasChanged();
+        try
+        {
+            _lookup = await Sender.Send(new LookupBarcodeQuery(barcode));
+            if (IsNew)
+            {
+                _lookup.ApplyTo(_model);
+            }
+            else
+            {
+                _model.Barcode = _lookup.Barcode; // when editing, only take the barcode itself
+            }
+        }
+        catch (ValidationException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Warning);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("The barcode lookup failed. Check the server's internet connection.", Severity.Error);
+        }
+        finally
+        {
+            _lookingUp = false;
+        }
+    }
+
+    private async Task SearchByTitleAsync()
+    {
+        _lookingUp = true;
+        try
+        {
+            var result = await Sender.Send(new SearchGameByTitleQuery(_model.Title, _model.PlatformId));
+            if (result is null)
+            {
+                Snackbar.Add("No match found for that title.", Severity.Info);
+                return;
+            }
+            _model.Title = result.Title ?? _model.Title;
+            _model.Publisher ??= result.Publisher;
+            _model.Developer ??= result.Developer;
+            _model.Genre ??= result.Genre;
+            _model.ReleaseYear ??= result.ReleaseYear;
+            _model.CoverImageUrl ??= result.CoverImageUrl;
+            Snackbar.Add($"Details added from {result.Source}.", Severity.Success);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Searching game details failed.", Severity.Error);
+        }
+        finally
+        {
+            _lookingUp = false;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        try
+        {
+            if (Id is { } id)
+            {
+                await Sender.Send(new UpdateItemCommand(id, _model));
+                Snackbar.Add("Saved.", Severity.Success);
+                Nav.NavigateTo($"/items/{id}");
+            }
+            else
+            {
+                var newId = await Sender.Send(new CreateItemCommand(_model));
+                Snackbar.Add($"{_model.Title} added to your vault.", Severity.Success);
+                Nav.NavigateTo($"/items/{newId}?photos=true");
+            }
+        }
+        catch (ValidationException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Warning);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private string PlatformName(Guid? id) => _platforms.FirstOrDefault(p => p.Id == id)?.Name ?? "No platform";
+}
