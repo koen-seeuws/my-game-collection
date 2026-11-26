@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/MyGameCollection/" />
+  <Folder Name="/MyGameCollection/1. Core/">
+    <Project Path="Core/MyGameCollection.Core.Domain.Abstractions/MyGameCollection.Core.Domain.Abstractions.csproj" />
+    <Project Path="Core/MyGameCollection.Core.Domain/MyGameCollection.Core.Domain.csproj" />
+  </Folder>
+  <Folder Name="/MyGameCollection/2. Application/">
+    <Project Path="Application/MyGameCollection.Application.Abstractions/MyGameCollection.Application.Abstractions.csproj" />
+    <Project Path="Application/MyGameCollection.Application.Business/MyGameCollection.Application.Business.csproj" />
+  </Folder>
+  <Folder Name="/MyGameCollection/3. Infrastructure/">
+    <Project Path="Infrastructure/MyGameCollection.Infrastructure.EFC/MyGameCollection.Infrastructure.EFC.csproj" />
+  </Folder>
+  <Folder Name="/MyGameCollection/4. Presentation/">
+    <Project Path="Presentation/MyGameCollection.Presentation.BlazorServer/MyGameCollection.Presentation.BlazorServer.csproj" />
+  </Folder>
+  <Folder Name="/MyGameCollection/5. Tests/">
+    <Project Path="Tests/MyGameCollection.Tests.UnitTests/MyGameCollection.Tests.UnitTests.csproj" />
+  </Folder>
+</Solution>

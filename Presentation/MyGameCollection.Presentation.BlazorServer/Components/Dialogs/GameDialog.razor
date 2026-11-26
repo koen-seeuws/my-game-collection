@@ -1,0 +1,75 @@
+@using System.Globalization
+<EditForm Model="Model" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <MudDialog>
+        <DialogContent>
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="7">
+                    <MudTextField @bind-Value="Model.Title" For="() => Model.Title" Label="Title"
+                                  Variant="Variant.Outlined" MaxLength="200" AutoFocus="true" Immediate="true" />
+                </MudItem>
+                <MudItem xs="12" sm="5">
+                    <MudAutocomplete T="string" @bind-Value="Model.Platform" For="() => Model.Platform" Label="Platform"
+                                     Variant="Variant.Outlined" SearchFunc="SearchPlatformsAsync" MaxItems="null"
+                                     CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true"
+                                     HelperText="Use the same name as the console" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <EnumSelect TEnum="CollectionStatus" @bind-Value="Model.Status" Label="Status" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <EnumSelect TEnum="Region" @bind-Value="Model.Region" Label="Region" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <EnumSelect TEnum="Completeness" @bind-Value="Model.Completeness" Label="Completeness" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <EnumSelect TEnum="ItemCondition" @bind-Value="Model.Condition" Label="Condition" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudNumericField T="int?" @bind-Value="Model.ReleaseYear" For="() => Model.ReleaseYear"
+                                     Label="Release year" Variant="Variant.Outlined" HideSpinButtons="true" />
+                </MudItem>
+                @if (Model.Status == CollectionStatus.Owned)
+                {
+                    <MudItem xs="12" sm="4">
+                        <MudDatePicker @bind-Date="Model.PurchaseDate" Label="Purchase date" Variant="Variant.Outlined"
+                                       Clearable="true" MaxDate="DateTime.Today" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudNumericField T="decimal?" @bind-Value="Model.PurchasePrice" For="() => Model.PurchasePrice"
+                                         Label="Price paid" Variant="Variant.Outlined" HideSpinButtons="true" Min="0"
+                                         Adornment="Adornment.Start" AdornmentText="@CurrencySymbol" />
+                    </MudItem>
+                }
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="Model.Notes" For="() => Model.Notes" Label="Notes" Variant="Variant.Outlined"
+                                  Lines="3" MaxLength="2000" />
+                </MudItem>
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public GameFormModel Model { get; set; } = new();
+
+    /// <summary>Platforms already used in the collection, suggested before the well-known ones.</summary>
+    [Parameter]
+    public IEnumerable<string> Platforms { get; set; } = [];
+
+    private static string CurrencySymbol => CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol;
+
+    private Task<IEnumerable<string>> SearchPlatformsAsync(string? search, CancellationToken _) =>
+        Task.FromResult(KnownPlatforms.Suggest(Platforms, KnownPlatforms.All.Select(p => p.Name), search));
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(Model));
+}

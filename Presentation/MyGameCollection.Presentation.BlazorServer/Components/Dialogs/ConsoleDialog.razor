@@ -1,0 +1,92 @@
+@using System.Globalization
+<EditForm Model="Model" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <MudDialog>
+        <DialogContent>
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="6">
+                    <MudAutocomplete T="string" Value="Model.Name" ValueChanged="OnNameChanged" For="() => Model.Name"
+                                     Label="System" Variant="Variant.Outlined" SearchFunc="SearchNamesAsync" MaxItems="null"
+                                     CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true" AutoFocus="true"
+                                     HelperText="Games use this name as their platform" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudAutocomplete T="string" @bind-Value="Model.Manufacturer" For="() => Model.Manufacturer"
+                                     Label="Manufacturer" Variant="Variant.Outlined" SearchFunc="SearchManufacturersAsync"
+                                     MaxItems="null" CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="Model.Model" For="() => Model.Model" Label="Model / revision"
+                                  Variant="Variant.Outlined" MaxLength="100" Placeholder="e.g. SCPH-1002, Slim" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <EnumSelect TEnum="CollectionStatus" @bind-Value="Model.Status" Label="Status" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <EnumSelect TEnum="Region" @bind-Value="Model.Region" Label="Region" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <EnumSelect TEnum="Completeness" @bind-Value="Model.Completeness" Label="Completeness" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <EnumSelect TEnum="ItemCondition" @bind-Value="Model.Condition" Label="Condition" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudNumericField T="int?" @bind-Value="Model.ReleaseYear" For="() => Model.ReleaseYear"
+                                     Label="Release year" Variant="Variant.Outlined" HideSpinButtons="true" />
+                </MudItem>
+                @if (Model.Status == CollectionStatus.Owned)
+                {
+                    <MudItem xs="12" sm="4">
+                        <MudDatePicker @bind-Date="Model.PurchaseDate" Label="Purchase date" Variant="Variant.Outlined"
+                                       Clearable="true" MaxDate="DateTime.Today" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudNumericField T="decimal?" @bind-Value="Model.PurchasePrice" For="() => Model.PurchasePrice"
+                                         Label="Price paid" Variant="Variant.Outlined" HideSpinButtons="true" Min="0"
+                                         Adornment="Adornment.Start" AdornmentText="@CurrencySymbol" />
+                    </MudItem>
+                }
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="Model.Notes" For="() => Model.Notes" Label="Notes" Variant="Variant.Outlined"
+                                  Lines="3" MaxLength="2000" />
+                </MudItem>
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public ConsoleFormModel Model { get; set; } = new();
+
+    /// <summary>Platforms already used in the collection, suggested before the well-known ones.</summary>
+    [Parameter]
+    public IEnumerable<string> Platforms { get; set; } = [];
+
+    private static string CurrencySymbol => CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol;
+
+    private Task<IEnumerable<string>> SearchNamesAsync(string? search, CancellationToken _) =>
+        Task.FromResult(KnownPlatforms.Suggest(Platforms, KnownPlatforms.All.Select(p => p.Name), search));
+
+    private Task<IEnumerable<string>> SearchManufacturersAsync(string? search, CancellationToken _) =>
+        Task.FromResult(KnownPlatforms.Suggest([], KnownPlatforms.Manufacturers, search));
+
+    private void OnNameChanged(string? name)
+    {
+        Model.Name = name ?? string.Empty;
+
+        // Picking a well-known system fills in its manufacturer.
+        if (string.IsNullOrWhiteSpace(Model.Manufacturer) && KnownPlatforms.ManufacturerOf(Model.Name) is { } manufacturer)
+            Model.Manufacturer = manufacturer;
+    }
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(Model));
+}

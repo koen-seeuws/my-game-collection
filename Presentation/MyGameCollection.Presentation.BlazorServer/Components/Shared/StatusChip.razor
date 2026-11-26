@@ -1,0 +1,10 @@
+<MudChip T="string" Size="Size.Small" Variant="Variant.Text"
+         Color="@(Status == CollectionStatus.Owned ? Color.Success : Color.Warning)"
+         Icon="@(Status == CollectionStatus.Owned ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Favorite)">
+    @Status.ToDisplayName()
+</MudChip>
+
+@code {
+    [Parameter, EditorRequired]
+    public CollectionStatus Status { get; set; }
+}

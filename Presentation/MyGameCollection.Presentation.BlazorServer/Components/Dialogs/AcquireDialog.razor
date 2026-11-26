@@ -1,0 +1,33 @@
+@using System.Globalization
+<EditForm Model="_model" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <MudDialog>
+        <DialogContent>
+            <MudText Class="mb-4">Nice find! When did you get <strong>@ItemName</strong>, and what did you pay?</MudText>
+            <MudStack Spacing="3">
+                <MudDatePicker @bind-Date="_model.PurchaseDate" For="() => _model.PurchaseDate" Label="Purchase date"
+                               Variant="Variant.Outlined" MaxDate="DateTime.Today" />
+                <MudNumericField T="decimal?" @bind-Value="_model.PurchasePrice" For="() => _model.PurchasePrice"
+                                 Label="Price paid" Variant="Variant.Outlined" HideSpinButtons="true" Min="0"
+                                 Adornment="Adornment.Start" AdornmentText="@CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol" />
+            </MudStack>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Success"
+                       StartIcon="@Icons.Material.Filled.AddTask">Add to collection</MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public string ItemName { get; set; } = string.Empty;
+
+    private readonly AcquireFormModel _model = new();
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(_model));
+}

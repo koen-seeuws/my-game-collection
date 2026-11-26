@@ -1,0 +1,98 @@
+@page "/wishlist"
+@inherits CollectionPageBase
+@using MyGameCollection.Application.Abstractions.Queries.GetMyConsoles
+@using MyGameCollection.Application.Abstractions.Queries.GetMyGames
+
+<PageTitle>Wishlist · My Game Collection</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Wishlist</MudText>
+
+@if (!CurrentUser.IsSignedIn)
+{
+    <SignInNotice />
+}
+else
+{
+    <MudText Typo="Typo.body2" Class="mb-4">
+        Everything you are still hunting for. Found one? Hit <MudIcon Icon="@Icons.Material.Filled.AddTask" Size="Size.Small" Color="Color.Success" Style="vertical-align: middle" />
+        to move it into your collection.
+    </MudText>
+
+    <MudGrid>
+        <MudItem xs="12" lg="7">
+            <MudDataGrid T="GameDto" Items="WishedGames" Loading="Loading" Hover="true" Dense="true" Elevation="1">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Games (@WishedGames.Count())</MudText>
+                    <MudSpacer />
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                               OnClick="() => AddGameAsync(CollectionStatus.Wishlist)">
+                        Wish for a game
+                    </MudButton>
+                </ToolBarContent>
+                <Columns>
+                    <PropertyColumn Property="g => g.Title" />
+                    <PropertyColumn Property="g => g.Platform" />
+                    <PropertyColumn Property="g => g.Region">
+                        <CellTemplate>@context.Item.Region.ToDisplayName()</CellTemplate>
+                    </PropertyColumn>
+                    <PropertyColumn Property="g => g.Completeness" Title="Wanted as">
+                        <CellTemplate>@context.Item.Completeness.ToDisplayName()</CellTemplate>
+                    </PropertyColumn>
+                    <TemplateColumn CellClass="d-flex justify-end" Sortable="false">
+                        <CellTemplate>
+                            <MudTooltip Text="Got it!">
+                                <MudIconButton Icon="@Icons.Material.Filled.AddTask" Size="Size.Small" Color="Color.Success"
+                                               aria-label="Got it" OnClick="() => AcquireGameAsync(context.Item)" />
+                            </MudTooltip>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" aria-label="Edit"
+                                           OnClick="() => EditGameAsync(context.Item)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                           aria-label="Delete" OnClick="() => DeleteGameAsync(context.Item)" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <NoRecordsContent>
+                    <MudText>No games on your wishlist.</MudText>
+                </NoRecordsContent>
+            </MudDataGrid>
+        </MudItem>
+        <MudItem xs="12" lg="5">
+            <MudDataGrid T="ConsoleDto" Items="WishedConsoles" Loading="Loading" Hover="true" Dense="true" Elevation="1">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Consoles (@WishedConsoles.Count())</MudText>
+                    <MudSpacer />
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                               OnClick="() => AddConsoleAsync(CollectionStatus.Wishlist)">
+                        Wish for a console
+                    </MudButton>
+                </ToolBarContent>
+                <Columns>
+                    <PropertyColumn Property="c => c.Name" Title="System" />
+                    <PropertyColumn Property="c => c.Region">
+                        <CellTemplate>@context.Item.Region.ToDisplayName()</CellTemplate>
+                    </PropertyColumn>
+                    <TemplateColumn CellClass="d-flex justify-end" Sortable="false">
+                        <CellTemplate>
+                            <MudTooltip Text="Got it!">
+                                <MudIconButton Icon="@Icons.Material.Filled.AddTask" Size="Size.Small" Color="Color.Success"
+                                               aria-label="Got it" OnClick="() => AcquireConsoleAsync(context.Item)" />
+                            </MudTooltip>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" aria-label="Edit"
+                                           OnClick="() => EditConsoleAsync(context.Item)" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                           aria-label="Delete" OnClick="() => DeleteConsoleAsync(context.Item)" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <NoRecordsContent>
+                    <MudText>No consoles on your wishlist.</MudText>
+                </NoRecordsContent>
+            </MudDataGrid>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    private IEnumerable<GameDto> WishedGames => Games.Where(g => g.Status == CollectionStatus.Wishlist);
+    private IEnumerable<ConsoleDto> WishedConsoles => Consoles.Where(c => c.Status == CollectionStatus.Wishlist);
+}
