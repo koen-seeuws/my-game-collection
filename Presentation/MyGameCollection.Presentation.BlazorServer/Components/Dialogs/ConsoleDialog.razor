@@ -1,13 +1,43 @@
 @using System.Globalization
-<EditForm Model="Model" OnValidSubmit="Submit">
-    <DataAnnotationsValidator />
-    <MudDialog>
-        <DialogContent>
+@using MyGameCollection.Application.Abstractions.Queries.LookupBarcode
+@using MyGameCollection.Application.Abstractions.Queries.SearchConsoleCatalog
+@inject IUseCaseDispatcher Dispatcher
+
+<MudDialog>
+    <DialogContent>
+        @if (ShowLookup)
+        {
+            <CatalogLookup TItem="CatalogConsoleDto" Label="Find the console on IGDB" SearchFunc="SearchCatalogAsync"
+                           ItemName="c => c.Name" OnSelected="ApplyCatalogConsole" OnBarcodeProduct="ApplyBarcodeProduct">
+                <ItemTemplate Context="console">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        @if (console.LogoUrl is not null)
+                        {
+                            <img src="@console.LogoUrl" alt="" class="catalog-cover" style="object-fit: contain" loading="lazy" />
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Outlined.SportsEsports" Class="catalog-cover" />
+                        }
+                        <div>
+                            <MudText Typo="Typo.body1">
+                                @console.Name @(console.ReleaseYear is { } year ? $"({year})" : "")
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @string.Join(" · ", new[] { console.Manufacturer, console.AlternativeName }.Where(t => !string.IsNullOrWhiteSpace(t)))
+                            </MudText>
+                        </div>
+                    </MudStack>
+                </ItemTemplate>
+            </CatalogLookup>
+        }
+        <EditForm id="@_formId" Model="Model" OnValidSubmit="Submit">
+            <DataAnnotationsValidator />
             <MudGrid Spacing="2">
                 <MudItem xs="12" sm="6">
                     <MudAutocomplete T="string" Value="Model.Name" ValueChanged="OnNameChanged" For="() => Model.Name"
                                      Label="System" Variant="Variant.Outlined" SearchFunc="SearchNamesAsync" MaxItems="null"
-                                     CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true" AutoFocus="true"
+                                     CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true" AutoFocus="!ShowLookup"
                                      HelperText="Games use this name as their platform" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
@@ -52,13 +82,13 @@
                                   Lines="3" MaxLength="2000" />
                 </MudItem>
             </MudGrid>
-        </DialogContent>
-        <DialogActions>
-            <MudButton OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
-            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
-        </DialogActions>
-    </MudDialog>
-</EditForm>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
+        <MudButton ButtonType="ButtonType.Submit" form="@_formId" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+    </DialogActions>
+</MudDialog>
 
 @code {
     [CascadingParameter]
@@ -71,7 +101,32 @@
     [Parameter]
     public IEnumerable<string> Platforms { get; set; } = [];
 
+    /// <summary>Offers looking the console up on IGDB or by barcode to prefill the form.</summary>
+    [Parameter]
+    public bool ShowLookup { get; set; }
+
+    private readonly string _formId = $"console-form-{Guid.NewGuid():N}";
+
     private static string CurrencySymbol => CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol;
+
+    private async Task<IReadOnlyList<CatalogConsoleDto>> SearchCatalogAsync(string search, CancellationToken ct) =>
+        await Dispatcher.QueryAsync(new SearchConsoleCatalogQuery { Search = search }, ct);
+
+    private void ApplyBarcodeProduct(BarcodeProductDto product)
+    {
+        if (product.Region is { } region)
+            Model.Region = region;
+
+        if (KnownPlatforms.DetectIn(product.ProductName, Platforms) is { } name)
+            OnNameChanged(name);
+    }
+
+    private void ApplyCatalogConsole(CatalogConsoleDto console)
+    {
+        Model.Name = KnownPlatforms.Match(Platforms, console.Name, console.Abbreviation, console.AlternativeName);
+        Model.Manufacturer = KnownPlatforms.ManufacturerOf(Model.Name) ?? console.Manufacturer ?? Model.Manufacturer;
+        Model.ReleaseYear = console.ReleaseYear ?? Model.ReleaseYear;
+    }
 
     private Task<IEnumerable<string>> SearchNamesAsync(string? search, CancellationToken _) =>
         Task.FromResult(KnownPlatforms.Suggest(Platforms, KnownPlatforms.All.Select(p => p.Name), search));

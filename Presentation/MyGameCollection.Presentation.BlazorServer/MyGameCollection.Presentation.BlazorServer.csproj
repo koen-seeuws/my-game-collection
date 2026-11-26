@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <UserSecretsId>7d3c1f0e-5b8a-4c2e-9f61-2a4d8e0b9c37</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Application\MyGameCollection.Application.Business\MyGameCollection.Application.Business.csproj" />
     <ProjectReference Include="..\..\Infrastructure\MyGameCollection.Infrastructure.EFC\MyGameCollection.Infrastructure.EFC.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\MyGameCollection.Infrastructure.GameCatalog\MyGameCollection.Infrastructure.GameCatalog.csproj" />
   </ItemGroup>
 
 </Project>

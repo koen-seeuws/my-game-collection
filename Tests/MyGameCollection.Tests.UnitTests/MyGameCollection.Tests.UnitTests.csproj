@@ -20,6 +20,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\MyGameCollection.Core.Domain\MyGameCollection.Core.Domain.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\MyGameCollection.Infrastructure.GameCatalog\MyGameCollection.Infrastructure.GameCatalog.csproj" />
+    <ProjectReference Include="..\..\Presentation\MyGameCollection.Presentation.BlazorServer\MyGameCollection.Presentation.BlazorServer.csproj" />
   </ItemGroup>
 
 </Project>

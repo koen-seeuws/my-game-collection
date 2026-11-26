@@ -9,6 +9,7 @@
   </Folder>
   <Folder Name="/3. Infrastructure/">
     <Project Path="Infrastructure/MyGameCollection.Infrastructure.EFC/MyGameCollection.Infrastructure.EFC.csproj" />
+    <Project Path="Infrastructure/MyGameCollection.Infrastructure.GameCatalog/MyGameCollection.Infrastructure.GameCatalog.csproj" />
   </Folder>
   <Folder Name="/4. Presentation/">
     <Project Path="Presentation/MyGameCollection.Presentation.BlazorServer/MyGameCollection.Presentation.BlazorServer.csproj" />
