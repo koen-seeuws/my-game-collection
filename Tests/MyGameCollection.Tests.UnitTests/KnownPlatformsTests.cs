@@ -9,6 +9,9 @@ public class KnownPlatformsTests
     [InlineData("Super Nintendo Entertainment System", "SNES", "Super Nintendo")]
     [InlineData("Nintendo GameCube", "NGC", "GameCube")]
     [InlineData("PlayStation 2", "PS2", "PlayStation 2")]
+    [InlineData("PlayStation 5", "PS5", "PlayStation 5")]
+    [InlineData("Nintendo Switch 2", "Switch 2", "Nintendo Switch 2")]
+    [InlineData("Xbox Series X|S", "Series X|S", "Xbox Series X|S")]
     [InlineData("Some Obscure Handheld", null, "Some Obscure Handheld")]
     public void Catalog_names_map_to_the_well_known_names(string name, string? abbreviation, string expected) =>
         Assert.Equal(expected, KnownPlatforms.Match([], name, abbreviation));

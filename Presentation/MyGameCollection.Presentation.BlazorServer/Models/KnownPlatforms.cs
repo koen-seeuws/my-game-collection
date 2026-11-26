@@ -1,6 +1,6 @@
 namespace MyGameCollection.Presentation.BlazorServer.Models;
 
-/// <summary>Well-known (retro) systems, offered as suggestions when entering games and consoles.</summary>
+/// <summary>Well-known systems, retro and current, offered as suggestions when entering games and consoles.</summary>
 public static class KnownPlatforms
 {
     /// <param name="Aliases">Other names for the system, such as IGDB's naming and common abbreviations.</param>
@@ -25,6 +25,7 @@ public static class KnownPlatforms
         new("Wii", "Nintendo", "Nintendo Wii"),
         new("Wii U", "Nintendo", "Nintendo Wii U", "WiiU"),
         new("Nintendo Switch", "Nintendo", "Switch"),
+        new("Nintendo Switch 2", "Nintendo", "Switch 2", "NS2"),
         new("Game Boy", "Nintendo", "GB"),
         new("Game Boy Color", "Nintendo", "Game Boy Colour", "GBC"),
         new("Game Boy Advance", "Nintendo", "GBA"),
@@ -43,10 +44,14 @@ public static class KnownPlatforms
         new("PlayStation 2", "Sony", "Sony PlayStation 2", "PS2"),
         new("PlayStation 3", "Sony", "Sony PlayStation 3", "PS3"),
         new("PlayStation 4", "Sony", "Sony PlayStation 4", "PS4"),
+        new("PlayStation 5", "Sony", "Sony PlayStation 5", "PS5"),
         new("PlayStation Portable", "Sony", "PSP"),
         new("PlayStation Vita", "Sony", "PS Vita", "PSVita", "Vita"),
         new("Xbox", "Microsoft", "Microsoft Xbox"),
         new("Xbox 360", "Microsoft", "Microsoft Xbox 360", "X360"),
+        new("Xbox One", "Microsoft", "Microsoft Xbox One", "XONE", "XB1"),
+        new("Xbox Series X|S", "Microsoft", "Microsoft Xbox Series X|S", "Xbox Series X", "Xbox Series S", "Series X|S",
+            "XSX"),
         new("Neo Geo AES", "SNK", "NeoGeo AES"),
         new("Neo Geo Pocket Color", "SNK", "Neo Geo Pocket Colour", "NGPC"),
         new("PC Engine", "NEC", "TurboGrafx-16/PC Engine", "TurboGrafx-16", "TurboGrafx", "TG16"),
