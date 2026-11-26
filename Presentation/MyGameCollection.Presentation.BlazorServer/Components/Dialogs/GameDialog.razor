@@ -1,5 +1,4 @@
 @using System.Globalization
-@using MyGameCollection.Application.Abstractions.Services.BarcodeLookup
 @using MyGameCollection.Application.Abstractions.Services.GameCatalog
 @inject IGameCatalogService GameCatalog
 
@@ -8,7 +7,7 @@
         @if (ShowLookup)
         {
             <CatalogLookup TItem="CatalogGameDto" Label="Find the game on IGDB" SearchFunc="SearchCatalogAsync"
-                           ItemName="g => g.Name" OnSelected="ApplyCatalogGame" OnBarcodeProduct="ApplyBarcodeProduct">
+                           ItemName="g => g.Name" OnSelected="ApplyCatalogGame">
                 <ItemTemplate Context="game">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                         @if (game.CoverUrl is not null)
@@ -109,7 +108,7 @@
     [Parameter]
     public IEnumerable<string> Platforms { get; set; } = [];
 
-    /// <summary>Offers looking the game up on IGDB or by barcode to prefill the form.</summary>
+    /// <summary>Offers looking the game up on IGDB to prefill the form.</summary>
     [Parameter]
     public bool ShowLookup { get; set; }
 
@@ -118,27 +117,10 @@
     /// <summary>The platforms the picked catalog game was released on, in this collection's naming.</summary>
     private IReadOnlyList<string> _catalogPlatforms = [];
 
-    /// <summary>The platform named on the scanned product, if any.</summary>
-    private string? _barcodePlatform;
-
     private static string CurrencySymbol => CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol;
 
     private Task<IReadOnlyList<CatalogGameDto>> SearchCatalogAsync(string search, CancellationToken ct) =>
         GameCatalog.SearchGamesAsync(search, ct);
-
-    private void ApplyBarcodeProduct(BarcodeProductDto product)
-    {
-        if (product.Region is { } region)
-            Model.Region = region;
-
-        _barcodePlatform = KnownPlatforms.DetectIn(product.ProductName, Platforms);
-        if (_barcodePlatform is not null)
-            Model.Platform = _barcodePlatform;
-
-        // Something to start from, in case the game cannot be found in the catalog.
-        if (string.IsNullOrWhiteSpace(Model.Title))
-            Model.Title = product.SearchTerm;
-    }
 
     private void ApplyCatalogGame(CatalogGameDto game)
     {
@@ -154,16 +136,13 @@
     }
 
     /// <summary>
-    /// The most likely platform of the picked game: the one on the scanned box, the only one it was released on,
-    /// the one already chosen, or the only one of its platforms in the collection. Otherwise the user picks.
+    /// The most likely platform of the picked game: the only one it was released on, the one already chosen, or the only one of its platforms in the collection. Otherwise the user picks.
     /// </summary>
     private string? ChoosePlatform()
     {
         bool Released(string? platform) =>
             platform is not null && _catalogPlatforms.Contains(platform, StringComparer.OrdinalIgnoreCase);
 
-        if (Released(_barcodePlatform))
-            return _catalogPlatforms.First(p => p.Equals(_barcodePlatform, StringComparison.OrdinalIgnoreCase));
         if (_catalogPlatforms.Count == 1)
             return _catalogPlatforms[0];
         if (Released(Model.Platform))

@@ -1,5 +1,4 @@
 @using System.Globalization
-@using MyGameCollection.Application.Abstractions.Services.BarcodeLookup
 @using MyGameCollection.Application.Abstractions.Services.GameCatalog
 @inject IGameCatalogService GameCatalog
 
@@ -8,7 +7,7 @@
         @if (ShowLookup)
         {
             <CatalogLookup TItem="CatalogConsoleDto" Label="Find the console on IGDB" SearchFunc="SearchCatalogAsync"
-                           ItemName="c => c.Name" OnSelected="ApplyCatalogConsole" OnBarcodeProduct="ApplyBarcodeProduct">
+                           ItemName="c => c.Name" OnSelected="ApplyCatalogConsole">
                 <ItemTemplate Context="console">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                         @if (console.LogoUrl is not null)
@@ -101,7 +100,7 @@
     [Parameter]
     public IEnumerable<string> Platforms { get; set; } = [];
 
-    /// <summary>Offers looking the console up on IGDB or by barcode to prefill the form.</summary>
+    /// <summary>Offers looking the console up on IGDB to prefill the form.</summary>
     [Parameter]
     public bool ShowLookup { get; set; }
 
@@ -111,15 +110,6 @@
 
     private Task<IReadOnlyList<CatalogConsoleDto>> SearchCatalogAsync(string search, CancellationToken ct) =>
         GameCatalog.SearchConsolesAsync(search, ct);
-
-    private void ApplyBarcodeProduct(BarcodeProductDto product)
-    {
-        if (product.Region is { } region)
-            Model.Region = region;
-
-        if (KnownPlatforms.DetectIn(product.ProductName, Platforms) is { } name)
-            OnNameChanged(name);
-    }
 
     private void ApplyCatalogConsole(CatalogConsoleDto console)
     {

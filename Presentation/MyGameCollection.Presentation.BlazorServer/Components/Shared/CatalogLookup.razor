@@ -1,9 +1,6 @@
 @typeparam TItem
 @using MyGameCollection.Application.Abstractions.Services
-@using MyGameCollection.Application.Abstractions.Services.BarcodeLookup
 @implements IDisposable
-@inject IBarcodeLookupService BarcodeLookup
-@inject IDialogService DialogService
 
 @* Lives outside the item form, so pressing Enter here searches instead of saving the form. *@
 <MudPaper Outlined="true" Class="pa-3 mb-4">
@@ -11,25 +8,15 @@
         <MudTextField T="string" @bind-Value="_text" Label="@Label" Variant="Variant.Outlined" Margin="Margin.Dense"
                       Immediate="true" AutoFocus="true" OnKeyDown="OnKeyDownAsync" Clearable="true"
                       Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ManageSearch"
-                      HelperText="A name, or a barcode (UPC/EAN). Handheld barcode scanners work here too."
                       Class="flex-grow-1" />
         <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="LookupAsync" Disabled="_busy" Class="mt-1">
             Search
         </MudButton>
-        <MudTooltip Text="Scan a barcode with the camera">
-            <MudIconButton Icon="@Icons.Material.Filled.QrCodeScanner" Color="Color.Primary" OnClick="ScanAsync"
-                           Disabled="_busy" aria-label="Scan barcode" Class="mt-1" />
-        </MudTooltip>
     </MudStack>
 
     @if (_busy)
     {
         <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-2" />
-    }
-
-    @if (_barcodeNote is not null)
-    {
-        <MudText Typo="Typo.caption" Class="mt-2 d-block">@_barcodeNote</MudText>
     }
 
     @if (_message is { } message)
@@ -65,16 +52,11 @@
     [Parameter]
     public EventCallback<TItem> OnSelected { get; set; }
 
-    /// <summary>Raised when a barcode was found, before the catalog is searched.</summary>
-    [Parameter]
-    public EventCallback<BarcodeProductDto> OnBarcodeProduct { get; set; }
-
     [Parameter]
     public string Label { get; set; } = "Look up on IGDB";
 
     private string? _text;
     private bool _busy;
-    private string? _barcodeNote;
     private (Severity Severity, string Text)? _message;
     private IReadOnlyList<TItem> _results = [];
     private CancellationTokenSource? _cts;
@@ -83,18 +65,6 @@
     {
         if (e.Key is "Enter" or "NumpadEnter")
             await LookupAsync();
-    }
-
-    private async Task ScanAsync()
-    {
-        var dialog = await DialogService.ShowAsync<BarcodeScannerDialog>("Scan barcode",
-            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
-
-        if (await dialog.Result is { Canceled: false, Data: string code })
-        {
-            _text = code;
-            await LookupAsync();
-        }
     }
 
     private async Task LookupAsync()
@@ -109,29 +79,13 @@
 
         _busy = true;
         _message = null;
-        _barcodeNote = null;
         _results = [];
 
         try
         {
-            var term = text;
-            if (LooksLikeBarcode(text))
-            {
-                var product = await BarcodeLookup.LookupAsync(text, ct);
-                if (product is null)
-                {
-                    _message = (Severity.Info, $"Barcode {text} is not in the barcode database. Search by name instead.");
-                    return;
-                }
-
-                _barcodeNote = $"Barcode {product.Barcode}: {product.ProductName}";
-                await OnBarcodeProduct.InvokeAsync(product);
-                _text = term = product.SearchTerm;
-            }
-
-            _results = await SearchFunc(term, ct);
+            _results = await SearchFunc(text, ct);
             if (_results.Count == 0)
-                _message = (Severity.Info, $"Nothing found for '{term}'. Adjust the search, or fill in the form yourself.");
+                _message = (Severity.Info, $"Nothing found for '{text}'. Adjust the search, or fill in the form yourself.");
         }
         catch (Exception ex) when (ex is CatalogUnavailableException or ArgumentException)
         {
@@ -156,13 +110,6 @@
         await OnSelected.InvokeAsync(item);
         _results = [];
         _message = (Severity.Success, $"Filled in from '{ItemName(item)}'. You can still change anything below.");
-    }
-
-    /// <summary>Barcodes are 8 (EAN-8/UPC-E), 12 (UPC-A) or 13 (EAN-13) digits.</summary>
-    private static bool LooksLikeBarcode(string text)
-    {
-        var digits = text.Replace(" ", "").Replace("-", "");
-        return digits.Length is 8 or 12 or 13 && digits.All(char.IsAsciiDigit);
     }
 
     public void Dispose()
