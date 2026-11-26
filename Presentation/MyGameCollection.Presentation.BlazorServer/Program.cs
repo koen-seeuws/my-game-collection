@@ -16,7 +16,7 @@ if (builder.Environment.IsDevelopment())
 }
 else
 {
-    builder.Services.AddSqlServerPersistenceServices(builder.Configuration);
+    builder.Services.AddPostgresPersistenceServices(builder.Configuration);
 }
 
 // Who is signed in, per circuit (browser tab).
