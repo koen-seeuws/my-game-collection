@@ -4,38 +4,35 @@
 
 <MudDialog>
     <DialogContent>
-        @if (ShowLookup)
-        {
-            <CatalogLookup TItem="CatalogGameDto" Label="Find the game on IGDB" SearchFunc="SearchCatalogAsync"
-                           ItemName="g => g.Name" OnSelected="ApplyCatalogGame">
-                <ItemTemplate Context="game">
-                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                        @if (game.CoverUrl is not null)
-                        {
-                            <img src="@game.CoverUrl" alt="" class="catalog-cover" loading="lazy" />
-                        }
-                        else
-                        {
-                            <MudIcon Icon="@Icons.Material.Outlined.VideogameAsset" Class="catalog-cover" />
-                        }
-                        <div>
-                            <MudText Typo="Typo.body1">
-                                @game.Name @(game.ReleaseYear is { } year ? $"({year})" : "")
-                            </MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                @string.Join(", ", game.Platforms.Select(p => p.Abbreviation ?? p.Name))
-                            </MudText>
-                        </div>
-                    </MudStack>
-                </ItemTemplate>
-            </CatalogLookup>
-        }
+        <CatalogLookup TItem="CatalogGameDto" Label="Find the game on IGDB" SearchFunc="SearchCatalogAsync"
+                       ItemName="g => g.Name" InitialSearch="@Model.Title" AutoFocus="string.IsNullOrEmpty(Model.Title)" OnSelected="ApplyCatalogGame">
+            <ItemTemplate Context="game">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    @if (game.CoverUrl is not null)
+                    {
+                        <img src="@game.CoverUrl" alt="" class="catalog-cover" loading="lazy" />
+                    }
+                    else
+                    {
+                        <MudIcon Icon="@Icons.Material.Outlined.VideogameAsset" Class="catalog-cover" />
+                    }
+                    <div>
+                        <MudText Typo="Typo.body1">
+                            @game.Name @(game.ReleaseYear is { } year ? $"({year})" : "")
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @string.Join(", ", game.Platforms.Select(p => p.Abbreviation ?? p.Name))
+                        </MudText>
+                    </div>
+                </MudStack>
+            </ItemTemplate>
+        </CatalogLookup>
         <EditForm id="@_formId" Model="Model" OnValidSubmit="Submit">
             <DataAnnotationsValidator />
             <MudGrid Spacing="2">
                 <MudItem xs="12" sm="7">
                     <MudTextField @bind-Value="Model.Title" For="() => Model.Title" Label="Title"
-                                  Variant="Variant.Outlined" MaxLength="200" AutoFocus="!ShowLookup" Immediate="true" />
+                                  Variant="Variant.Outlined" MaxLength="200" Immediate="true" />
                 </MudItem>
                 <MudItem xs="12" sm="5">
                     <MudAutocomplete T="string" @bind-Value="Model.Platform" For="() => Model.Platform" Label="Platform"
@@ -85,6 +82,15 @@
                     </MudItem>
                 }
                 <MudItem xs="12">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <ItemThumbnail Url="@Model.ThumbnailUrl" Icon="@Icons.Material.Outlined.VideogameAsset" Class="thumbnail-preview" />
+                        <MudTextField @bind-Value="Model.ThumbnailUrl" For="() => Model.ThumbnailUrl" Label="Thumbnail URL"
+                                      Variant="Variant.Outlined" MaxLength="500" Immediate="true" Clearable="true"
+                                      Placeholder="https://..." HelperText="Filled in from IGDB when available"
+                                      Class="flex-grow-1" />
+                    </MudStack>
+                </MudItem>
+                <MudItem xs="12">
                     <MudTextField @bind-Value="Model.Notes" For="() => Model.Notes" Label="Notes" Variant="Variant.Outlined"
                                   Lines="3" MaxLength="2000" />
                 </MudItem>
@@ -108,9 +114,6 @@
     [Parameter]
     public IEnumerable<string> Platforms { get; set; } = [];
 
-    /// <summary>Offers looking the game up on IGDB to prefill the form.</summary>
-    [Parameter]
-    public bool ShowLookup { get; set; }
 
     private readonly string _formId = $"game-form-{Guid.NewGuid():N}";
 
@@ -126,6 +129,7 @@
     {
         Model.Title = game.Name;
         Model.ReleaseYear = game.ReleaseYear ?? Model.ReleaseYear;
+        Model.ThumbnailUrl = game.ThumbnailUrl ?? Model.ThumbnailUrl;
 
         _catalogPlatforms = game.Platforms
             .Select(p => KnownPlatforms.Match(Platforms, p.Name, p.Abbreviation))

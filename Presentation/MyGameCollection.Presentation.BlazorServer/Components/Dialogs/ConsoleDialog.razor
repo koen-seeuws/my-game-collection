@@ -4,39 +4,36 @@
 
 <MudDialog>
     <DialogContent>
-        @if (ShowLookup)
-        {
-            <CatalogLookup TItem="CatalogConsoleDto" Label="Find the console on IGDB" SearchFunc="SearchCatalogAsync"
-                           ItemName="c => c.Name" OnSelected="ApplyCatalogConsole">
-                <ItemTemplate Context="console">
-                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                        @if (console.LogoUrl is not null)
-                        {
-                            <img src="@console.LogoUrl" alt="" class="catalog-cover" style="object-fit: contain" loading="lazy" />
-                        }
-                        else
-                        {
-                            <MudIcon Icon="@Icons.Material.Outlined.SportsEsports" Class="catalog-cover" />
-                        }
-                        <div>
-                            <MudText Typo="Typo.body1">
-                                @console.Name @(console.ReleaseYear is { } year ? $"({year})" : "")
-                            </MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                @string.Join(" · ", new[] { console.Manufacturer, console.AlternativeName }.Where(t => !string.IsNullOrWhiteSpace(t)))
-                            </MudText>
-                        </div>
-                    </MudStack>
-                </ItemTemplate>
-            </CatalogLookup>
-        }
+        <CatalogLookup TItem="CatalogConsoleDto" Label="Find the console on IGDB" SearchFunc="SearchCatalogAsync"
+                       ItemName="c => c.Name" InitialSearch="@Model.Name" AutoFocus="string.IsNullOrEmpty(Model.Name)" OnSelected="ApplyCatalogConsole">
+            <ItemTemplate Context="console">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    @if (console.LogoUrl is not null)
+                    {
+                        <img src="@console.LogoUrl" alt="" class="catalog-cover" style="object-fit: contain" loading="lazy" />
+                    }
+                    else
+                    {
+                        <MudIcon Icon="@Icons.Material.Outlined.SportsEsports" Class="catalog-cover" />
+                    }
+                    <div>
+                        <MudText Typo="Typo.body1">
+                            @console.Name @(console.ReleaseYear is { } year ? $"({year})" : "")
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @string.Join(" · ", new[] { console.Manufacturer, console.AlternativeName }.Where(t => !string.IsNullOrWhiteSpace(t)))
+                        </MudText>
+                    </div>
+                </MudStack>
+            </ItemTemplate>
+        </CatalogLookup>
         <EditForm id="@_formId" Model="Model" OnValidSubmit="Submit">
             <DataAnnotationsValidator />
             <MudGrid Spacing="2">
                 <MudItem xs="12" sm="6">
                     <MudAutocomplete T="string" Value="Model.Name" ValueChanged="OnNameChanged" For="() => Model.Name"
                                      Label="System" Variant="Variant.Outlined" SearchFunc="SearchNamesAsync" MaxItems="null"
-                                     CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true" AutoFocus="!ShowLookup"
+                                     CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true"
                                      HelperText="Games use this name as their platform" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
@@ -77,6 +74,15 @@
                     </MudItem>
                 }
                 <MudItem xs="12">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <ItemThumbnail Url="@Model.ThumbnailUrl" Icon="@Icons.Material.Outlined.SportsEsports" Class="thumbnail-preview logo" />
+                        <MudTextField @bind-Value="Model.ThumbnailUrl" For="() => Model.ThumbnailUrl" Label="Thumbnail URL"
+                                      Variant="Variant.Outlined" MaxLength="500" Immediate="true" Clearable="true"
+                                      Placeholder="https://..." HelperText="Filled in from IGDB when available"
+                                      Class="flex-grow-1" />
+                    </MudStack>
+                </MudItem>
+                <MudItem xs="12">
                     <MudTextField @bind-Value="Model.Notes" For="() => Model.Notes" Label="Notes" Variant="Variant.Outlined"
                                   Lines="3" MaxLength="2000" />
                 </MudItem>
@@ -100,9 +106,6 @@
     [Parameter]
     public IEnumerable<string> Platforms { get; set; } = [];
 
-    /// <summary>Offers looking the console up on IGDB to prefill the form.</summary>
-    [Parameter]
-    public bool ShowLookup { get; set; }
 
     private readonly string _formId = $"console-form-{Guid.NewGuid():N}";
 
@@ -116,6 +119,7 @@
         Model.Name = KnownPlatforms.Match(Platforms, console.Name, console.Abbreviation, console.AlternativeName);
         Model.Manufacturer = KnownPlatforms.ManufacturerOf(Model.Name) ?? console.Manufacturer ?? Model.Manufacturer;
         Model.ReleaseYear = console.ReleaseYear ?? Model.ReleaseYear;
+        Model.ThumbnailUrl = console.ThumbnailUrl ?? Model.ThumbnailUrl;
     }
 
     private Task<IEnumerable<string>> SearchNamesAsync(string? search, CancellationToken _) =>

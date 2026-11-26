@@ -35,7 +35,8 @@ public record GetMyConsolesQueryHandler : IQueryHandler<GetMyConsolesQuery, IEnu
                 ReleaseYear = console.ReleaseYear,
                 PurchaseDate = console.PurchaseDate,
                 PurchasePrice = console.PurchasePrice,
-                Notes = console.Notes
+                Notes = console.Notes,
+                ThumbnailUrl = console.ThumbnailUrl
             })
             .ToListAsync(ct);
     }

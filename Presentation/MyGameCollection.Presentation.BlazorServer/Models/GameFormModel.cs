@@ -30,6 +30,9 @@ public sealed class GameFormModel
     [StringLength(2000)]
     public string? Notes { get; set; }
 
+    [Url(ErrorMessage = "Enter a full http(s) URL."), StringLength(500)]
+    public string? ThumbnailUrl { get; set; }
+
     public static GameFormModel From(GameDto game) => new()
     {
         Title = game.Title,
@@ -41,7 +44,8 @@ public sealed class GameFormModel
         ReleaseYear = game.ReleaseYear,
         PurchaseDate = game.PurchaseDate?.ToDateTime(TimeOnly.MinValue),
         PurchasePrice = game.PurchasePrice,
-        Notes = game.Notes
+        Notes = game.Notes,
+        ThumbnailUrl = game.ThumbnailUrl
     };
 
     /// <summary>Wishlist items have not been bought yet, so their purchase details are left out.</summary>
@@ -56,6 +60,7 @@ public sealed class GameFormModel
         ReleaseYear = ReleaseYear,
         PurchaseDate = Status == CollectionStatus.Owned && PurchaseDate is { } date ? DateOnly.FromDateTime(date) : null,
         PurchasePrice = Status == CollectionStatus.Owned ? PurchasePrice : null,
-        Notes = Notes
+        Notes = Notes,
+        ThumbnailUrl = ThumbnailUrl
     };
 }

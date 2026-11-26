@@ -33,6 +33,9 @@ public sealed class ConsoleFormModel
     [StringLength(2000)]
     public string? Notes { get; set; }
 
+    [Url(ErrorMessage = "Enter a full http(s) URL."), StringLength(500)]
+    public string? ThumbnailUrl { get; set; }
+
     public static ConsoleFormModel From(ConsoleDto console) => new()
     {
         Name = console.Name,
@@ -45,7 +48,8 @@ public sealed class ConsoleFormModel
         ReleaseYear = console.ReleaseYear,
         PurchaseDate = console.PurchaseDate?.ToDateTime(TimeOnly.MinValue),
         PurchasePrice = console.PurchasePrice,
-        Notes = console.Notes
+        Notes = console.Notes,
+        ThumbnailUrl = console.ThumbnailUrl
     };
 
     /// <summary>Wishlist items have not been bought yet, so their purchase details are left out.</summary>
@@ -61,6 +65,7 @@ public sealed class ConsoleFormModel
         ReleaseYear = ReleaseYear,
         PurchaseDate = Status == CollectionStatus.Owned && PurchaseDate is { } date ? DateOnly.FromDateTime(date) : null,
         PurchasePrice = Status == CollectionStatus.Owned ? PurchasePrice : null,
-        Notes = Notes
+        Notes = Notes,
+        ThumbnailUrl = ThumbnailUrl
     };
 }

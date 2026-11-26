@@ -19,5 +19,6 @@ internal static class CollectionItemConfiguration
 
         builder.Property(i => i.PurchasePrice).HasPrecision(10, 2);
         builder.Property(i => i.Notes).HasMaxLength(2000);
+        builder.Property(i => i.ThumbnailUrl).HasMaxLength(500);
     }
 }

@@ -50,7 +50,8 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                     ReleaseYear = g.ReleaseYear,
                     PurchaseDate = g.PurchaseDate,
                     PurchasePrice = g.PurchasePrice,
-                    Notes = g.Notes
+                    Notes = g.Notes,
+                    ThumbnailUrl = g.ThumbnailUrl
                 }
             })
             .ToImmutableList(),
@@ -71,7 +72,8 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                     ReleaseYear = c.ReleaseYear,
                     PurchaseDate = c.PurchaseDate,
                     PurchasePrice = c.PurchasePrice,
-                    Notes = c.Notes
+                    Notes = c.Notes,
+                    ThumbnailUrl = c.ThumbnailUrl
                 }
             })
             .ToImmutableList()
@@ -87,7 +89,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.Title = d.Title;
                 row.Platform = d.Platform;
                 ApplyCommon(row, d.Region, d.Condition, d.Completeness, d.Status, d.ReleaseYear, d.PurchaseDate,
-                    d.PurchasePrice, d.Notes);
+                    d.PurchasePrice, d.Notes, d.ThumbnailUrl);
             });
 
         Synchronise(entity.Consoles, aggregate.Consoles, c => c.Key,
@@ -99,7 +101,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.Manufacturer = d.Manufacturer;
                 row.Model = d.Model;
                 ApplyCommon(row, d.Region, d.Condition, d.Completeness, d.Status, d.ReleaseYear, d.PurchaseDate,
-                    d.PurchasePrice, d.Notes);
+                    d.PurchasePrice, d.Notes, d.ThumbnailUrl);
             });
     }
 
@@ -136,7 +138,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
     private static void ApplyCommon(CollectionItem row, Region region,
         ItemCondition condition, Completeness completeness,
         CollectionStatus status, int? releaseYear, DateOnly? purchaseDate,
-        decimal? purchasePrice, string? notes)
+        decimal? purchasePrice, string? notes, string? thumbnailUrl)
     {
         row.Region = region;
         row.Condition = condition;
@@ -146,5 +148,6 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
         row.PurchaseDate = purchaseDate;
         row.PurchasePrice = purchasePrice;
         row.Notes = notes;
+        row.ThumbnailUrl = thumbnailUrl;
     }
 }

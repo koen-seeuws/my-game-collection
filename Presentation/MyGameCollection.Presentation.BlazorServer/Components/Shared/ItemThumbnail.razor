@@ -1,0 +1,39 @@
+@* Shows the item's thumbnail, or a placeholder icon when it has none or the image cannot be loaded. *@
+<div class="item-thumbnail @Class">
+    @if (!string.IsNullOrWhiteSpace(Url) && !_failed)
+    {
+        <img src="@Url" alt="@Alt" loading="lazy" referrerpolicy="no-referrer" @onerror="() => _failed = true" />
+    }
+    else
+    {
+        <MudIcon Icon="@Icon" Class="item-thumbnail-placeholder" />
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string? Url { get; set; }
+
+    /// <summary>Shown when there is no (working) thumbnail.</summary>
+    [Parameter]
+    public string Icon { get; set; } = Icons.Material.Outlined.VideogameAsset;
+
+    [Parameter]
+    public string Alt { get; set; } = string.Empty;
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    private string? _shownUrl;
+    private bool _failed;
+
+    protected override void OnParametersSet()
+    {
+        // A new URL gets a new chance to load.
+        if (Url != _shownUrl)
+        {
+            _shownUrl = Url;
+            _failed = false;
+        }
+    }
+}

@@ -18,6 +18,7 @@ public abstract class CollectionItem
     public DateOnly? PurchaseDate { get; set; }
     public decimal? PurchasePrice { get; set; }
     public string? Notes { get; set; }
+    public string? ThumbnailUrl { get; set; }
 
     /// <summary>Preserves the order of the items within their collection.</summary>
     public int Position { get; set; }

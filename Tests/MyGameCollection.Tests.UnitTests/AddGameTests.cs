@@ -95,6 +95,39 @@ public class AddGameTests
     }
 
     [Fact]
+    public void AddGame_WithThumbnailUrl_KeepsTrimmedUrl()
+    {
+        var collection = Empty();
+
+        collection.AddGame(GameDetails() with { ThumbnailUrl = "  https://images.igdb.com/igdb/image/upload/t_cover_big/co1.png " });
+
+        Assert.Equal("https://images.igdb.com/igdb/image/upload/t_cover_big/co1.png", collection.Games[0].Details.ThumbnailUrl);
+    }
+
+    [Fact]
+    public void AddGame_WithBlankThumbnailUrl_DropsIt()
+    {
+        var collection = Empty();
+
+        collection.AddGame(GameDetails() with { ThumbnailUrl = "  " });
+
+        Assert.Null(collection.Games[0].Details.ThumbnailUrl);
+    }
+
+    [Theory]
+    [InlineData("not a url")]
+    [InlineData("/relative/cover.png")]
+    [InlineData("javascript:alert(1)")]
+    [InlineData("ftp://example.com/cover.png")]
+    public void AddGame_WithInvalidThumbnailUrl_Throws(string url)
+    {
+        var collection = Empty();
+
+        Assert.Throws<ArgumentException>(() => collection.AddGame(GameDetails() with { ThumbnailUrl = url }));
+        Assert.Empty(collection.Games);
+    }
+
+    [Fact]
     public void AddGame_ReplacesListInstance_LeavingPreviousSnapshotUntouched()
     {
         var collection = Empty();
