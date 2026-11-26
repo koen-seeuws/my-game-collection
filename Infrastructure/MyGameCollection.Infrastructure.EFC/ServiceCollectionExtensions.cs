@@ -21,10 +21,10 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddSqlServerPersistenceServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddPostgresPersistenceServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<GameCollectionDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("Database")));
+            options.UseNpgsql(configuration.GetConnectionString("Database")));
 
         services.AddRepositories();
         services.AddQueryHandlers();
