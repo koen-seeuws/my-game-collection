@@ -1,4 +1,4 @@
-namespace MyGameCollection.Application.Abstractions.Queries.SearchConsoleCatalog;
+namespace MyGameCollection.Application.Abstractions.Services.GameCatalog;
 
 /// <summary>A console (platform) as known by the external catalog, used to prefill the console form.</summary>
 public record CatalogConsoleDto

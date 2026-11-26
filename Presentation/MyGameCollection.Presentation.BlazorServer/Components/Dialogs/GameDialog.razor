@@ -1,7 +1,7 @@
 @using System.Globalization
-@using MyGameCollection.Application.Abstractions.Queries.LookupBarcode
-@using MyGameCollection.Application.Abstractions.Queries.SearchGameCatalog
-@inject IUseCaseDispatcher Dispatcher
+@using MyGameCollection.Application.Abstractions.Services.BarcodeLookup
+@using MyGameCollection.Application.Abstractions.Services.GameCatalog
+@inject IGameCatalogService GameCatalog
 
 <MudDialog>
     <DialogContent>
@@ -123,8 +123,8 @@
 
     private static string CurrencySymbol => CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol;
 
-    private async Task<IReadOnlyList<CatalogGameDto>> SearchCatalogAsync(string search, CancellationToken ct) =>
-        await Dispatcher.QueryAsync(new SearchGameCatalogQuery { Search = search }, ct);
+    private Task<IReadOnlyList<CatalogGameDto>> SearchCatalogAsync(string search, CancellationToken ct) =>
+        GameCatalog.SearchGamesAsync(search, ct);
 
     private void ApplyBarcodeProduct(BarcodeProductDto product)
     {

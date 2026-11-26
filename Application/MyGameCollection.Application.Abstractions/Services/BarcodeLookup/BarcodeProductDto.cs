@@ -1,6 +1,6 @@
 using MyGameCollection.Core.Domain.Abstractions;
 
-namespace MyGameCollection.Application.Abstractions.Queries.LookupBarcode;
+namespace MyGameCollection.Application.Abstractions.Services.BarcodeLookup;
 
 /// <summary>The product a barcode belongs to.</summary>
 public record BarcodeProductDto

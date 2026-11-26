@@ -1,4 +1,4 @@
-namespace MyGameCollection.Application.Abstractions.Queries;
+namespace MyGameCollection.Application.Abstractions.Services;
 
 /// <summary>
 /// An external catalog (IGDB, the barcode database) could not be reached, is not configured, or refused the request.

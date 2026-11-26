@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MyGameCollection.Application.Abstractions;
+using MyGameCollection.Application.Abstractions.Services.GameCatalog;
 
 namespace MyGameCollection.Infrastructure.Igdb;
 
@@ -19,21 +19,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IgdbTokenProvider>();
         services.AddHttpClient<IgdbClient>(client => client.Timeout = timeout);
 
-        services.AddQueryHandlers();
-
-        return services;
-    }
-
-    private static IServiceCollection AddQueryHandlers(this IServiceCollection services)
-    {
-        var registrations = typeof(ServiceCollectionExtensions).Assembly.GetTypes()
-            .Where(t => t is { IsClass: true, IsAbstract: false, IsGenericTypeDefinition: false })
-            .SelectMany(t => t.GetInterfaces()
-                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>))
-                .Select(i => (Service: i, Implementation: t)));
-
-        foreach (var (service, implementation) in registrations)
-            services.AddScoped(service, implementation);
+        // Transient, like the typed HttpClient it uses, so a long-lived Blazor circuit doesn't pin one handler.
+        services.AddTransient<IGameCatalogService, IgdbGameCatalogService>();
 
         return services;
     }

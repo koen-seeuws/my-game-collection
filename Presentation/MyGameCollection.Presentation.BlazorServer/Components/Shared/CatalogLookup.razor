@@ -1,8 +1,8 @@
 @typeparam TItem
-@using MyGameCollection.Application.Abstractions.Queries
-@using MyGameCollection.Application.Abstractions.Queries.LookupBarcode
+@using MyGameCollection.Application.Abstractions.Services
+@using MyGameCollection.Application.Abstractions.Services.BarcodeLookup
 @implements IDisposable
-@inject IUseCaseDispatcher Dispatcher
+@inject IBarcodeLookupService BarcodeLookup
 @inject IDialogService DialogService
 
 @* Lives outside the item form, so pressing Enter here searches instead of saving the form. *@
@@ -117,7 +117,7 @@
             var term = text;
             if (LooksLikeBarcode(text))
             {
-                var product = await Dispatcher.QueryAsync(new LookupBarcodeQuery { Barcode = text }, ct);
+                var product = await BarcodeLookup.LookupAsync(text, ct);
                 if (product is null)
                 {
                     _message = (Severity.Info, $"Barcode {text} is not in the barcode database. Search by name instead.");
