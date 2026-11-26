@@ -3,6 +3,8 @@ using MudBlazor.Services;
 using MyGameCollection.Application.Abstractions;
 using MyGameCollection.Application.Business;
 using MyGameCollection.Infrastructure.EFC;
+using MyGameCollection.Infrastructure.Barcodes;
+using MyGameCollection.Infrastructure.Igdb;
 using MyGameCollection.Presentation.BlazorServer.Components;
 using MyGameCollection.Presentation.BlazorServer.Security;
 
@@ -18,6 +20,10 @@ else
 {
     builder.Services.AddPostgresPersistenceServices(builder.Configuration);
 }
+
+// Prefilling the add game / console forms: IGDB search and barcode lookup.
+builder.Services.AddIgdbServices(builder.Configuration);
+builder.Services.AddBarcodeLookupServices(builder.Configuration);
 
 // Who is signed in, per circuit (browser tab).
 builder.Services.AddScoped<CurrentUser>();

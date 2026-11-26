@@ -1,12 +1,42 @@
 @using System.Globalization
-<EditForm Model="Model" OnValidSubmit="Submit">
-    <DataAnnotationsValidator />
-    <MudDialog>
-        <DialogContent>
+@using MyGameCollection.Application.Abstractions.Services.BarcodeLookup
+@using MyGameCollection.Application.Abstractions.Services.GameCatalog
+@inject IGameCatalogService GameCatalog
+
+<MudDialog>
+    <DialogContent>
+        @if (ShowLookup)
+        {
+            <CatalogLookup TItem="CatalogGameDto" Label="Find the game on IGDB" SearchFunc="SearchCatalogAsync"
+                           ItemName="g => g.Name" OnSelected="ApplyCatalogGame" OnBarcodeProduct="ApplyBarcodeProduct">
+                <ItemTemplate Context="game">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        @if (game.CoverUrl is not null)
+                        {
+                            <img src="@game.CoverUrl" alt="" class="catalog-cover" loading="lazy" />
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Outlined.VideogameAsset" Class="catalog-cover" />
+                        }
+                        <div>
+                            <MudText Typo="Typo.body1">
+                                @game.Name @(game.ReleaseYear is { } year ? $"({year})" : "")
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @string.Join(", ", game.Platforms.Select(p => p.Abbreviation ?? p.Name))
+                            </MudText>
+                        </div>
+                    </MudStack>
+                </ItemTemplate>
+            </CatalogLookup>
+        }
+        <EditForm id="@_formId" Model="Model" OnValidSubmit="Submit">
+            <DataAnnotationsValidator />
             <MudGrid Spacing="2">
                 <MudItem xs="12" sm="7">
                     <MudTextField @bind-Value="Model.Title" For="() => Model.Title" Label="Title"
-                                  Variant="Variant.Outlined" MaxLength="200" AutoFocus="true" Immediate="true" />
+                                  Variant="Variant.Outlined" MaxLength="200" AutoFocus="!ShowLookup" Immediate="true" />
                 </MudItem>
                 <MudItem xs="12" sm="5">
                     <MudAutocomplete T="string" @bind-Value="Model.Platform" For="() => Model.Platform" Label="Platform"
@@ -14,6 +44,19 @@
                                      CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true"
                                      HelperText="Use the same name as the console" />
                 </MudItem>
+                @if (_catalogPlatforms.Count > 1)
+                {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Released on:</MudText>
+                        <MudChipSet T="string" SelectedValue="Model.Platform" SelectedValueChanged="p => Model.Platform = p ?? Model.Platform"
+                                    SelectionMode="SelectionMode.SingleSelection" Size="Size.Small" Color="Color.Primary">
+                            @foreach (var platform in _catalogPlatforms)
+                            {
+                                <MudChip T="string" Value="platform" Text="@platform" />
+                            }
+                        </MudChipSet>
+                    </MudItem>
+                }
                 <MudItem xs="12" sm="6">
                     <EnumSelect TEnum="CollectionStatus" @bind-Value="Model.Status" Label="Status" />
                 </MudItem>
@@ -47,13 +90,13 @@
                                   Lines="3" MaxLength="2000" />
                 </MudItem>
             </MudGrid>
-        </DialogContent>
-        <DialogActions>
-            <MudButton OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
-            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
-        </DialogActions>
-    </MudDialog>
-</EditForm>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
+        <MudButton ButtonType="ButtonType.Submit" form="@_formId" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+    </DialogActions>
+</MudDialog>
 
 @code {
     [CascadingParameter]
@@ -66,7 +109,69 @@
     [Parameter]
     public IEnumerable<string> Platforms { get; set; } = [];
 
+    /// <summary>Offers looking the game up on IGDB or by barcode to prefill the form.</summary>
+    [Parameter]
+    public bool ShowLookup { get; set; }
+
+    private readonly string _formId = $"game-form-{Guid.NewGuid():N}";
+
+    /// <summary>The platforms the picked catalog game was released on, in this collection's naming.</summary>
+    private IReadOnlyList<string> _catalogPlatforms = [];
+
+    /// <summary>The platform named on the scanned product, if any.</summary>
+    private string? _barcodePlatform;
+
     private static string CurrencySymbol => CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol;
+
+    private Task<IReadOnlyList<CatalogGameDto>> SearchCatalogAsync(string search, CancellationToken ct) =>
+        GameCatalog.SearchGamesAsync(search, ct);
+
+    private void ApplyBarcodeProduct(BarcodeProductDto product)
+    {
+        if (product.Region is { } region)
+            Model.Region = region;
+
+        _barcodePlatform = KnownPlatforms.DetectIn(product.ProductName, Platforms);
+        if (_barcodePlatform is not null)
+            Model.Platform = _barcodePlatform;
+
+        // Something to start from, in case the game cannot be found in the catalog.
+        if (string.IsNullOrWhiteSpace(Model.Title))
+            Model.Title = product.SearchTerm;
+    }
+
+    private void ApplyCatalogGame(CatalogGameDto game)
+    {
+        Model.Title = game.Name;
+        Model.ReleaseYear = game.ReleaseYear ?? Model.ReleaseYear;
+
+        _catalogPlatforms = game.Platforms
+            .Select(p => KnownPlatforms.Match(Platforms, p.Name, p.Abbreviation))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        Model.Platform = ChoosePlatform() ?? Model.Platform;
+    }
+
+    /// <summary>
+    /// The most likely platform of the picked game: the one on the scanned box, the only one it was released on,
+    /// the one already chosen, or the only one of its platforms in the collection. Otherwise the user picks.
+    /// </summary>
+    private string? ChoosePlatform()
+    {
+        bool Released(string? platform) =>
+            platform is not null && _catalogPlatforms.Contains(platform, StringComparer.OrdinalIgnoreCase);
+
+        if (Released(_barcodePlatform))
+            return _catalogPlatforms.First(p => p.Equals(_barcodePlatform, StringComparison.OrdinalIgnoreCase));
+        if (_catalogPlatforms.Count == 1)
+            return _catalogPlatforms[0];
+        if (Released(Model.Platform))
+            return _catalogPlatforms.First(p => p.Equals(Model.Platform, StringComparison.OrdinalIgnoreCase));
+
+        var inCollection = _catalogPlatforms.Where(p => Platforms.Contains(p, StringComparer.OrdinalIgnoreCase)).ToList();
+        return inCollection.Count == 1 ? inCollection[0] : null;
+    }
 
     private Task<IEnumerable<string>> SearchPlatformsAsync(string? search, CancellationToken _) =>
         Task.FromResult(KnownPlatforms.Suggest(Platforms, KnownPlatforms.All.Select(p => p.Name), search));
