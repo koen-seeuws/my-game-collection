@@ -1,4 +1,4 @@
-namespace MyGameCollection.Infrastructure.GameCatalog.Igdb;
+namespace MyGameCollection.Infrastructure.Igdb;
 
 /// <summary>
 /// IGDB API credentials: a Twitch application's client ID and secret (https://api-docs.igdb.com/#account-creation).

@@ -1,9 +1,8 @@
 using MyGameCollection.Application.Abstractions;
 using MyGameCollection.Application.Abstractions.Queries.SearchGameCatalog;
-using MyGameCollection.Infrastructure.GameCatalog.Igdb;
 using Microsoft.Extensions.Options;
 
-namespace MyGameCollection.Infrastructure.GameCatalog.QueryHandlers;
+namespace MyGameCollection.Infrastructure.Igdb.QueryHandlers;
 
 internal sealed class SearchGameCatalogQueryHandler(IgdbClient igdb, IOptions<IgdbOptions> options)
     : IQueryHandler<SearchGameCatalogQuery, IReadOnlyList<CatalogGameDto>>

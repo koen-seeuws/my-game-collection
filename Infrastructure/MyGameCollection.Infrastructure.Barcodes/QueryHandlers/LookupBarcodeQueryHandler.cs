@@ -1,8 +1,7 @@
 using MyGameCollection.Application.Abstractions;
 using MyGameCollection.Application.Abstractions.Queries.LookupBarcode;
-using MyGameCollection.Infrastructure.GameCatalog.Barcodes;
 
-namespace MyGameCollection.Infrastructure.GameCatalog.QueryHandlers;
+namespace MyGameCollection.Infrastructure.Barcodes.QueryHandlers;
 
 internal sealed class LookupBarcodeQueryHandler(UpcItemDbClient upcItemDb)
     : IQueryHandler<LookupBarcodeQuery, BarcodeProductDto?>

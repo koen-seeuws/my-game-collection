@@ -1,6 +1,6 @@
 using MyGameCollection.Core.Domain.Abstractions;
 
-namespace MyGameCollection.Infrastructure.GameCatalog.Barcodes;
+namespace MyGameCollection.Infrastructure.Barcodes;
 
 /// <summary>Validation and interpretation of retail barcodes (UPC-A, UPC-E, EAN-8, EAN-13).</summary>
 public static class Gtin

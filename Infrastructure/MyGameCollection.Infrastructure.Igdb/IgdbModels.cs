@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace MyGameCollection.Infrastructure.GameCatalog.Igdb;
+namespace MyGameCollection.Infrastructure.Igdb;
 
 // The subset of IGDB's response shapes this app asks for (snake_case JSON).
 

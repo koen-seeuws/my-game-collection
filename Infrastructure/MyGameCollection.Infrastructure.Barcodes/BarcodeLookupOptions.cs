@@ -1,4 +1,4 @@
-namespace MyGameCollection.Infrastructure.GameCatalog.Barcodes;
+namespace MyGameCollection.Infrastructure.Barcodes;
 
 /// <summary>
 /// Settings for the UPCitemdb product database. Without a key the free trial endpoint is used (100 lookups a day).

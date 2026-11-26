@@ -4,7 +4,7 @@ using System.Text;
 using Microsoft.Extensions.Options;
 using MyGameCollection.Application.Abstractions.Queries;
 
-namespace MyGameCollection.Infrastructure.GameCatalog.Igdb;
+namespace MyGameCollection.Infrastructure.Igdb;
 
 /// <summary>Sends Apicalypse queries to the IGDB API.</summary>
 internal sealed class IgdbClient(HttpClient httpClient, IgdbTokenProvider tokenProvider, IOptions<IgdbOptions> options)

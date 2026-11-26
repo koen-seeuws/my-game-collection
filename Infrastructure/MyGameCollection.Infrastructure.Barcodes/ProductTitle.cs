@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace MyGameCollection.Infrastructure.GameCatalog.Barcodes;
+namespace MyGameCollection.Infrastructure.Barcodes;
 
 /// <summary>
 /// Turns a retail product title ("Halo 3 (Xbox 360) - PAL Video Game") into a game catalog search ("Halo 3").

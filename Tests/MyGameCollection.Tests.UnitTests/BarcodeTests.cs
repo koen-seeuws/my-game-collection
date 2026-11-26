@@ -1,5 +1,5 @@
 using MyGameCollection.Core.Domain.Abstractions;
-using MyGameCollection.Infrastructure.GameCatalog.Barcodes;
+using MyGameCollection.Infrastructure.Barcodes;
 
 namespace MyGameCollection.Tests.UnitTests;
 

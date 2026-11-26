@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using MyGameCollection.Application.Abstractions.Queries;
 
-namespace MyGameCollection.Infrastructure.GameCatalog.Barcodes;
+namespace MyGameCollection.Infrastructure.Barcodes;
 
 /// <summary>Finds a product's title by its barcode in the UPCitemdb database (https://www.upcitemdb.com/api/explorer).</summary>
 internal sealed class UpcItemDbClient(HttpClient httpClient, IOptions<BarcodeLookupOptions> options)
