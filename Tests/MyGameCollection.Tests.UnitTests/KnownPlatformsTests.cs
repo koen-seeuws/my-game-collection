@@ -19,12 +19,4 @@ public class KnownPlatformsTests
         Assert.Equal("Sega Genesis", KnownPlatforms.Match(["Sega Genesis"], "Sega Mega Drive/Genesis", "Genesis/MegaDrive"));
         Assert.Equal("PS2", KnownPlatforms.Match(["PS2"], "PlayStation 2"));
     }
-
-    [Theory]
-    [InlineData("Gran Turismo 4 (Sony PlayStation 2)", "PlayStation 2")]
-    [InlineData("Halo 3 - Xbox 360 - PAL", "Xbox 360")]
-    [InlineData("Super Mario World SNES Cartridge", "Super Nintendo")]
-    [InlineData("Some board game", null)]
-    public void Platforms_are_detected_in_product_titles(string title, string? expected) =>
-        Assert.Equal(expected, KnownPlatforms.DetectIn(title, []));
 }

@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 namespace MyGameCollection.Presentation.BlazorServer.Models;
 
 /// <summary>Well-known (retro) systems, offered as suggestions when entering games and consoles.</summary>
@@ -86,25 +84,6 @@ public static class KnownPlatforms
             return name;
 
         return preferredNames.FirstOrDefault(p => Resolve(p) == known) ?? known.Name;
-    }
-
-    /// <summary>
-    /// The system mentioned in free text such as a product title ("Halo 3 (Xbox 360)"), in this collection's naming.
-    /// The longest mention wins, so "PlayStation 2" beats "PlayStation".
-    /// </summary>
-    public static string? DetectIn(string? text, IEnumerable<string> preferred)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return null;
-
-        var preferredNames = preferred.ToList();
-        var mention = preferredNames
-            .Concat(All.SelectMany(p => p.Aliases.Prepend(p.Name)))
-            .Where(n => n.Length >= 2)
-            .Where(n => Regex.IsMatch(text, $@"(?<![\w-]){Regex.Escape(n)}(?![\w-])", RegexOptions.IgnoreCase))
-            .MaxBy(n => n.Length);
-
-        return mention is null ? null : Match(preferredNames, mention);
     }
 
     /// <summary>Suggestions matching <paramref name="search"/>: the given names first, then the known platforms.</summary>
