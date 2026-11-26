@@ -1,0 +1,106 @@
+@page "/games"
+@inherits CollectionPageBase
+@using MyGameCollection.Application.Abstractions.Queries.GetMyGames
+
+<PageTitle>Games · My Game Collection</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Games</MudText>
+
+@if (!CurrentUser.IsSignedIn)
+{
+    <SignInNotice />
+}
+else
+{
+    <MudDataGrid T="GameDto" Items="FilteredGames" Loading="Loading" QuickFilter="MatchesSearch"
+                 Groupable="true" Hover="true" Dense="true" Elevation="1" SortMode="SortMode.Multiple">
+        <ToolBarContent>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="3" Class="flex-grow-1">
+                <MudTextField @bind-Value="_search" Placeholder="Search title, platform or notes" Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Clearable="true"
+                              Style="min-width: 260px; max-width: 360px" />
+                <MudToggleGroup T="CollectionStatus?" @bind-Value="_statusFilter" Size="Size.Small" Color="Color.Primary"
+                                CheckMark="true">
+                    <MudToggleItem T="CollectionStatus?" Value="null" Text="All" />
+                    <MudToggleItem T="CollectionStatus?" Value="CollectionStatus.Owned" Text="Owned" />
+                    <MudToggleItem T="CollectionStatus?" Value="CollectionStatus.Wishlist" Text="Wishlist" />
+                </MudToggleGroup>
+                <MudSwitch T="bool" @bind-Value="_groupByPlatform" Color="Color.Primary" Label="Group by platform" />
+                <MudSpacer />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="() => AddGameAsync()">
+                    Add game
+                </MudButton>
+            </MudStack>
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="g => g.Title" />
+            <PropertyColumn Property="g => g.Platform" Grouping="_groupByPlatform" GroupBy="g => g.Platform">
+                <GroupTemplate>
+                    <MudText Typo="Typo.subtitle2">@context.Grouping.Key (@context.Grouping.Count())</MudText>
+                </GroupTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="g => g.Region">
+                <CellTemplate>@context.Item.Region.ToDisplayName()</CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="g => g.Completeness">
+                <CellTemplate>@context.Item.Completeness.ToDisplayName()</CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="g => g.Condition">
+                <CellTemplate>@context.Item.Condition.ToDisplayName()</CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="g => g.ReleaseYear" Title="Year" />
+            <PropertyColumn Property="g => g.Status">
+                <CellTemplate><StatusChip Status="context.Item.Status" /></CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="g => g.PurchasePrice" Title="Price">
+                <CellTemplate>@DisplayNames.Money(context.Item.PurchasePrice)</CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="g => g.PurchaseDate" Title="Purchased">
+                <CellTemplate>@DisplayNames.Date(context.Item.PurchaseDate)</CellTemplate>
+            </PropertyColumn>
+            <TemplateColumn CellClass="d-flex justify-end" Sortable="false">
+                <CellTemplate>
+                    @if (context.Item.Status == CollectionStatus.Wishlist)
+                    {
+                        <MudTooltip Text="Got it!">
+                            <MudIconButton Icon="@Icons.Material.Filled.AddTask" Size="Size.Small" Color="Color.Success"
+                                           aria-label="Got it" OnClick="() => AcquireGameAsync(context.Item)" />
+                        </MudTooltip>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(context.Item.Notes))
+                    {
+                        <MudTooltip Text="@context.Item.Notes">
+                            <MudIcon Icon="@Icons.Material.Outlined.StickyNote2" Size="Size.Small" Class="ma-2" />
+                        </MudTooltip>
+                    }
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" aria-label="Edit"
+                                   OnClick="() => EditGameAsync(context.Item)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                   aria-label="Delete" OnClick="() => DeleteGameAsync(context.Item)" />
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        <NoRecordsContent>
+            <MudText>No games here yet. Blow on that cartridge and add your first one!</MudText>
+        </NoRecordsContent>
+        <PagerContent>
+            <MudDataGridPager T="GameDto" PageSizeOptions="[25, 50, 100]" />
+        </PagerContent>
+    </MudDataGrid>
+}
+
+@code {
+    private string? _search;
+    private CollectionStatus? _statusFilter;
+    private bool _groupByPlatform;
+
+    private IEnumerable<GameDto> FilteredGames =>
+        _statusFilter is { } status ? Games.Where(g => g.Status == status) : Games;
+
+    private bool MatchesSearch(GameDto game) =>
+        string.IsNullOrWhiteSpace(_search)
+        || game.Title.Contains(_search, StringComparison.OrdinalIgnoreCase)
+        || game.Platform.Contains(_search, StringComparison.OrdinalIgnoreCase)
+        || (game.Notes?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false);
+}

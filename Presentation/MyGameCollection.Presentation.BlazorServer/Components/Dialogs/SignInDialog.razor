@@ -1,0 +1,36 @@
+<EditForm Model="_model" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <MudDialog>
+        <DialogContent>
+            <MudText Typo="Typo.body2" Class="mb-4">
+                There is no real authentication yet: pick the name whose game collection you want to work with.
+            </MudText>
+            <MudTextField @bind-Value="_model.UserName" For="() => _model.UserName"
+                          Label="User name" Variant="Variant.Outlined" AutoFocus="true" Immediate="true" />
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Sign in</MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public string UserName { get; set; } = string.Empty;
+
+    private readonly SignInModel _model = new();
+
+    protected override void OnInitialized() => _model.UserName = UserName;
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(_model.UserName.Trim()));
+
+    private sealed class SignInModel
+    {
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.StringLength(100)]
+        public string UserName { get; set; } = string.Empty;
+    }
+}

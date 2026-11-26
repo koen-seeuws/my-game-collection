@@ -1,0 +1,150 @@
+using System.Collections.Immutable;
+using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
+using MyGameCollection.Core.Domain.Abstractions;
+using MyGameCollection.Infrastructure.EFC.DataModel;
+using Domain = MyGameCollection.Core.Domain;
+
+namespace MyGameCollection.Infrastructure.EFC.Repositories;
+
+public class GameCollectionRepository : BaseRepository<Domain.GameCollection, string, DataModel.GameCollection>
+{
+    public GameCollectionRepository(GameCollectionDbContext dbContext) : base(dbContext)
+    {
+    }
+
+    protected override IQueryable<DataModel.GameCollection> Query() =>
+        DbSet.Include(c => c.Games).Include(c => c.Consoles).AsSplitQuery();
+
+    protected override Expression<Func<DataModel.GameCollection, bool>> HasKey(string key) =>
+        c => c.Owner.ToUpper() == key.ToUpper();
+
+    protected override Domain.GameCollection CreateNewAggregate(string key) => new()
+    {
+        AggregateKey = key.ToUpper(),
+        Games = [],
+        Consoles = []
+    };
+
+    protected override DataModel.GameCollection CreateEntity(Domain.GameCollection aggregate) => new()
+    {
+        Owner = aggregate.AggregateKey
+    };
+
+    protected override Domain.GameCollection ToAggregate(DataModel.GameCollection entity) => new()
+    {
+        AggregateKey = entity.Owner,
+        Games = entity.Games
+            .OrderBy(g => g.Position)
+            .Select(g => new Domain.Game
+            {
+                Key = g.Key,
+                Details = new Domain.GameDetails
+                {
+                    Title = g.Title,
+                    Platform = g.Platform,
+                    Region = g.Region,
+                    Condition = g.Condition,
+                    Completeness = g.Completeness,
+                    Status = g.Status,
+                    ReleaseYear = g.ReleaseYear,
+                    PurchaseDate = g.PurchaseDate,
+                    PurchasePrice = g.PurchasePrice,
+                    Notes = g.Notes
+                }
+            })
+            .ToImmutableList(),
+        Consoles = entity.Consoles
+            .OrderBy(c => c.Position)
+            .Select(c => new Domain.GameConsole
+            {
+                Key = c.Key,
+                Details = new Domain.ConsoleDetails
+                {
+                    Name = c.Name,
+                    Manufacturer = c.Manufacturer,
+                    Model = c.Model,
+                    Region = c.Region,
+                    Condition = c.Condition,
+                    Completeness = c.Completeness,
+                    Status = c.Status,
+                    ReleaseYear = c.ReleaseYear,
+                    PurchaseDate = c.PurchaseDate,
+                    PurchasePrice = c.PurchasePrice,
+                    Notes = c.Notes
+                }
+            })
+            .ToImmutableList()
+    };
+
+    protected override void ApplyToEntity(Domain.GameCollection aggregate, DataModel.GameCollection entity)
+    {
+        Synchronise(entity.Games, aggregate.Games, g => g.Key,
+            create: g => new DataModel.Game { Key = g.Key, Title = g.Details.Title, Platform = g.Details.Platform },
+            apply: (g, row) =>
+            {
+                var d = g.Details;
+                row.Title = d.Title;
+                row.Platform = d.Platform;
+                ApplyCommon(row, d.Region, d.Condition, d.Completeness, d.Status, d.ReleaseYear, d.PurchaseDate,
+                    d.PurchasePrice, d.Notes);
+            });
+
+        Synchronise(entity.Consoles, aggregate.Consoles, c => c.Key,
+            create: c => new DataModel.GameConsole { Key = c.Key, Name = c.Details.Name, Manufacturer = c.Details.Manufacturer },
+            apply: (c, row) =>
+            {
+                var d = c.Details;
+                row.Name = d.Name;
+                row.Manufacturer = d.Manufacturer;
+                row.Model = d.Model;
+                ApplyCommon(row, d.Region, d.Condition, d.Completeness, d.Status, d.ReleaseYear, d.PurchaseDate,
+                    d.PurchasePrice, d.Notes);
+            });
+    }
+
+    /// <summary>
+    /// Makes the tracked child rows match the items of the aggregate: removes rows of deleted items,
+    /// adds rows for new items, and updates every row (including its position).
+    /// </summary>
+    private static void Synchronise<TItem, TRow>(List<TRow> rows, IReadOnlyList<TItem> items, Func<TItem, Guid> keyOf,
+        Func<TItem, TRow> create, Action<TItem, TRow> apply)
+        where TRow : CollectionItem
+    {
+        var existing = rows.ToDictionary(r => r.Key);
+        var keysInAggregate = items.Select(keyOf).ToHashSet();
+
+        // Deleted: removing from the required relationship makes EF delete the orphaned row.
+        rows.RemoveAll(r => !keysInAggregate.Contains(r.Key));
+
+        for (var position = 0; position < items.Count; position++)
+        {
+            var item = items[position];
+
+            if (!existing.TryGetValue(keyOf(item), out var row))
+            {
+                // Added
+                row = create(item);
+                rows.Add(row);
+            }
+
+            apply(item, row);
+            row.Position = position;
+        }
+    }
+
+    private static void ApplyCommon(CollectionItem row, Region region,
+        ItemCondition condition, Completeness completeness,
+        CollectionStatus status, int? releaseYear, DateOnly? purchaseDate,
+        decimal? purchasePrice, string? notes)
+    {
+        row.Region = region;
+        row.Condition = condition;
+        row.Completeness = completeness;
+        row.Status = status;
+        row.ReleaseYear = releaseYear;
+        row.PurchaseDate = purchaseDate;
+        row.PurchasePrice = purchasePrice;
+        row.Notes = notes;
+    }
+}

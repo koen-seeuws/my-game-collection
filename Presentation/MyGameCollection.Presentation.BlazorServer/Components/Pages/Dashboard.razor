@@ -1,0 +1,159 @@
+@page "/"
+@inherits CollectionPageBase
+@using MyGameCollection.Application.Abstractions.Queries.GetMyCollectionSummary
+
+<PageTitle>My Game Collection</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Dashboard</MudText>
+
+@if (!CurrentUser.IsSignedIn)
+{
+    <MudPaper Elevation="1" Class="pa-8 d-flex flex-column align-center gap-4">
+        <MudIcon Icon="@Icons.Material.Filled.VideogameAsset" Color="Color.Primary" Style="font-size: 5rem" />
+        <MudText Typo="Typo.h5" Align="Align.Center">Welcome to your retro game shelf</MudText>
+        <MudText Align="Align.Center">
+            Keep track of your games and consoles, what you paid for them, and what you are still hunting for.
+            Sign in (top right) to get started.
+        </MudText>
+    </MudPaper>
+}
+else if (_summary is null)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else if (IsEmpty)
+{
+    <MudPaper Elevation="1" Class="pa-8 d-flex flex-column align-center gap-4">
+        <MudIcon Icon="@Icons.Material.Filled.Inventory2" Color="Color.Primary" Style="font-size: 5rem" />
+        <MudText Typo="Typo.h5" Align="Align.Center">Your shelf is still empty</MudText>
+        <MudStack Row="true" Spacing="2">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.SportsEsports"
+                       OnClick="() => AddGameAsync()">Add a game</MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.VideogameAsset"
+                       OnClick="() => AddConsoleAsync()">Add a console</MudButton>
+        </MudStack>
+    </MudPaper>
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="12" sm="6" lg="3">
+            <StatCard Label="Games" Value="@_summary.OwnedGames.ToString()" Icon="@Icons.Material.Filled.SportsEsports"
+                      Detail="@($"on {_summary.Platforms.Count(p => p.OwnedGames > 0)} platforms")" />
+        </MudItem>
+        <MudItem xs="12" sm="6" lg="3">
+            <StatCard Label="Consoles" Value="@_summary.OwnedConsoles.ToString()" Icon="@Icons.Material.Filled.VideogameAsset"
+                      Color="Color.Info" />
+        </MudItem>
+        <MudItem xs="12" sm="6" lg="3">
+            <StatCard Label="On the wishlist" Value="@((_summary.WishlistGames + _summary.WishlistConsoles).ToString())"
+                      Icon="@Icons.Material.Filled.Favorite" Color="Color.Warning"
+                      Detail="@($"{_summary.WishlistGames} games, {_summary.WishlistConsoles} consoles")" />
+        </MudItem>
+        <MudItem xs="12" sm="6" lg="3">
+            <StatCard Label="Total spent" Value="@DisplayNames.Money(_summary.TotalSpent)" Icon="@Icons.Material.Filled.Savings"
+                      Color="Color.Success" />
+        </MudItem>
+
+        <MudItem xs="12" md="5">
+            <MudPaper Elevation="1" Class="pa-4" Style="height: 100%">
+                <MudText Typo="Typo.h6" GutterBottom="true">Games per platform</MudText>
+                @if (_chartValues.Length == 0)
+                {
+                    <MudText Typo="Typo.body2">No games owned yet.</MudText>
+                }
+                else
+                {
+                    <MudChart T="double" ChartType="ChartType.Donut" ChartSeries="_chartSeries" ChartLabels="_chartLabels"
+                              Width="100%" Height="300px" />
+                }
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="7">
+            <MudPaper Elevation="1" Class="pa-4" Style="height: 100%">
+                <MudText Typo="Typo.h6" GutterBottom="true">Platforms</MudText>
+                <MudSimpleTable Dense="true" Hover="true" Elevation="0">
+                    <thead>
+                        <tr>
+                            <th>Platform</th>
+                            <th style="text-align: right">Games</th>
+                            <th style="text-align: right">Wishlist</th>
+                            <th style="text-align: center">Console</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var platform in _summary.Platforms)
+                        {
+                            <tr>
+                                <td>@platform.Platform</td>
+                                <td style="text-align: right">@platform.OwnedGames</td>
+                                <td style="text-align: right">@platform.WishlistGames</td>
+                                <td style="text-align: center">
+                                    @if (platform.HasConsole)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" />
+                                    }
+                                    else
+                                    {
+                                        <MudTooltip Text="You have games for this platform, but no console to play them on">
+                                            <MudIcon Icon="@Icons.Material.Filled.WarningAmber" Color="Color.Warning" Size="Size.Small" />
+                                        </MudTooltip>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </MudSimpleTable>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">Completeness of owned games</MudText>
+                <MudGrid Spacing="4">
+                    @foreach (var (completeness, count) in _summary.OwnedGamesByCompleteness)
+                    {
+                        var percentage = _summary.OwnedGames == 0 ? 0 : 100.0 * count / _summary.OwnedGames;
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.body2">@completeness.ToDisplayName()</MudText>
+                                <MudText Typo="Typo.body2">@count (@percentage.ToString("0")%)</MudText>
+                            </MudStack>
+                            <MudProgressLinear Color="Color.Primary" Value="percentage" Rounded="true" Size="Size.Medium" />
+                        </MudItem>
+                    }
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    // The chart shows the biggest platforms; the rest are added up as "Other".
+    private const int MaxChartSlices = 7;
+
+    private CollectionSummaryDto? _summary;
+    private string[] _chartLabels = [];
+    private double[] _chartValues = [];
+    private List<ChartSeries<double>> _chartSeries = [];
+
+    private bool IsEmpty => _summary is { OwnedGames: 0, WishlistGames: 0, OwnedConsoles: 0, WishlistConsoles: 0 };
+
+    protected override async Task LoadDataAsync()
+    {
+        _summary = await Dispatcher.QueryAsync(new GetMyCollectionSummaryQuery());
+
+        var withGames = _summary.Platforms.Where(p => p.OwnedGames > 0).ToList();
+        var slices = withGames.Take(MaxChartSlices).Select(p => (p.Platform, Count: p.OwnedGames)).ToList();
+        var other = withGames.Skip(MaxChartSlices).Sum(p => p.OwnedGames);
+        if (other > 0)
+            slices.Add(("Other", other));
+
+        _chartLabels = slices.Select(s => s.Platform).ToArray();
+        _chartValues = slices.Select(s => (double)s.Count).ToArray();
+        _chartSeries = _chartValues.AsChartDataSet();
+    }
+
+    protected override void ClearData() => _summary = null;
+}

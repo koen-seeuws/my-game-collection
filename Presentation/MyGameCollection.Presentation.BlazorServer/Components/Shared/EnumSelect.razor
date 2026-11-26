@@ -1,0 +1,20 @@
+@typeparam TEnum where TEnum : struct, Enum
+
+<MudSelect T="TEnum" Value="Value" ValueChanged="ValueChanged" Label="@Label" Variant="Variant.Outlined"
+           ToStringFunc="v => DisplayNames.Of(v)">
+    @foreach (var value in Enum.GetValues<TEnum>())
+    {
+        <MudSelectItem T="TEnum" Value="value">@DisplayNames.Of(value)</MudSelectItem>
+    }
+</MudSelect>
+
+@code {
+    [Parameter]
+    public TEnum Value { get; set; }
+
+    [Parameter]
+    public EventCallback<TEnum> ValueChanged { get; set; }
+
+    [Parameter]
+    public string? Label { get; set; }
+}
