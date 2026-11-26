@@ -1,0 +1,17 @@
+@* Region, completeness and condition of an item, as compact tags. *@
+<div class="item-tags">
+    <span class="item-tag region">@Region.ToDisplayName()</span>
+    <span class="item-tag">@Completeness.ToDisplayName()</span>
+    @if (Condition is { } condition)
+    {
+        <span class="item-tag">@condition.ToDisplayName()</span>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Region Region { get; set; }
+    [Parameter, EditorRequired] public Completeness Completeness { get; set; }
+
+    /// <summary>Left out for wishlist items, which have no condition yet.</summary>
+    [Parameter] public ItemCondition? Condition { get; set; }
+}

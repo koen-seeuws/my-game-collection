@@ -86,7 +86,7 @@ public abstract class CollectionPageBase : ComponentBase, IDisposable
     {
         var title = status == CollectionStatus.Owned ? "Add game" : "Add game to wishlist";
 
-        if (await ShowDialogAsync<GameDialog, GameFormModel>(title, new GameFormModel { Status = status }, showLookup: true) is not { } model)
+        if (await ShowDialogAsync<GameDialog, GameFormModel>(title, new GameFormModel { Status = status }) is not { } model)
             return;
 
         await ExecuteAsync(new AddGameCommand { Data = model.ToData() }, $"'{model.Title}' added.");
@@ -125,7 +125,7 @@ public abstract class CollectionPageBase : ComponentBase, IDisposable
     {
         var title = status == CollectionStatus.Owned ? "Add console" : "Add console to wishlist";
 
-        if (await ShowDialogAsync<ConsoleDialog, ConsoleFormModel>(title, new ConsoleFormModel { Status = status }, showLookup: true) is not { } model)
+        if (await ShowDialogAsync<ConsoleDialog, ConsoleFormModel>(title, new ConsoleFormModel { Status = status }) is not { } model)
             return;
 
         await ExecuteAsync(new AddConsoleCommand { Data = model.ToData() }, $"'{model.Name}' added.");
@@ -160,14 +160,13 @@ public abstract class CollectionPageBase : ComponentBase, IDisposable
 
     // ---- Helpers ----
 
-    private async Task<TModel?> ShowDialogAsync<TDialog, TModel>(string title, TModel model, bool showLookup = false)
+    private async Task<TModel?> ShowDialogAsync<TDialog, TModel>(string title, TModel model)
         where TDialog : ComponentBase where TModel : class
     {
         var parameters = new DialogParameters
         {
             { "Model", model },
-            { "Platforms", PlatformsInUse.ToList() },
-            { "ShowLookup", showLookup }
+            { "Platforms", PlatformsInUse.ToList() }
         };
         var dialog = await DialogService.ShowAsync<TDialog>(title, parameters,
             new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true });

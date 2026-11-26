@@ -34,7 +34,8 @@ public record GetMyGamesQueryHandler : IQueryHandler<GetMyGamesQuery, IEnumerabl
                 ReleaseYear = game.ReleaseYear,
                 PurchaseDate = game.PurchaseDate,
                 PurchasePrice = game.PurchasePrice,
-                Notes = game.Notes
+                Notes = game.Notes,
+                ThumbnailUrl = game.ThumbnailUrl
             })
             .ToListAsync(ct);
     }

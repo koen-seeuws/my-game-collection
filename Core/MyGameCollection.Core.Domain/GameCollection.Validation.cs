@@ -6,6 +6,7 @@ internal static class GameCollectionValidation
     public const int MaxNameLength = 200;
     public const int MaxShortTextLength = 100;
     public const int MaxNotesLength = 2000;
+    public const int MaxUrlLength = 500;
     public const int MinReleaseYear = 1950;
     public const int MaxReleaseYear = 2100;
 
@@ -17,7 +18,8 @@ internal static class GameCollectionValidation
         {
             Title = Required(details.Title, nameof(details.Title), MaxNameLength),
             Platform = Required(details.Platform, nameof(details.Platform), MaxShortTextLength),
-            Notes = Optional(details.Notes, nameof(details.Notes), MaxNotesLength)
+            Notes = Optional(details.Notes, nameof(details.Notes), MaxNotesLength),
+            ThumbnailUrl = OptionalUrl(details.ThumbnailUrl, nameof(details.ThumbnailUrl))
         };
 
         EnsureValid(normalised.ReleaseYear, normalised.PurchasePrice);
@@ -33,7 +35,8 @@ internal static class GameCollectionValidation
             Name = Required(details.Name, nameof(details.Name), MaxNameLength),
             Manufacturer = Required(details.Manufacturer, nameof(details.Manufacturer), MaxShortTextLength),
             Model = Optional(details.Model, nameof(details.Model), MaxShortTextLength),
-            Notes = Optional(details.Notes, nameof(details.Notes), MaxNotesLength)
+            Notes = Optional(details.Notes, nameof(details.Notes), MaxNotesLength),
+            ThumbnailUrl = OptionalUrl(details.ThumbnailUrl, nameof(details.ThumbnailUrl))
         };
 
         EnsureValid(normalised.ReleaseYear, normalised.PurchasePrice);
@@ -69,4 +72,16 @@ internal static class GameCollectionValidation
 
     private static string? Optional(string? value, string name, int maxLength) =>
         string.IsNullOrWhiteSpace(value) ? null : Required(value, name, maxLength);
+
+    /// <summary>An optional absolute http(s) URL, e.g. of a thumbnail image.</summary>
+    private static string? OptionalUrl(string? value, string name)
+    {
+        var url = Optional(value, name, MaxUrlLength);
+
+        if (url is not null && !(Uri.TryCreate(url, UriKind.Absolute, out var uri)
+                                 && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp)))
+            throw new ArgumentException($"{name} must be an absolute http(s) URL.", name);
+
+        return url;
+    }
 }

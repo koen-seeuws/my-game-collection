@@ -16,7 +16,8 @@ internal static class ContractMapping
         ReleaseYear = data.ReleaseYear,
         PurchaseDate = data.PurchaseDate,
         PurchasePrice = data.PurchasePrice,
-        Notes = data.Notes
+        Notes = data.Notes,
+        ThumbnailUrl = data.ThumbnailUrl
     };
 
     public static ConsoleDetails ToDomain(this ConsoleData data) => new()
@@ -31,6 +32,7 @@ internal static class ContractMapping
         ReleaseYear = data.ReleaseYear,
         PurchaseDate = data.PurchaseDate,
         PurchasePrice = data.PurchasePrice,
-        Notes = data.Notes
+        Notes = data.Notes,
+        ThumbnailUrl = data.ThumbnailUrl
     };
 }

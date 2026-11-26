@@ -1,0 +1,83 @@
+@* A game or console in the collection, shown as a card with its thumbnail. *@
+<MudCard Elevation="2" Class="item-card">
+    <div class="item-card-media @(Logo ? "logo" : "cover")" @onclick="OnEdit" title="Edit @Title">
+        <ItemThumbnail Url="@ThumbnailUrl" Icon="@Icon" Alt="@Title" />
+        @if (ShowStatus && Status == CollectionStatus.Wishlist)
+        {
+            <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Filled"
+                     Icon="@Icons.Material.Filled.Favorite" Class="item-card-badge">
+                Wishlist
+            </MudChip>
+        }
+        @if (Badge is not null)
+        {
+            <div class="item-card-badge end">@Badge</div>
+        }
+    </div>
+
+    <MudCardContent Class="item-card-content">
+        <MudText Typo="Typo.subtitle1" Class="item-card-title" title="@Title">@Title</MudText>
+        @if (!string.IsNullOrWhiteSpace(Subtitle))
+        {
+            <MudText Typo="Typo.body2" Class="item-card-subtitle">@Subtitle</MudText>
+        }
+        @ChildContent
+    </MudCardContent>
+
+    <MudCardActions Class="item-card-actions">
+        @if (Status == CollectionStatus.Owned && (PurchasePrice is not null || PurchaseDate is not null))
+        {
+            <MudTooltip Text="@($"Purchased {DisplayNames.Date(PurchaseDate)}")">
+                <MudText Typo="Typo.body2" Class="item-card-price">@DisplayNames.Money(PurchasePrice)</MudText>
+            </MudTooltip>
+        }
+        <MudSpacer />
+        @if (!string.IsNullOrWhiteSpace(Notes))
+        {
+            <MudTooltip Text="@Notes">
+                <MudIcon Icon="@Icons.Material.Outlined.StickyNote2" Size="Size.Small" Class="mx-1" Color="Color.Default" />
+            </MudTooltip>
+        }
+        @if (Status == CollectionStatus.Wishlist)
+        {
+            <MudTooltip Text="Got it!">
+                <MudIconButton Icon="@Icons.Material.Filled.AddTask" Size="Size.Small" Color="Color.Success"
+                               aria-label="Got it" OnClick="OnAcquire" />
+            </MudTooltip>
+        }
+        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" aria-label="Edit" OnClick="OnEdit" />
+        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" aria-label="Delete"
+                       OnClick="OnDelete" />
+    </MudCardActions>
+</MudCard>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public string? ThumbnailUrl { get; set; }
+
+    /// <summary>Placeholder icon when there is no thumbnail.</summary>
+    [Parameter] public string Icon { get; set; } = Icons.Material.Outlined.VideogameAsset;
+
+    /// <summary>Logos (consoles) are fitted on a wide tile; covers (games) fill a tall one.</summary>
+    [Parameter] public bool Logo { get; set; }
+
+    [Parameter, EditorRequired] public CollectionStatus Status { get; set; }
+
+    /// <summary>Marks wishlist items; off on pages that only show the wishlist.</summary>
+    [Parameter] public bool ShowStatus { get; set; } = true;
+
+    [Parameter] public decimal? PurchasePrice { get; set; }
+    [Parameter] public DateOnly? PurchaseDate { get; set; }
+    [Parameter] public string? Notes { get; set; }
+
+    /// <summary>Extra content in the top-right corner of the thumbnail.</summary>
+    [Parameter] public RenderFragment? Badge { get; set; }
+
+    /// <summary>Details below the title, e.g. region and completeness chips.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [Parameter] public EventCallback OnEdit { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback OnAcquire { get; set; }
+}

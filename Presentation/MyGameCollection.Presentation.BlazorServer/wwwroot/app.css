@@ -45,3 +45,213 @@ h1:focus {
     max-height: 280px;
     overflow-y: auto;
 }
+
+/* ---- Card lists (games, consoles, wishlist) ---- */
+
+.item-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.item-grid.wide {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+/* Phones: two covers side by side instead of one huge one. */
+@media (max-width: 600px) {
+    .item-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .item-grid.wide {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.item-group-title {
+    margin: 24px 0 12px;
+}
+
+.item-group-title:first-child {
+    margin-top: 0;
+}
+
+.item-group-count {
+    display: inline-block;
+    min-width: 1.6em;
+    margin-left: 6px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--mud-palette-primary);
+    color: var(--mud-palette-primary-text);
+    font-size: 0.75rem;
+    line-height: 1.6em;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.item-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.item-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(59, 7, 100, 0.25);
+}
+
+.item-card-media {
+    position: relative;
+    cursor: pointer;
+    background: linear-gradient(135deg, rgba(109, 40, 217, 0.18), rgba(217, 119, 6, 0.12));
+}
+
+.item-card-media.cover {
+    aspect-ratio: 3 / 4;
+}
+
+.item-card-media.logo {
+    aspect-ratio: 16 / 9;
+}
+
+/* Platform logos are mostly drawn for light backgrounds (often black on transparent). */
+.item-card-media.logo,
+.thumbnail-preview.logo {
+    background: linear-gradient(135deg, #f5f1ff, #fff7ea);
+}
+
+.item-card-media.logo .item-thumbnail-placeholder {
+    color: #3b0764;
+}
+
+.item-card-media .item-thumbnail {
+    width: 100%;
+    height: 100%;
+}
+
+.item-card-media.cover img {
+    object-fit: cover;
+}
+
+.item-card-media.logo img {
+    object-fit: contain;
+    padding: 16px 24px;
+}
+
+.item-card-media:hover img {
+    filter: brightness(1.05);
+}
+
+.item-card-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    margin: 0 !important;
+}
+
+.item-card-badge.end {
+    left: auto;
+    right: 8px;
+}
+
+.item-card-content {
+    flex-grow: 1;
+    padding: 12px 12px 4px !important;
+}
+
+.item-card-title {
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.item-card-subtitle {
+    color: var(--mud-palette-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-card-actions {
+    padding: 0 4px 4px 12px !important;
+    min-height: 40px;
+}
+
+.item-card-price {
+    font-weight: 600 !important;
+    color: var(--mud-palette-secondary);
+}
+
+.item-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.item-tag {
+    font-size: 0.7rem;
+    line-height: 1.6;
+    padding: 0 6px;
+    border-radius: 4px;
+    border: 1px solid var(--mud-palette-lines-default);
+    color: var(--mud-palette-text-secondary);
+    white-space: nowrap;
+}
+
+.item-tag.region {
+    border-color: var(--mud-palette-primary);
+    color: var(--mud-palette-primary);
+    font-weight: 600;
+}
+
+/* ---- Thumbnails ---- */
+
+.item-thumbnail {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.item-thumbnail img {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.item-thumbnail-placeholder {
+    width: 40% !important;
+    height: 40% !important;
+    opacity: 0.35;
+}
+
+.thumbnail-preview {
+    width: 60px;
+    height: 80px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    background: linear-gradient(135deg, rgba(109, 40, 217, 0.18), rgba(217, 119, 6, 0.12));
+}
+
+.thumbnail-preview img {
+    object-fit: cover;
+}
+
+.thumbnail-preview.logo {
+    width: 96px;
+    height: 54px;
+}
+
+.thumbnail-preview.logo img {
+    object-fit: contain;
+    padding: 4px;
+}

@@ -27,6 +27,7 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
                     ? DateTimeOffset.FromUnixTimeSeconds(seconds).Year
                     : null,
                 CoverUrl = IgdbClient.ImageUrl(game.Cover?.ImageId, "t_cover_small"),
+                ThumbnailUrl = IgdbClient.ImageUrl(game.Cover?.ImageId, "t_cover_big"),
                 Platforms = (game.Platforms ?? [])
                     .Where(p => !string.IsNullOrWhiteSpace(p.Name))
                     .Select(p => new CatalogPlatformDto { Name = p.Name!, Abbreviation = p.Abbreviation })
@@ -68,7 +69,8 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
                         .Select(d => d.Year)
                         .Where(y => y is > 0)
                         .Min(),
-                    LogoUrl = IgdbClient.ImageUrl(platform.PlatformLogo?.ImageId, "t_thumb")
+                    LogoUrl = IgdbClient.ImageUrl(platform.PlatformLogo?.ImageId, "t_thumb"),
+                    ThumbnailUrl = IgdbClient.ImageUrl(platform.PlatformLogo?.ImageId, "t_logo_med")
                 };
             })
             .ToList();
