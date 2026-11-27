@@ -144,6 +144,9 @@ public partial class Games : IDisposable
 
     private string? _search;
     private CollectionStatus? _statusFilter;
+    private GameFormat? _formatFilter;
+
+    private static string FormatLabel(GameFormat? format) => format?.ToDisplayName() ?? "All formats";
     private GameSort _sort = GameSort.Title;
     private bool _groupByPlatform;
 
@@ -154,6 +157,8 @@ public partial class Games : IDisposable
             var games = _games.Where(MatchesSearch);
             if (_statusFilter is { } status)
                 games = games.Where(g => g.Status == status);
+            if (_formatFilter is { } format)
+                games = games.Where(g => g.Format == format);
 
             return _sort switch
             {

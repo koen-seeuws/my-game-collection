@@ -24,7 +24,7 @@ public record GetMyCollectionSummaryQueryHandler : IQueryHandler<GetMyCollection
         // cannot aggregate decimals, and a personal collection is small enough for that.
         var games = await _dbContext.Games
             .Where(g => g.GameCollection.Owner.ToUpper() == owner.ToUpper())
-            .Select(g => new { g.Platform, g.Status, g.Completeness, g.PurchasePrice })
+            .Select(g => new { g.Platform, g.Status, g.Format, g.Completeness, g.PurchasePrice })
             .ToListAsync(ct);
 
         var consoles = await _dbContext.Consoles
@@ -60,8 +60,10 @@ public record GetMyCollectionSummaryQueryHandler : IQueryHandler<GetMyCollection
             WishlistConsoles = consoles.Count - ownedConsoles.Count,
             TotalSpent = ownedGames.Sum(g => g.PurchasePrice ?? 0) + ownedConsoles.Sum(c => c.PurchasePrice ?? 0),
             Platforms = platforms,
+            OwnedGamesByFormat = Enum.GetValues<GameFormat>()
+                .ToDictionary(f => f, f => ownedGames.Count(g => g.Format == f)),
             OwnedGamesByCompleteness = Enum.GetValues<Completeness>()
-                .ToDictionary(c => c, c => ownedGames.Count(g => g.Completeness == c))
+                .ToDictionary(c => c, c => ownedGames.Count(g => g.Format == GameFormat.Physical && g.Completeness == c))
         };
     }
 }

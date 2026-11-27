@@ -15,7 +15,10 @@ public record CollectionSummaryDto
     /// <summary>One entry per platform that has games or an owned console, most games first.</summary>
     public required IReadOnlyList<PlatformSummaryDto> Platforms { get; init; }
 
-    /// <summary>How many owned games there are per completeness.</summary>
+    /// <summary>How many owned games there are per format (physical, digital, subscription).</summary>
+    public required IReadOnlyDictionary<GameFormat, int> OwnedGamesByFormat { get; init; }
+
+    /// <summary>How many owned physical games there are per completeness (digital games have no box).</summary>
     public required IReadOnlyDictionary<Completeness, int> OwnedGamesByCompleteness { get; init; }
 }
 

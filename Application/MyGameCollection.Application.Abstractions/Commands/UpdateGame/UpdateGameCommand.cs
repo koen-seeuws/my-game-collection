@@ -11,6 +11,9 @@ public record UpdateGameCommand : ICommand
     /// <summary>The edition, e.g. "Game of the Year Edition". Empty for the standard release.</summary>
     public string? Edition { get; init; }
 
+    /// <summary>Physical copy, bought download or subscription (e.g. PS Plus).</summary>
+    public GameFormat Format { get; init; }
+
     public Region Region { get; init; }
     public ItemCondition Condition { get; init; }
     public Completeness Completeness { get; init; }

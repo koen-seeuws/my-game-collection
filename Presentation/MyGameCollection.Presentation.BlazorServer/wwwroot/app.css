@@ -213,6 +213,20 @@ h1:focus {
     font-weight: 600;
 }
 
+.item-tag.format {
+    font-weight: 600;
+}
+
+.item-tag.format.digital {
+    border-color: var(--mud-palette-info);
+    color: var(--mud-palette-info);
+}
+
+.item-tag.format.subscription {
+    border-color: var(--mud-palette-warning);
+    color: var(--mud-palette-warning);
+}
+
 /* ---- Thumbnails ---- */
 
 .item-thumbnail {

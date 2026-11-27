@@ -33,6 +33,21 @@ public static class DisplayNames
         _ => "Loose"
     };
 
+    public static string ToDisplayName(this GameFormat format) => format switch
+    {
+        GameFormat.Physical => "Physical",
+        GameFormat.Digital => "Digital",
+        _ => "Subscription"
+    };
+
+    /// <summary>What a format means, for the game form.</summary>
+    public static string ToDescription(this GameFormat format) => format switch
+    {
+        GameFormat.Physical => "A cartridge, disc or card",
+        GameFormat.Digital => "A download you bought and keep",
+        _ => "Claimed through a subscription like PS Plus; playable while subscribed"
+    };
+
     public static string ToDisplayName(this CollectionStatus status) => status switch
     {
         CollectionStatus.Owned => "Owned",
@@ -46,6 +61,7 @@ public static class DisplayNames
         ItemCondition c => c.ToDisplayName(),
         Completeness c => c.ToDisplayName(),
         CollectionStatus s => s.ToDisplayName(),
+        GameFormat f => f.ToDisplayName(),
         _ => value.ToString()
     };
 

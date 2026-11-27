@@ -26,6 +26,7 @@ public class AddGameCommandHandler : ICommandHandler<AddGameCommand>
             title: command.Title,
             platform: command.Platform,
             edition: command.Edition,
+            format: command.Format,
             region: command.Region,
             condition: command.Condition,
             completeness: command.Completeness,
