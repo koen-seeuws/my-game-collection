@@ -24,6 +24,12 @@ public partial class Dashboard : IDisposable
     private double[] _chartValues = [];
     private List<ChartSeries<double>> _chartSeries = [];
 
+    // Neon slices that match the app's sci-fi theme (8 = MaxChartSlices + "Other").
+    private readonly DonutChartOptions _chartOptions = new()
+    {
+        ChartPalette = ["#22D3EE", "#F472D0", "#A78BFA", "#2EF2A2", "#FFC94D", "#38BDF8", "#FF7A59", "#5B6B8C"]
+    };
+
     private bool IsEmpty => _summary is { OwnedGames: 0, WishlistGames: 0, OwnedConsoles: 0, WishlistConsoles: 0 };
 
     protected override async Task OnInitializedAsync()

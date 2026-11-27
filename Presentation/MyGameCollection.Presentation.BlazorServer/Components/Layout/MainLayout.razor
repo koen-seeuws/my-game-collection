@@ -2,23 +2,22 @@
 @implements IDisposable
 @inject CurrentUser CurrentUser
 
-<MudThemeProvider @ref="_themeProvider" Theme="_theme" @bind-IsDarkMode="_isDarkMode" />
+@* The neon sci-fi look only exists as a dark theme. *@
+<MudThemeProvider Theme="_theme" IsDarkMode="true" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="1">
+    <MudAppBar Elevation="0" Class="neon-appbar">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
                        OnClick="() => _drawerOpen = !_drawerOpen" aria-label="Toggle navigation" />
-        <MudIcon Icon="@Icons.Material.Filled.VideogameAsset" Class="ml-2" />
-        <MudText Typo="Typo.h6" Class="ml-3 retro-title">My Game Collection</MudText>
+        <MudIcon Icon="@Icons.Material.Filled.VideogameAsset" Class="ml-2 neon-logo" />
+        <MudText Typo="Typo.h6" Class="ml-3 neon-title">My Game Collection</MudText>
         <MudSpacer />
-        <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
-                       Color="Color.Inherit" OnClick="() => _isDarkMode = !_isDarkMode" aria-label="Toggle dark mode" />
         @if (CurrentUser.IsSignedIn)
         {
-            <MudChip T="string" Icon="@Icons.Material.Filled.Person" Color="Color.Secondary" Class="ml-2">
+            <MudChip T="string" Icon="@Icons.Material.Filled.Person" Color="Color.Primary" Variant="Variant.Outlined" Class="ml-2 neon-user d-none d-sm-flex">
                 @CurrentUser.DisplayName
             </MudChip>
             <form action="account/logout" method="post" class="d-inline-flex">
@@ -31,7 +30,7 @@
         }
     </MudAppBar>
 
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="0" Class="neon-drawer">
         <MudNavMenu>
             <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
             <MudNavLink Href="games" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.SportsEsports">Games</MudNavLink>
@@ -58,41 +57,59 @@
 </div>
 
 @code {
-    private MudThemeProvider? _themeProvider;
-    private bool _isDarkMode;
     private bool _drawerOpen = true;
 
-    // A retro arcade palette: deep violet with an amber accent.
+    private static readonly string[] HeadingFont = ["Orbitron", "Exo 2", "sans-serif"];
+
+    // Dark-blue sci-fi: a deep navy base with neon cyan and magenta accents.
     private readonly MudTheme _theme = new()
     {
-        PaletteLight = new PaletteLight
-        {
-            Primary = "#6D28D9",
-            Secondary = "#D97706",
-            AppbarBackground = "#3B0764",
-            DrawerIcon = "#6D28D9"
-        },
         PaletteDark = new PaletteDark
         {
-            Primary = "#A78BFA",
-            Secondary = "#FBBF24",
-            AppbarBackground = "#1E1033",
-            Background = "#14101C",
-            Surface = "#1F1A2B",
-            DrawerBackground = "#1A1525"
-        }
+            Primary = "#22D3EE",
+            PrimaryContrastText = "#041024",
+            Secondary = "#F472D0",
+            SecondaryContrastText = "#160320",
+            Tertiary = "#A78BFA",
+            Info = "#38BDF8",
+            InfoContrastText = "#041024",
+            Success = "#2EF2A2",
+            SuccessContrastText = "#03170F",
+            Warning = "#FFC94D",
+            WarningContrastText = "#1C1200",
+            Error = "#FF4D6D",
+            Background = "#050B1A",
+            BackgroundGray = "#08132A",
+            Surface = "#0B1733",
+            DrawerBackground = "#06102A",
+            DrawerText = "#B9D3F0",
+            DrawerIcon = "#5FE3F7",
+            AppbarBackground = "rgba(5, 12, 30, 0.82)",
+            AppbarText = "#E2F3FF",
+            TextPrimary = "#E2F3FF",
+            TextSecondary = "#8EA7C8",
+            TextDisabled = "rgba(142, 167, 200, 0.45)",
+            ActionDefault = "#8EA7C8",
+            LinesDefault = "rgba(56, 189, 248, 0.18)",
+            LinesInputs = "rgba(56, 189, 248, 0.35)",
+            TableLines = "rgba(56, 189, 248, 0.12)",
+            TableHover = "rgba(34, 211, 238, 0.06)",
+            Divider = "rgba(56, 189, 248, 0.18)",
+            OverlayDark = "rgba(2, 6, 18, 0.75)",
+            Skeleton = "rgba(56, 189, 248, 0.08)"
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography { FontFamily = ["Exo 2", "Roboto", "sans-serif"] },
+            H4 = new H4Typography { FontFamily = HeadingFont, FontWeight = "700", LetterSpacing = "0.06em", TextTransform = "uppercase" },
+            H5 = new H5Typography { FontFamily = HeadingFont, FontWeight = "600", LetterSpacing = "0.03em" },
+            H6 = new H6Typography { FontFamily = HeadingFont, FontWeight = "600", LetterSpacing = "0.04em" },
+            Button = new ButtonTypography { FontFamily = ["Exo 2", "Roboto", "sans-serif"], FontWeight = "600", LetterSpacing = "0.08em", TextTransform = "uppercase" }
+        },
+        LayoutProperties = new LayoutProperties { DefaultBorderRadius = "6px" }
     };
 
     protected override void OnInitialized() => CurrentUser.Changed += OnUserChanged;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender && _themeProvider is not null && RendererInfo.IsInteractive)
-        {
-            _isDarkMode = await _themeProvider.GetSystemDarkModeAsync();
-            StateHasChanged();
-        }
-    }
 
     private void OnUserChanged() => InvokeAsync(StateHasChanged);
 
