@@ -21,12 +21,7 @@ public class CreateInviteCommandHandler : ICommandHandler<CreateInviteCommand, C
     {
         _userContext.EnsureAdmin();
 
-        if (command.ValidFor <= TimeSpan.Zero || command.ValidFor > CreateInviteCommand.MaxValidity)
-            throw new ArgumentException($"An invite must be valid for some time, up to {CreateInviteCommand.MaxValidity.TotalDays} days.");
-
         var note = string.IsNullOrWhiteSpace(command.Note) ? null : command.Note.Trim();
-        if (note?.Length > CreateInviteCommand.MaxNoteLength)
-            throw new ArgumentException($"Keep the note under {CreateInviteCommand.MaxNoteLength} characters.");
 
         return _accounts.CreateInviteAsync(_userContext.UserId, note, command.ValidFor, grantsAdmin: false,
             cancellationToken);
