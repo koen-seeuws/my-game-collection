@@ -30,10 +30,10 @@ else
         </MudItem>
         <MudItem xs="12" sm="6" lg="3">
             <StatCard Label="Consoles" Value="@_summary.OwnedConsoles.ToString()" Icon="@Icons.Material.Filled.VideogameAsset"
-                      Color="Color.Info" />
+                      Color="Color.Info" Detail="@ConsolesDetail" />
         </MudItem>
         <MudItem xs="12" sm="6" lg="3">
-            <StatCard Label="On the wishlist" Value="@((_summary.WishlistGames + _summary.WishlistConsoles + _summary.WishlistAddOns).ToString())"
+            <StatCard Label="On the wishlist" Value="@((_summary.WishlistGames + _summary.WishlistConsoles + _summary.WishlistAddOns + _summary.WishlistAccessories).ToString())"
                       Icon="@Icons.Material.Filled.Favorite" Color="Color.Warning"
                       Detail="@WishlistDetail" />
         </MudItem>

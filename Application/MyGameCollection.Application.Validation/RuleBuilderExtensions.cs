@@ -59,6 +59,12 @@ public static class RuleBuilderExtensions
             .GreaterThanOrEqualTo(0m)
             .WithMessage("A price cannot be negative.");
 
+    /// <summary>How many of the same accessory: at least one, at most <see cref="CollectionItemLimits.MaxAccessoryQuantity"/>.</summary>
+    public static IRuleBuilderOptions<T, int> AccessoryQuantity<T>(this IRuleBuilder<T, int> ruleBuilder) =>
+        ruleBuilder
+            .InclusiveBetween(1, CollectionItemLimits.MaxAccessoryQuantity)
+            .WithMessage($"The quantity must be between 1 and {CollectionItemLimits.MaxAccessoryQuantity}.");
+
     /// <summary>Empty, or an id in the external catalog (IGDB ids are positive).</summary>
     public static IRuleBuilderOptions<T, long?> CatalogId<T>(this IRuleBuilder<T, long?> ruleBuilder) =>
         ruleBuilder

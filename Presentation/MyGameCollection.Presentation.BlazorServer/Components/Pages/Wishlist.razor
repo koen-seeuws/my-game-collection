@@ -23,6 +23,7 @@ else
     var games = WishedGames.ToList();
     var consoles = WishedConsoles.ToList();
     var addOns = WishedAddOns.ToList();
+    var accessories = WishedAccessories.ToList();
 
     <MudStack Row="true" AlignItems="AlignItems.Center" Class="item-group-title">
         <MudText Typo="Typo.h6">Games <span class="item-group-count">@games.Count</span></MudText>
@@ -84,11 +85,11 @@ else
     </MudStack>
     @if (consoles.Count == 0)
     {
-        <MudText Class="mud-text-secondary">No consoles on your wishlist.</MudText>
+        <MudText Class="mud-text-secondary mb-6">No consoles on your wishlist.</MudText>
     }
     else
     {
-        <div class="item-grid wide">
+        <div class="item-grid wide mb-6">
             @foreach (var console in consoles)
             {
                 <ItemCard @key="console.Key" Title="@console.Name" Subtitle="@console.Manufacturer"
@@ -97,6 +98,34 @@ else
                           OnOpen="() => OpenConsoleAsync(console)" OnDelete="() => DeleteConsoleAsync(console)"
                           OnAcquire="() => AcquireConsoleAsync(console)">
                     <ItemTags Region="console.Region" Completeness="console.Completeness" />
+                </ItemCard>
+            }
+        </div>
+    }
+
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="item-group-title">
+        <MudText Typo="Typo.h6">Accessories <span class="item-group-count">@accessories.Count</span></MudText>
+        <MudSpacer />
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="() => WishForAccessoryAsync()">
+            Wish for an accessory
+        </MudButton>
+    </MudStack>
+    @if (accessories.Count == 0)
+    {
+        <MudText Class="mud-text-secondary">No accessories on your wishlist.</MudText>
+    }
+    else
+    {
+        <div class="item-grid wide">
+            @foreach (var accessory in accessories)
+            {
+                <ItemCard @key="accessory.Key" Title="@accessory.Name" Subtitle="@(accessory.Platform ?? "Any system")"
+                          ThumbnailUrl="@accessory.ThumbnailUrl" Icon="@accessory.Type.ToIcon()" Logo="true"
+                          Status="accessory.Status" ShowStatus="false" Notes="@accessory.Notes"
+                          OnOpen="() => OpenAccessoryAsync(accessory)" OnDelete="() => DeleteAccessoryAsync(accessory)"
+                          OnAcquire="() => AcquireAccessoryAsync(accessory)">
+                    <ItemTags AccessoryType="accessory.Type" Region="accessory.Region" Completeness="accessory.Completeness" />
                 </ItemCard>
             }
         </div>

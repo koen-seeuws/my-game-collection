@@ -1,0 +1,40 @@
+@* An accessory's details, read-only, shown when opening it before choosing to edit. *@
+<div class="item-details">
+    <ItemThumbnail Url="@Model.ThumbnailUrl" Icon="@Model.Type.ToIcon()" Alt="@Model.Name"
+                   Class="item-details-thumbnail logo" />
+    <div class="item-details-body">
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            @string.Join(" · ", new[] { Model.Platform, Model.Manufacturer, Model.Model, Model.Colour }.Where(t => !string.IsNullOrWhiteSpace(t)))
+        </MudText>
+        <StatusChip Status="Model.Status" />
+        <ItemTags AccessoryType="Model.Type" Region="Model.Region" Completeness="Model.Completeness"
+                  Condition="@(Owned ? Model.Condition : null)"
+                  Origin="@(Owned ? Model.PurchaseOrigin : null)" />
+
+        <MudGrid Spacing="2" Class="mt-2">
+            <DetailField Label="Works with">@(Model.Platform ?? "Any system")</DetailField>
+            @if (Model.Quantity > 1)
+            {
+                <DetailField Label="Quantity">@Model.Quantity</DetailField>
+            }
+            @if (Owned && Model.PurchaseDate is { } purchased)
+            {
+                <DetailField Label="Purchased">@DisplayNames.Date(DateOnly.FromDateTime(purchased))</DetailField>
+            }
+            @if (Owned && Model.PurchasePrice is not null)
+            {
+                <DetailField Label="@(Model.Quantity > 1 ? "Price paid (all together)" : "Price paid")">@DisplayNames.Money(Model.PurchasePrice)</DetailField>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.Notes))
+            {
+                <DetailField Label="Notes" Wide="true"><span class="detail-notes">@Model.Notes</span></DetailField>
+            }
+        </MudGrid>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public AccessoryFormModel Model { get; set; } = default!;
+
+    private bool Owned => Model.Status == CollectionStatus.Owned;
+}

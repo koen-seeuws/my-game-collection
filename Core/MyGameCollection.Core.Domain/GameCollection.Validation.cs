@@ -83,6 +83,31 @@ internal static class GameCollectionValidation
         return normalised;
     }
 
+    public static Accessory Validated(Accessory accessory)
+    {
+        var normalised = accessory with
+        {
+            Name = Required(accessory.Name, "name", MaxNameLength),
+            Platform = Optional(accessory.Platform, "platform", MaxShortTextLength),
+            Manufacturer = Optional(accessory.Manufacturer, "manufacturer", MaxShortTextLength),
+            Model = Optional(accessory.Model, "model", MaxShortTextLength),
+            Colour = Optional(accessory.Colour, "colour", MaxShortTextLength),
+            Notes = Optional(accessory.Notes, "notes", MaxNotesLength),
+            ThumbnailUrl = OptionalUrl(accessory.ThumbnailUrl, "thumbnailUrl"),
+            // An item on the wishlist has not been bought yet.
+            PurchaseOrigin = accessory.Status == CollectionStatus.Owned ? accessory.PurchaseOrigin : null
+        };
+
+        EnsureValidPrice(normalised.PurchasePrice, nameof(normalised.PurchasePrice));
+        if (!Enum.IsDefined(normalised.Type))
+            throw new ArgumentOutOfRangeException("type", normalised.Type, "Unknown accessory type.");
+        if (normalised.Quantity is < 1 or > MaxAccessoryQuantity)
+            throw new ArgumentOutOfRangeException("quantity", normalised.Quantity,
+                $"The quantity must be between 1 and {MaxAccessoryQuantity}.");
+
+        return normalised;
+    }
+
     public static void EnsureValidPrice(decimal? price, string paramName)
     {
         if (price < 0)

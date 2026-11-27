@@ -1,0 +1,159 @@
+@using System.Globalization
+
+<MudDialog>
+    <DialogContent>
+        @if (!_editing)
+        {
+            <AccessoryDetails Model="Model" />
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Normal" Dense="true" Variant="Variant.Text" Class="mb-2">
+                IGDB does not list accessories, so they are filled in by hand.
+            </MudAlert>
+            <EditForm id="@_formId" Model="Model" OnValidSubmit="Submit">
+                <DataAnnotationsValidator />
+                <MudGrid Spacing="2">
+                    <FormSection Title="Accessory" Icon="@Icons.Material.Outlined.Gamepad" />
+                    <MudItem xs="12" sm="8">
+                        <MudTextField @bind-Value="Model.Name" For="() => Model.Name" Label="Name" Variant="Variant.Outlined"
+                                      MaxLength="200" Placeholder="e.g. DualShock 2, Memory Card (8 MB), Zapper" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <EnumSelect TEnum="AccessoryType" @bind-Value="Model.Type" Label="Type" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudAutocomplete T="string" Value="Model.Platform" ValueChanged="OnPlatformChanged" For="() => Model.Platform"
+                                         Label="Works with" Variant="Variant.Outlined" SearchFunc="SearchPlatformsAsync" MaxItems="null"
+                                         CoerceText="false" CoerceValue="true" Clearable="true"
+                                         HelperText="Leave empty when it works with any system" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudAutocomplete T="string" @bind-Value="Model.Manufacturer" For="() => Model.Manufacturer"
+                                         Label="Manufacturer" Variant="Variant.Outlined" SearchFunc="SearchManufacturersAsync"
+                                         MaxItems="null" CoerceText="false" CoerceValue="true" Clearable="true"
+                                         HelperText="Also third parties, e.g. Mad Catz" />
+                    </MudItem>
+                    <MudItem xs="12" sm="5">
+                        <MudTextField @bind-Value="Model.Model" For="() => Model.Model" Label="Model"
+                                      Variant="Variant.Outlined" MaxLength="100" Placeholder="e.g. SCPH-10010" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudTextField @bind-Value="Model.Colour" For="() => Model.Colour" Label="Colour / edition"
+                                      Variant="Variant.Outlined" MaxLength="100" Placeholder="e.g. Ocean Blue" />
+                    </MudItem>
+                    <MudItem xs="12" sm="3">
+                        <MudNumericField T="int" @bind-Value="Model.Quantity" For="() => Model.Quantity" Label="Quantity"
+                                         Variant="Variant.Outlined" Min="1" Max="CollectionItemLimits.MaxAccessoryQuantity" />
+                    </MudItem>
+                    <FormSection Title="Your copy" Icon="@Icons.Material.Outlined.Inventory2" />
+                    <MudItem xs="12" sm="6">
+                        <EnumSelect TEnum="CollectionStatus" @bind-Value="Model.Status" Label="Status" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <EnumSelect TEnum="Region" @bind-Value="Model.Region" Label="Region" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <EnumSelect TEnum="Completeness" @bind-Value="Model.Completeness" Label="Completeness" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <EnumSelect TEnum="ItemCondition" @bind-Value="Model.Condition" Label="Condition" />
+                    </MudItem>
+                    @if (Model.Status == CollectionStatus.Owned)
+                    {
+                        <FormSection Title="Purchase" Icon="@Icons.Material.Outlined.ShoppingBag" />
+                        <MudItem xs="12" sm="6">
+                            <MudDatePicker @bind-Date="Model.PurchaseDate" Label="Purchase date" Variant="Variant.Outlined"
+                                           Clearable="true" MaxDate="DateTime.Today" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField T="decimal?" @bind-Value="Model.PurchasePrice" For="() => Model.PurchasePrice"
+                                             Label="Price paid" Variant="Variant.Outlined" HideSpinButtons="true" Min="0"
+                                             Adornment="Adornment.Start" AdornmentText="@CurrencySymbol"
+                                             HelperText="@(Model.Quantity > 1 ? "For all of them together" : null)" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <PurchaseOriginField @bind-Value="Model.PurchaseOrigin" />
+                        </MudItem>
+                    }
+                    <FormSection Title="Picture & notes" Icon="@Icons.Material.Outlined.Image" />
+                    <MudItem xs="12">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <ItemThumbnail Url="@Model.ThumbnailUrl" Icon="@Model.Type.ToIcon()" Class="thumbnail-preview logo" />
+                            <MudTextField @bind-Value="Model.ThumbnailUrl" For="() => Model.ThumbnailUrl" Label="Picture URL"
+                                          Variant="Variant.Outlined" MaxLength="500" Immediate="true" Clearable="true"
+                                          Placeholder="https://..." Class="flex-grow-1" />
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="Model.Notes" For="() => Model.Notes" Label="Notes" Variant="Variant.Outlined"
+                                      Lines="3" MaxLength="2000" />
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        }
+    </DialogContent>
+    <DialogActions>
+        @if (!_editing)
+        {
+            <MudButton OnClick="() => MudDialog.Cancel()">Close</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Edit"
+                       OnClick="() => _editing = true">Edit</MudButton>
+        }
+        else
+        {
+            <MudButton OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" form="@_formId" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public AccessoryFormModel Model { get; set; } = new();
+
+    /// <summary>Platforms already used in the collection, suggested before the well-known ones.</summary>
+    [Parameter]
+    public IEnumerable<string> Platforms { get; set; } = [];
+
+    /// <summary>Manufacturers already used for accessories, suggested before the console makers.</summary>
+    [Parameter]
+    public IEnumerable<string> Manufacturers { get; set; } = [];
+
+    /// <summary>Opens an existing accessory read-only; its form only shows after pressing Edit.</summary>
+    [Parameter]
+    public bool ReadOnly { get; set; }
+
+    private bool _editing;
+
+    protected override void OnInitialized() => _editing = !ReadOnly;
+
+    private readonly string _formId = $"accessory-form-{Guid.NewGuid():N}";
+
+    private static string CurrencySymbol => CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol;
+
+    private Task<IEnumerable<string>> SearchPlatformsAsync(string? search, CancellationToken _) =>
+        Task.FromResult(KnownPlatforms.Suggest(Platforms, KnownPlatforms.All.Select(p => p.Name), search));
+
+    private Task<IEnumerable<string>> SearchManufacturersAsync(string? search, CancellationToken _) =>
+        Task.FromResult(KnownPlatforms.Suggest(Manufacturers, KnownPlatforms.Manufacturers, search));
+
+    private void OnPlatformChanged(string? platform)
+    {
+        Model.Platform = platform;
+
+        // Most accessories are made by the console's maker: suggest it until the user types another.
+        if (string.IsNullOrWhiteSpace(Model.Manufacturer) && platform is not null
+            && KnownPlatforms.ManufacturerOf(platform) is { } manufacturer)
+            Model.Manufacturer = manufacturer;
+    }
+
+    private void Submit()
+    {
+        Model.Platform = string.IsNullOrWhiteSpace(Model.Platform) ? null : KnownPlatforms.Normalize(Platforms, Model.Platform);
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+}
