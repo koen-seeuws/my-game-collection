@@ -29,13 +29,36 @@ internal static class IgdbPlayerModes
     /// <summary>
     /// How the game can be played on <paramref name="platformId"/>. Platforms often differ (e.g. more players on
     /// one console in the Switch version), so IGDB's details for that platform win; without any, those of the
-    /// whole game are the best guess.
+    /// whole game are the best guess. When the platform's details say it can be played together on one console or
+    /// online but leave out how many can, the whole game's count is the best guess for that.
     /// </summary>
-    public static PlayerModes? ForPlatform(IgdbGame game, long platformId)
+    public static IgdbPlatformPlayers ForPlatform(IgdbGame game, long platformId)
     {
         var modes = game.MultiplayerModes ?? [];
         var onPlatform = modes.Where(m => m.Platform == platformId).ToList();
-        return From(game.GameModes, onPlatform.Count > 0 ? onPlatform : modes);
+        var whole = From(game.GameModes, modes);
+
+        if (onPlatform.Count == 0)
+            return new IgdbPlatformPlayers(whole,
+                CountsFromOtherPlatforms: whole is { MaxLocalPlayers: not null } or { MaxOnlinePlayers: not null });
+
+        if (From(game.GameModes, onPlatform) is not { } players)
+            return new IgdbPlatformPlayers(null, CountsFromOtherPlatforms: false);
+
+        var local = players.MaxLocalPlayers is null && (players.CouchCoop || players.SplitScreen)
+            ? whole?.MaxLocalPlayers
+            : null;
+        var online = players.MaxOnlinePlayers is null && players.OnlineCoop
+            ? whole?.MaxOnlinePlayers
+            : null;
+
+        return new IgdbPlatformPlayers(
+            players with
+            {
+                MaxLocalPlayers = players.MaxLocalPlayers ?? local,
+                MaxOnlinePlayers = players.MaxOnlinePlayers ?? online
+            },
+            CountsFromOtherPlatforms: local is not null || online is not null);
     }
 
     private static PlayerModes? From(IReadOnlyList<long>? gameModes, IReadOnlyList<IgdbMultiplayerMode> modes)
@@ -58,3 +81,9 @@ internal static class IgdbPlayerModes
     private static int? MostPlayers(IEnumerable<int?> counts) =>
         counts.Max() is { } most and >= MinMultiplayerPlayers ? Math.Min(most, MaxPlayers) : null;
 }
+
+/// <param name="Players">How the game can be played on the platform; empty when unknown.</param>
+/// <param name="CountsFromOtherPlatforms">
+/// Some player count is not IGDB's for this platform but the most of any of the game's platforms.
+/// </param>
+internal sealed record IgdbPlatformPlayers(PlayerModes? Players, bool CountsFromOtherPlatforms);

@@ -68,6 +68,12 @@ public record CatalogPlatformDto
     /// <summary>How the game can be played on this platform (versions often differ). Empty when unknown.</summary>
     public PlayerModes? Players { get; init; }
 
+    /// <summary>
+    /// The catalog does not know how many can play on this platform, so a player count in <see cref="Players"/> is
+    /// the most of any of the game's platforms. Worth checking.
+    /// </summary>
+    public bool PlayerCountsFromOtherPlatforms { get; init; }
+
     /// <summary>When the game came out on this platform, per region.</summary>
     public IReadOnlyList<CatalogReleaseDto> Releases { get; init; } = [];
 
