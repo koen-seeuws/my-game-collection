@@ -1,3 +1,4 @@
+using MyGameCollection.Core.Domain.Abstractions;
 using MyGameCollection.Core.Domain;
 using static MyGameCollection.Tests.UnitTests.GameCollectionBuilder;
 
@@ -9,14 +10,14 @@ public class AddGameTests
     public void AddGame_OnEmptyCollection_AddsGameWithGivenDetailsAndReturnsItsKey()
     {
         var collection = Empty();
-        var key = collection.AddGame("Sonic the Hedgehog", "Mega Drive", releaseYear: 1991, purchasePrice: 15m);
+        var key = collection.AddGame("Sonic the Hedgehog", "Mega Drive", releaseDate: new ReleaseDate(1991, 6, 23), purchasePrice: 15m);
 
         var game = collection.Games.Should().ContainSingle().Subject;
         game.Key.Should().Be(key);
         key.Should().NotBeEmpty();
         game.Title.Should().Be("Sonic the Hedgehog");
         game.Platform.Should().Be("Mega Drive");
-        game.ReleaseYear.Should().Be(1991);
+        game.ReleaseDate.Should().Be(new ReleaseDate(1991, 6, 23));
         game.PurchasePrice.Should().Be(15m);
     }
 
@@ -93,7 +94,7 @@ public class AddGameTests
     {
         var collection = Empty();
 
-        collection.Invoking(c => c.AddGame("Super Mario World", "Super Nintendo", releaseYear: year))
+        collection.Invoking(c => c.AddGame("Super Mario World", "Super Nintendo", releaseDate: new ReleaseDate(year)))
             .Should().Throw<ArgumentOutOfRangeException>();
     }
 

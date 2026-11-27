@@ -1,3 +1,5 @@
+using MyGameCollection.Core.Domain.Abstractions;
+
 namespace MyGameCollection.Application.Abstractions.Services.GameCatalog;
 
 /// <summary>A game as known by the external catalog, used to prefill the game form.</summary>
@@ -5,7 +7,7 @@ public record CatalogGameDto
 {
     public required long Id { get; init; }
     public required string Name { get; init; }
-    public int? ReleaseYear { get; init; }
+    public ReleaseDate? ReleaseDate { get; init; }
     /// <summary>A small cover, for showing in search results.</summary>
     public string? CoverUrl { get; init; }
 

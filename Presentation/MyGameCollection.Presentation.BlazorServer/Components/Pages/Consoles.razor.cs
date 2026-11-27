@@ -144,7 +144,7 @@ public partial class Consoles : IDisposable
 
     // ---- Filtering and sorting ----
 
-    private enum ConsoleSort { Manufacturer, Name, ReleaseYear, GameCount }
+    private enum ConsoleSort { Manufacturer, Name, ReleaseDate, GameCount }
 
     private string? _search;
     private CollectionStatus? _statusFilter;
@@ -161,15 +161,15 @@ public partial class Consoles : IDisposable
             return _sort switch
             {
                 ConsoleSort.Name => consoles.OrderBy(c => c.Name),
-                ConsoleSort.ReleaseYear => consoles.OrderBy(c => c.ReleaseYear ?? int.MaxValue).ThenBy(c => c.Name),
+                ConsoleSort.ReleaseDate => consoles.OrderBy(c => c.ReleaseDate is null).ThenBy(c => c.ReleaseDate).ThenBy(c => c.Name),
                 ConsoleSort.GameCount => consoles.OrderByDescending(GameCount).ThenBy(c => c.Name),
-                _ => consoles.OrderBy(c => c.Manufacturer).ThenBy(c => c.ReleaseYear ?? int.MaxValue).ThenBy(c => c.Name)
+                _ => consoles.OrderBy(c => c.Manufacturer).ThenBy(c => c.ReleaseDate is null).ThenBy(c => c.ReleaseDate).ThenBy(c => c.Name)
             };
         }
     }
 
     private static string Subtitle(ConsoleDto console) =>
-        string.Join(" · ", new[] { console.Manufacturer, console.Model, console.ReleaseYear?.ToString() }
+        string.Join(" · ", new[] { console.Manufacturer, console.Model, console.ReleaseDate?.ToString() }
             .Where(part => !string.IsNullOrWhiteSpace(part)));
 
     /// <summary>The number of owned games for this system (matched on platform name).</summary>

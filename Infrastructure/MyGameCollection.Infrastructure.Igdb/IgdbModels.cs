@@ -9,6 +9,7 @@ internal sealed record IgdbGame(
     [property: JsonPropertyName("name")] string? Name,
     [property: JsonPropertyName("version_title")] string? VersionTitle,
     [property: JsonPropertyName("first_release_date")] long? FirstReleaseDate,
+    [property: JsonPropertyName("release_dates")] IReadOnlyList<IgdbReleaseDate>? ReleaseDates,
     [property: JsonPropertyName("cover")] IgdbImage? Cover,
     [property: JsonPropertyName("platforms")] IReadOnlyList<IgdbPlatformRef>? Platforms);
 
@@ -42,5 +43,13 @@ internal sealed record IgdbPlatformVersionCompany(
 internal sealed record IgdbCompany(
     [property: JsonPropertyName("name")] string? Name);
 
+/// <summary>
+/// A release of a game or platform version (one per platform / region). <see cref="Date"/> alone is misleading:
+/// a release only known by its year is dated December 31st, so <see cref="DateFormat"/> says how precise it is.
+/// </summary>
 internal sealed record IgdbReleaseDate(
-    [property: JsonPropertyName("y")] int? Year);
+    [property: JsonPropertyName("date")] long? Date,
+    [property: JsonPropertyName("date_format")] int? DateFormat,
+    [property: JsonPropertyName("category")] int? Category,
+    [property: JsonPropertyName("y")] int? Year,
+    [property: JsonPropertyName("m")] int? Month);

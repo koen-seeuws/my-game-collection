@@ -15,7 +15,7 @@ public record GameDto
     public required ItemCondition Condition { get; init; }
     public required Completeness Completeness { get; init; }
     public required CollectionStatus Status { get; init; }
-    public int? ReleaseYear { get; init; }
+    public ReleaseDate? ReleaseDate { get; init; }
     public DateOnly? PurchaseDate { get; init; }
     public decimal? PurchasePrice { get; init; }
     public string? Notes { get; init; }

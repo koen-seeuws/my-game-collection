@@ -7,7 +7,7 @@ using MyGameCollection.Core.Domain.Abstractions;
 namespace MyGameCollection.Presentation.BlazorServer.Models;
 
 /// <summary>Input for adding or editing a game (same rules as the domain).</summary>
-public sealed class GameFormModel
+public sealed class GameFormModel : ReleaseDateFormModel
 {
     [Required, StringLength(200)]
     public string Title { get; set; } = string.Empty;
@@ -22,9 +22,6 @@ public sealed class GameFormModel
     public Region Region { get; set; } = Region.Pal;
     public ItemCondition Condition { get; set; } = ItemCondition.Good;
     public Completeness Completeness { get; set; } = Completeness.CompleteInBox;
-
-    [Range(1950, 2100)]
-    public int? ReleaseYear { get; set; }
 
     public DateTime? PurchaseDate { get; set; }
 
@@ -46,7 +43,7 @@ public sealed class GameFormModel
         Region = game.Region,
         Condition = game.Condition,
         Completeness = game.Completeness,
-        ReleaseYear = game.ReleaseYear,
+        ReleaseDate = game.ReleaseDate,
         PurchaseDate = game.PurchaseDate?.ToDateTime(TimeOnly.MinValue),
         PurchasePrice = game.PurchasePrice,
         Notes = game.Notes,
@@ -62,7 +59,7 @@ public sealed class GameFormModel
         Region = Region,
         Condition = Condition,
         Completeness = Completeness,
-        ReleaseYear = ReleaseYear,
+        ReleaseDate = ReleaseDate,
         PurchaseDate = PurchaseDateOrNull,
         PurchasePrice = PurchasePriceOrNull,
         Notes = Notes,
@@ -79,7 +76,7 @@ public sealed class GameFormModel
         Region = Region,
         Condition = Condition,
         Completeness = Completeness,
-        ReleaseYear = ReleaseYear,
+        ReleaseDate = ReleaseDate,
         PurchaseDate = PurchaseDateOrNull,
         PurchasePrice = PurchasePriceOrNull,
         Notes = Notes,

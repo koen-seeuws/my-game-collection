@@ -30,7 +30,7 @@ public class AddConsoleCommandHandler : ICommandHandler<AddConsoleCommand>
             condition: command.Condition,
             completeness: command.Completeness,
             status: command.Status,
-            releaseYear: command.ReleaseYear,
+            releaseDate: command.ReleaseDate,
             purchaseDate: command.PurchaseDate,
             purchasePrice: command.PurchasePrice,
             notes: command.Notes,

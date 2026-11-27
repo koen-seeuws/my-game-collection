@@ -45,13 +45,13 @@ public class CommandValidationTests
             Title = " ",
             Platform = new string('x', CollectionItemLimits.MaxShortTextLength + 1),
             Region = (Region)42,
-            ReleaseYear = 1900,
+            ReleaseDate = new ReleaseDate(1900),
             PurchasePrice = -1m,
             ThumbnailUrl = "ftp://example.com/cover.png"
         });
 
         result.Errors.Select(e => e.PropertyName).Should()
-            .Equal("Title", "Platform", "Region", "ReleaseYear", "PurchasePrice", "ThumbnailUrl");
+            .Equal("Title", "Platform", "Region", "ReleaseDate", "PurchasePrice", "ThumbnailUrl");
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class CommandValidationTests
     {
         Title = "Sonic the Hedgehog",
         Platform = "Mega Drive",
-        ReleaseYear = 1991,
+        ReleaseDate = new ReleaseDate(1991, 6, 23),
         PurchasePrice = 15m,
         ThumbnailUrl = "https://example.com/sonic.png"
     };

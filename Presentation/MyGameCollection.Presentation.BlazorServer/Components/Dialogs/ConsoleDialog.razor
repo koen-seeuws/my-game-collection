@@ -18,7 +18,7 @@
                     }
                     <div>
                         <MudText Typo="Typo.body1">
-                            @console.Name @(console.ReleaseYear is { } year ? $"({year})" : "")
+                            @console.Name @(console.ReleaseDate is { } released ? $"({released})" : "")
                         </MudText>
                         <MudText Typo="Typo.caption" Color="Color.Secondary">
                             @string.Join(" · ", new[] { console.Manufacturer, console.AlternativeName }.Where(t => !string.IsNullOrWhiteSpace(t)))
@@ -49,9 +49,9 @@
                                 <MudIcon Icon="@Icons.Material.Outlined.SportsEsports" Class="version-option-placeholder" />
                             }
                             <span class="version-option-name">@version.Name</span>
-                            @if (version.ReleaseYear is { } year)
+                            @if (version.ReleaseDate is { } released)
                             {
-                                <span class="version-option-year">@year</span>
+                                <span class="version-option-year">@released.Year</span>
                             }
                         </button>
                     }
@@ -88,17 +88,14 @@
                 <MudItem xs="12" sm="4">
                     <EnumSelect TEnum="ItemCondition" @bind-Value="Model.Condition" Label="Condition" />
                 </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudNumericField T="int?" @bind-Value="Model.ReleaseYear" For="() => Model.ReleaseYear"
-                                     Label="Release year" Variant="Variant.Outlined" HideSpinButtons="true" />
-                </MudItem>
+                <ReleaseDateFields Model="Model" />
                 @if (Model.Status == CollectionStatus.Owned)
                 {
-                    <MudItem xs="12" sm="4">
+                    <MudItem xs="12" sm="6">
                         <MudDatePicker @bind-Date="Model.PurchaseDate" Label="Purchase date" Variant="Variant.Outlined"
                                        Clearable="true" MaxDate="DateTime.Today" />
                     </MudItem>
-                    <MudItem xs="12" sm="4">
+                    <MudItem xs="12" sm="6">
                         <MudNumericField T="decimal?" @bind-Value="Model.PurchasePrice" For="() => Model.PurchasePrice"
                                          Label="Price paid" Variant="Variant.Outlined" HideSpinButtons="true" Min="0"
                                          Adornment="Adornment.Start" AdornmentText="@CurrencySymbol" />
@@ -157,7 +154,7 @@
 
         Model.Name = KnownPlatforms.Match(Platforms, console.Name, console.Abbreviation, console.AlternativeName);
         Model.Manufacturer = KnownPlatforms.ManufacturerOf(Model.Name) ?? console.Manufacturer ?? Model.Manufacturer;
-        Model.ReleaseYear = console.ReleaseYear ?? Model.ReleaseYear;
+        Model.ReleaseDate = console.ReleaseDate ?? Model.ReleaseDate;
         Model.ThumbnailUrl = console.ThumbnailUrl ?? Model.ThumbnailUrl;
 
         // With a single model there is nothing to choose: use it right away.
@@ -174,7 +171,7 @@
         _catalogVersion = version;
 
         Model.Model = ModelName(version.Name) ?? (modelIsOurs ? null : Model.Model);
-        Model.ReleaseYear = version.ReleaseYear ?? Model.ReleaseYear;
+        Model.ReleaseDate = version.ReleaseDate ?? Model.ReleaseDate;
         Model.ThumbnailUrl = version.ThumbnailUrl ?? _catalogConsole?.ThumbnailUrl ?? Model.ThumbnailUrl;
     }
 

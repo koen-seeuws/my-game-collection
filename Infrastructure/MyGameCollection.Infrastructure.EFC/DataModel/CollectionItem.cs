@@ -14,7 +14,10 @@ public abstract class CollectionItem
     public ItemCondition Condition { get; set; }
     public Completeness Completeness { get; set; }
     public CollectionStatus Status { get; set; }
+    // The release date, as precisely as known: a year, a month or a day (see ReleaseDate in the domain).
     public int? ReleaseYear { get; set; }
+    public int? ReleaseMonth { get; set; }
+    public int? ReleaseDay { get; set; }
     public DateOnly? PurchaseDate { get; set; }
     public decimal? PurchasePrice { get; set; }
     public string? Notes { get; set; }

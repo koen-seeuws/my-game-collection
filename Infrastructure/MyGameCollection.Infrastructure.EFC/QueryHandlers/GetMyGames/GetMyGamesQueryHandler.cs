@@ -1,3 +1,4 @@
+using MyGameCollection.Core.Domain.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using MyGameCollection.Application.Abstractions;
 using MyGameCollection.Application.Abstractions.Queries.GetMyGames;
@@ -32,7 +33,7 @@ public record GetMyGamesQueryHandler : IQueryHandler<GetMyGamesQuery, IEnumerabl
                 Condition = game.Condition,
                 Completeness = game.Completeness,
                 Status = game.Status,
-                ReleaseYear = game.ReleaseYear,
+                ReleaseDate = game.ReleaseYear == null ? null : new ReleaseDate(game.ReleaseYear.Value, game.ReleaseMonth, game.ReleaseDay),
                 PurchaseDate = game.PurchaseDate,
                 PurchasePrice = game.PurchasePrice,
                 Notes = game.Notes,
