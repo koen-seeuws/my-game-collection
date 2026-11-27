@@ -19,6 +19,9 @@ public record Game
     /// <summary>Physical copy, bought download or subscription (e.g. PS Plus).</summary>
     public GameFormat Format { get; init; } = GameFormat.Physical;
 
+    /// <summary>Single-player, couch or online multiplayer, and how many can play. Empty when unknown.</summary>
+    public PlayerModes? Players { get; init; }
+
     public Region Region { get; init; } = Region.Pal;
     public ItemCondition Condition { get; init; } = ItemCondition.Good;
     public Completeness Completeness { get; init; } = Completeness.Loose;

@@ -17,6 +17,9 @@ public record GameDto
     /// <summary>Physical copy, bought download or subscription (e.g. PS Plus).</summary>
     public required GameFormat Format { get; init; }
 
+    /// <summary>Single-player, couch or online multiplayer, and how many can play. Empty when unknown.</summary>
+    public PlayerModes? Players { get; init; }
+
     public required Region Region { get; init; }
     public required ItemCondition Condition { get; init; }
     public required Completeness Completeness { get; init; }

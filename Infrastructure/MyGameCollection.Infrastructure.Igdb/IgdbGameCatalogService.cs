@@ -15,7 +15,8 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
         // version_parent = null leaves out editions (GOTY, Deluxe...) that would otherwise crowd the results.
         var games = await igdb.QueryAsync<IgdbGame>("games",
             $"search {IgdbClient.Quote(search.Trim())}; " +
-            $"fields name, first_release_date, {ReleaseDateFields("release_dates")}, cover.image_id, platforms.name, platforms.abbreviation, genres.name; " +
+            $"fields name, first_release_date, {ReleaseDateFields("release_dates")}, cover.image_id, platforms.name, platforms.abbreviation, genres.name, " +
+            $"{IgdbPlayerModes.Fields}; " +
             $"where version_parent = null; limit {options.Value.SearchLimit};", cancellationToken);
 
         return games
@@ -29,8 +30,14 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
                 ThumbnailUrl = IgdbClient.ImageUrl(game.Cover?.ImageId, "t_cover_big"),
                 Platforms = (game.Platforms ?? [])
                     .Where(p => !string.IsNullOrWhiteSpace(p.Name))
-                    .Select(p => new CatalogPlatformDto { Name = p.Name!, Abbreviation = p.Abbreviation })
+                    .Select(p => new CatalogPlatformDto
+                    {
+                        Name = p.Name!,
+                        Abbreviation = p.Abbreviation,
+                        Players = IgdbPlayerModes.ForPlatform(game, p.Id)
+                    })
                     .ToList(),
+                Players = IgdbPlayerModes.ForGame(game),
                 Genres = (game.Genres ?? [])
                     .Select(g => g.Name?.Trim())
                     .Where(name => !string.IsNullOrEmpty(name))

@@ -17,6 +17,9 @@ public record UpdateGameCommand : ICommand
     /// <summary>Physical copy, bought download or subscription (e.g. PS Plus).</summary>
     public GameFormat Format { get; init; }
 
+    /// <summary>Single-player, couch or online multiplayer, and how many can play. Empty when unknown.</summary>
+    public PlayerModes? Players { get; init; }
+
     public Region Region { get; init; }
     public ItemCondition Condition { get; init; }
     public Completeness Completeness { get; init; }

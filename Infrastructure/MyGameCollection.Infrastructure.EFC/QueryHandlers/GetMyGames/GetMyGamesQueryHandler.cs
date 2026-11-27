@@ -20,7 +20,7 @@ public record GetMyGamesQueryHandler : IQueryHandler<GetMyGamesQuery, IEnumerabl
     {
         var owner = _userContext.UserId;
 
-        return await _dbContext.Games
+        var games = await _dbContext.Games
             .Where(game => game.GameCollection.Owner.ToUpper() == owner.ToUpper())
             .OrderBy(game => game.Platform).ThenBy(game => game.Title)
             .Select(game => new GameDto
@@ -40,8 +40,21 @@ public record GetMyGamesQueryHandler : IQueryHandler<GetMyGamesQuery, IEnumerabl
                 PurchasePrice = game.PurchasePrice,
                 PurchaseOrigin = game.PurchaseOrigin,
                 Notes = game.Notes,
-                ThumbnailUrl = game.ThumbnailUrl
+                ThumbnailUrl = game.ThumbnailUrl,
+                Players = new PlayerModes
+                {
+                    SinglePlayer = game.SinglePlayer,
+                    Multiplayer = game.Multiplayer,
+                    MaxLocalPlayers = game.MaxLocalPlayers,
+                    MaxOnlinePlayers = game.MaxOnlinePlayers,
+                    CouchCoop = game.CouchCoop,
+                    OnlineCoop = game.OnlineCoop,
+                    SplitScreen = game.SplitScreen
+                }
             })
             .ToListAsync(ct);
+
+        // Rows without any player details mean "unknown", like a game the catalog knows nothing about.
+        return games.Select(g => g.Players!.IsEmpty ? g with { Players = null } : g).ToList();
     }
 }

@@ -591,6 +591,26 @@ body::after {
     color: var(--mud-palette-warning);
 }
 
+.item-tag.players {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.item-tag.players.local {
+    border-color: var(--mud-palette-secondary);
+    color: var(--mud-palette-secondary);
+}
+
+.item-tag.players.online {
+    border-color: var(--mud-palette-info);
+    color: var(--mud-palette-info);
+}
+
+.item-tag-icon.mud-icon-root {
+    font-size: 0.85rem;
+}
+
 /* ---- Thumbnails ---- */
 
 .item-thumbnail {

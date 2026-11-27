@@ -16,6 +16,7 @@
                 var genres = string.Join(" · ", game.Genres);
                 <MudText Typo="Typo.caption" Class="item-card-genres" title="@genres">@genres</MudText>
             }
+            <PlayerTags Players="game.Players" />
         </ItemCard>
     }
 </div>

@@ -40,6 +40,14 @@ else
                     }
                 </MudSelect>
             }
+            <MudSelect T="PlayerFilter?" @bind-Value="_playerFilter" Label="Players" Dense="true" Margin="Margin.Dense"
+                       Variant="Variant.Outlined" Style="max-width: 190px" ToStringFunc="PlayerFilterLabel">
+                <MudSelectItem T="PlayerFilter?" Value="null">@PlayerFilterLabel(null)</MudSelectItem>
+                @foreach (var filter in Enum.GetValues<PlayerFilter>())
+                {
+                    <MudSelectItem T="PlayerFilter?" Value="filter">@PlayerFilterLabel(filter)</MudSelectItem>
+                }
+            </MudSelect>
             <MudSelect T="GameSort" @bind-Value="_sort" Label="Sort by" Dense="true" Margin="Margin.Dense"
                        Variant="Variant.Outlined" Style="max-width: 200px">
                 <MudSelectItem Value="GameSort.Title">Title</MudSelectItem>

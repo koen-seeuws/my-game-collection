@@ -44,6 +44,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 Edition = g.Edition,
                 Genres = g.Genres.ToList(),
                 Format = g.Format,
+                Players = ToPlayerModes(g),
                 Region = g.Region,
                 Condition = g.Condition,
                 Completeness = g.Completeness,
@@ -90,6 +91,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.Edition = g.Edition;
                 row.Genres = g.Genres.ToList();
                 row.Format = g.Format;
+                ApplyPlayerModes(row, g.Players);
                 ApplyCommon(row, g.Region, g.Condition, g.Completeness, g.Status, g.ReleaseDate, g.PurchaseDate,
                     g.PurchasePrice, g.PurchaseOrigin, g.Notes, g.ThumbnailUrl);
             });
@@ -155,6 +157,28 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
         row.Notes = notes;
         row.ThumbnailUrl = thumbnailUrl;
     }
+
+    private static void ApplyPlayerModes(DataModel.Game row, PlayerModes? players)
+    {
+        row.SinglePlayer = players?.SinglePlayer ?? false;
+        row.Multiplayer = players?.Multiplayer ?? false;
+        row.MaxLocalPlayers = players?.MaxLocalPlayers;
+        row.MaxOnlinePlayers = players?.MaxOnlinePlayers;
+        row.CouchCoop = players?.CouchCoop ?? false;
+        row.OnlineCoop = players?.OnlineCoop ?? false;
+        row.SplitScreen = players?.SplitScreen ?? false;
+    }
+
+    private static PlayerModes? ToPlayerModes(DataModel.Game row) => new PlayerModes
+    {
+        SinglePlayer = row.SinglePlayer,
+        Multiplayer = row.Multiplayer,
+        MaxLocalPlayers = row.MaxLocalPlayers,
+        MaxOnlinePlayers = row.MaxOnlinePlayers,
+        CouchCoop = row.CouchCoop,
+        OnlineCoop = row.OnlineCoop,
+        SplitScreen = row.SplitScreen
+    }.Normalised();
 
     private static ReleaseDate? ToReleaseDate(CollectionItem row) =>
         row.ReleaseYear is { } year ? new ReleaseDate(year, row.ReleaseMonth, row.ReleaseDay) : null;
