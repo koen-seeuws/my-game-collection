@@ -1,8 +1,10 @@
+using MyGameCollection.Core.Domain.Abstractions;
+
 namespace MyGameCollection.Application.Abstractions.Queries.GetInvites;
 
 public record InviteDto
 {
-    public required int Id { get; init; }
+    public required Guid Key { get; init; }
     public string? Note { get; init; }
     public bool GrantsAdmin { get; init; }
     /// <summary>The id of the administrator who created the invite ("system" for the first one).</summary>
@@ -13,12 +15,4 @@ public record InviteDto
 
     /// <summary>The email address of the account that was created with the invite.</summary>
     public string? RedeemedBy { get; init; }
-}
-
-public enum InviteStatus
-{
-    Open,
-    Used,
-    Expired,
-    Revoked
 }

@@ -1,30 +1,23 @@
-using MyGameCollection.Application.Abstractions.Commands.CreateInvite;
-using MyGameCollection.Application.Abstractions.Commands.RedeemInvite;
-
 namespace MyGameCollection.Application.Abstractions.Services.Accounts;
 
 /// <summary>
-/// Stores accounts and invites. Every method is atomic on its own: accounts live outside the game collection's unit
-/// of work, so the command handlers that use this service are not wrapped in a transaction.
+/// Creates and inspects the accounts people sign in with. Runs inside the <see cref="Persistence.IAccountsUnitOfWork"/>
+/// of the current use case.
 /// </summary>
 public interface IAccountService
 {
-    /// <param name="createdBy">The id of the administrator creating the invite.</param>
-    Task<CreatedInviteDto> CreateInviteAsync(string createdBy, string? note, TimeSpan validFor, bool grantsAdmin,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>Revokes an invite that has not been used or revoked yet; returns whether it was revoked.</summary>
-    Task<bool> RevokeInviteAsync(int id, CancellationToken cancellationToken = default);
-
-    /// <summary>Revokes every unused invite that would make its account an administrator.</summary>
-    Task RevokeOpenAdminInvitesAsync(CancellationToken cancellationToken = default);
-
     /// <summary>
-    /// Creates the account and marks the invite as used, together or not at all (so an invite never creates two
-    /// accounts). Validation problems, like a taken email or a weak password, come back as errors.
+    /// Creates an account that signs in with <paramref name="email"/>. Validation problems, like a taken email or a weak
+    /// password, come back as errors; anything else throws (rolling back the use case).
     /// </summary>
-    Task<RedeemInviteResultDto> RedeemInviteAsync(string token, string firstName, string lastName, string email,
-        string password, CancellationToken cancellationToken = default);
+    Task<CreateAccountResult> CreateAccountAsync(string firstName, string lastName, string email, string password,
+        bool isAdmin, CancellationToken cancellationToken = default);
 
     Task<bool> HasAdminAsync(CancellationToken cancellationToken = default);
+}
+
+/// <summary>The new account's id, or why it could not be created.</summary>
+public record CreateAccountResult(string? UserId, IReadOnlyList<string> Errors)
+{
+    public bool Succeeded => UserId is not null;
 }

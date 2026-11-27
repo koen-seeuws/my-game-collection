@@ -87,14 +87,25 @@ else
         if (_invite is null)
             return;
 
-        var result = await Dispatcher.SendAsync(new RedeemInviteCommand
+        RedeemInviteResultDto result;
+        try
         {
-            Token = Token,
-            FirstName = Input.FirstName,
-            LastName = Input.LastName,
-            Email = Input.Email,
-            Password = Input.Password
-        });
+            result = await Dispatcher.SendAsync(new RedeemInviteCommand
+            {
+                Token = Token,
+                FirstName = Input.FirstName,
+                LastName = Input.LastName,
+                Email = Input.Email,
+                Password = Input.Password
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            // E.g. somebody else used the same link at the same moment.
+            _errors = [ex.Message];
+            return;
+        }
+
         if (!result.Succeeded)
         {
             _errors = result.Errors;

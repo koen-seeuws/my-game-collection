@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using MyGameCollection.Application.Abstractions;
 using MyGameCollection.Application.Abstractions.Queries.GetInvites;
+using MyGameCollection.Core.Domain;
+using MyGameCollection.Infrastructure.Identity.Repositories;
 
 namespace MyGameCollection.Infrastructure.Identity.QueryHandlers.GetInvites;
 
@@ -22,17 +24,19 @@ public sealed class GetInvitesQueryHandler : IQueryHandler<GetInvitesQuery, IRea
         _userContext.EnsureAdmin();
 
         var now = _time.GetUtcNow().UtcDateTime;
-        var invites = await _db.Invites.AsNoTracking().OrderByDescending(i => i.Id).ToListAsync(ct);
+        var rows = await _db.Invites.AsNoTracking().OrderByDescending(i => i.CreatedAt).ToListAsync(ct);
 
-        return invites.Select(i => new InviteDto
+        // The status is a domain rule: map to the aggregate rather than repeating it here.
+        return rows.Select(InviteRepository.ToAggregate)
+            .Select(i => new InviteDto
             {
-                Id = i.Id,
+                Key = i.AggregateKey,
                 Note = i.Note,
                 GrantsAdmin = i.GrantsAdmin,
                 CreatedBy = i.CreatedBy,
                 CreatedAt = i.CreatedAt,
                 ExpiresAt = i.ExpiresAt,
-                Status = i.GetStatus(now),
+                Status = i.StatusAt(now),
                 RedeemedBy = i.RedeemedBy
             })
             .ToList();

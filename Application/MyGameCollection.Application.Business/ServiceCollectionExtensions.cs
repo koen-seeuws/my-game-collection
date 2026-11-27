@@ -1,4 +1,7 @@
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using MyGameCollection.Application.Abstractions.Persistence;
 using MyGameCollection.Application.Abstractions;
 using MyGameCollection.Application.Business.Decorators;
 using MyGameCollection.Application.Business.Dispatching;
@@ -10,6 +13,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddGameCollectionApplicationServices(this IServiceCollection services)
     {
         services.AddCommandHandlers();
+
+        services.TryAddSingleton(TimeProvider.System);
 
         // Runs each use case in its own DI scope.
         services.AddScoped<IUseCaseDispatcher, UseCaseDispatcher>();
@@ -29,12 +34,6 @@ public static class ServiceCollectionExtensions
 
         foreach (var (service, implementation) in registrations)
         {
-            if (implementation.IsDefined(typeof(NonTransactionalAttribute), inherit: false))
-            {
-                services.AddScoped(service, implementation);
-                continue;
-            }
-
             // The real handler, resolvable only by its concrete type...
             services.AddScoped(implementation);
 
@@ -44,8 +43,9 @@ public static class ServiceCollectionExtensions
                 : typeof(TransactionalCommandHandler<,>);
             var decorator = decoratorDefinition.MakeGenericType(service.GetGenericArguments());
 
-            services.AddScoped(service, sp =>
-                ActivatorUtilities.CreateInstance(sp, decorator, sp.GetRequiredService(implementation)));
+            var unitOfWork = implementation.GetCustomAttribute<UnitOfWorkAttribute>()?.UnitOfWorkType ?? typeof(IUnitOfWork);
+            services.AddScoped(service, sp => ActivatorUtilities.CreateInstance(sp, decorator,
+                sp.GetRequiredService(implementation), sp.GetRequiredService(unitOfWork)));
         }
 
         return services;

@@ -1,34 +1,33 @@
 using MyGameCollection.Application.Abstractions;
 using MyGameCollection.Application.Abstractions.Commands.CreateInvite;
-using MyGameCollection.Application.Abstractions.Services.Accounts;
+using MyGameCollection.Application.Abstractions.Persistence;
 using MyGameCollection.Application.Business.Decorators;
+using MyGameCollection.Core.Domain;
 
 namespace MyGameCollection.Application.Business.CommandHandlers.CreateInvite;
 
-[NonTransactional]
+[UnitOfWork(typeof(IAccountsUnitOfWork))]
 public class CreateInviteCommandHandler : ICommandHandler<CreateInviteCommand, CreatedInviteDto>
 {
-    private readonly IAccountService _accounts;
+    private readonly IRepository<Invite, Guid> _invites;
     private readonly IUserContext _userContext;
+    private readonly TimeProvider _time;
 
-    public CreateInviteCommandHandler(IAccountService accounts, IUserContext userContext)
+    public CreateInviteCommandHandler(IRepository<Invite, Guid> invites, IUserContext userContext, TimeProvider time)
     {
-        _accounts = accounts;
+        _invites = invites;
         _userContext = userContext;
+        _time = time;
     }
 
-    public Task<CreatedInviteDto> HandleAsync(CreateInviteCommand command, CancellationToken cancellationToken)
+    public async Task<CreatedInviteDto> HandleAsync(CreateInviteCommand command, CancellationToken cancellationToken)
     {
         _userContext.EnsureAdmin();
 
-        if (command.ValidFor <= TimeSpan.Zero || command.ValidFor > CreateInviteCommand.MaxValidity)
-            throw new ArgumentException($"An invite must be valid for some time, up to {CreateInviteCommand.MaxValidity.TotalDays} days.");
+        var (invite, token) = InviteOperations.Create(_userContext.UserId, command.Note, command.ValidFor,
+            _time.GetUtcNow().UtcDateTime);
+        await _invites.SaveAsync(invite, cancellationToken);
 
-        var note = string.IsNullOrWhiteSpace(command.Note) ? null : command.Note.Trim();
-        if (note?.Length > CreateInviteCommand.MaxNoteLength)
-            throw new ArgumentException($"Keep the note under {CreateInviteCommand.MaxNoteLength} characters.");
-
-        return _accounts.CreateInviteAsync(_userContext.UserId, note, command.ValidFor, grantsAdmin: false,
-            cancellationToken);
+        return new CreatedInviteDto(token, invite.ExpiresAt);
     }
 }

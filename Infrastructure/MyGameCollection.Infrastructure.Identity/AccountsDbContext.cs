@@ -14,7 +14,7 @@ public sealed class AccountsDbContext : IdentityDbContext<AppUser>, IDataProtect
     {
     }
 
-    public DbSet<Invite> Invites => Set<Invite>();
+    public DbSet<DataModel.Invite> Invites => Set<DataModel.Invite>();
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -27,15 +27,16 @@ public sealed class AccountsDbContext : IdentityDbContext<AppUser>, IDataProtect
             user.Property(u => u.LastName).HasMaxLength(100).IsRequired();
         });
 
-        builder.Entity<Invite>(invite =>
+        builder.Entity<DataModel.Invite>(invite =>
         {
             invite.ToTable("Invites");
             invite.HasKey(i => i.Id);
-            invite.Property(i => i.TokenHash).HasMaxLength(64).IsRequired();
-            invite.HasIndex(i => i.TokenHash).IsUnique();
-            invite.Property(i => i.Note).HasMaxLength(200);
-            invite.Property(i => i.CreatedBy).HasMaxLength(256).IsRequired();
+            invite.HasIndex(i => i.Key).IsUnique();
+            invite.Property(i => i.SecretHash).HasMaxLength(64).IsRequired();
+            invite.Property(i => i.Note).HasMaxLength(Core.Domain.Invite.MaxNoteLength);
+            invite.Property(i => i.CreatedBy).HasMaxLength(450).IsRequired();
             invite.Property(i => i.RedeemedBy).HasMaxLength(256);
+            invite.Property(i => i.Version).IsConcurrencyToken();
         });
     }
 

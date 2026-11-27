@@ -12,6 +12,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\Application\MyGameCollection.Application.Abstractions\MyGameCollection.Application.Abstractions.csproj" />
+      <ProjectReference Include="..\..\Core\MyGameCollection.Core.Domain\MyGameCollection.Core.Domain.csproj" />
     </ItemGroup>
 
     <ItemGroup>
