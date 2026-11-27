@@ -291,5 +291,9 @@
     private Task<IEnumerable<string>> SearchPlatformsAsync(string? search, CancellationToken _) =>
         Task.FromResult(KnownPlatforms.Suggest(Platforms, KnownPlatforms.All.Select(p => p.Name), search));
 
-    private void Submit() => MudDialog.Close(DialogResult.Ok(Model));
+    private void Submit()
+    {
+        Model.Platform = KnownPlatforms.Normalize(Platforms, Model.Platform);
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
 }

@@ -22,4 +22,13 @@ public class KnownPlatformsTests
         KnownPlatforms.Match(["Sega Genesis"], "Sega Mega Drive/Genesis", "Genesis/MegaDrive").Should().Be("Sega Genesis");
         KnownPlatforms.Match(["PS2"], "PlayStation 2").Should().Be("PS2");
     }
+
+    [Theory]
+    [InlineData("wii u", "Wii U")]
+    [InlineData("  playstation 5 ", "PlayStation 5")]
+    [InlineData("ps2", "PS2")]
+    [InlineData("my arcade cabinet", "My Arcade Cabinet")]
+    [InlineData("some handheld", "some handheld")]
+    public void Typed_names_get_the_known_or_collection_casing(string typed, string expected) =>
+        KnownPlatforms.Normalize(["My Arcade Cabinet"], typed).Should().Be(expected);
 }

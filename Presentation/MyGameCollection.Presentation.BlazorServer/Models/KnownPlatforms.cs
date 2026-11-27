@@ -91,6 +91,24 @@ public static class KnownPlatforms
         return preferredNames.FirstOrDefault(p => Resolve(p) == known) ?? known.Name;
     }
 
+    /// <summary>
+    /// Fixes the casing of a typed platform name ("wii u" becomes "Wii U"): the spelling of a matching well-known
+    /// name or alias, else of a matching name from <paramref name="preferred"/>, else the name as typed, trimmed.
+    /// </summary>
+    public static string Normalize(IEnumerable<string> preferred, string? name)
+    {
+        var trimmed = name?.Trim() ?? string.Empty;
+        if (trimmed.Length == 0)
+            return trimmed;
+
+        var known = All.SelectMany(p => p.Aliases.Prepend(p.Name))
+            .FirstOrDefault(n => n.Equals(trimmed, StringComparison.OrdinalIgnoreCase));
+
+        return known
+               ?? preferred.FirstOrDefault(p => p.Equals(trimmed, StringComparison.OrdinalIgnoreCase))
+               ?? trimmed;
+    }
+
     /// <summary>Suggestions matching <paramref name="search"/>: the given names first, then the known platforms.</summary>
     public static IEnumerable<string> Suggest(IEnumerable<string> preferred, IEnumerable<string> known, string? search) =>
         preferred.Concat(known)

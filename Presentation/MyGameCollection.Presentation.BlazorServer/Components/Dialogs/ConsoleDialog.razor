@@ -221,5 +221,9 @@
             Model.Manufacturer = manufacturer;
     }
 
-    private void Submit() => MudDialog.Close(DialogResult.Ok(Model));
+    private void Submit()
+    {
+        Model.Name = KnownPlatforms.Normalize(Platforms, Model.Name);
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
 }
