@@ -24,6 +24,9 @@ public record CollectionSummaryDto
 
     /// <summary>How many owned physical games there are per completeness (digital games have no box).</summary>
     public required IReadOnlyDictionary<Completeness, int> OwnedGamesByCompleteness { get; init; }
+
+    /// <summary>How many owned games there are per play status; games whose play status is not tracked are left out.</summary>
+    public required IReadOnlyDictionary<PlayStatus, int> OwnedGamesByPlayStatus { get; init; }
 }
 
 public record PlatformSummaryDto

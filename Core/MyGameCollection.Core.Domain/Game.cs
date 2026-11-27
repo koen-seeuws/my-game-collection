@@ -53,6 +53,12 @@ public record Game
     /// <summary>Bought new or secondhand. Empty when unknown, and for wishlist items and digital games.</summary>
     public PurchaseOrigin? PurchaseOrigin { get; init; }
 
+    /// <summary>How far the owner got with playing the game. Empty when not tracked.</summary>
+    public PlayStatus? PlayStatus { get; init; }
+
+    /// <summary>When the game was completed (or 100%'d). Only kept for a completed game; empty when unknown.</summary>
+    public DateOnly? CompletedOn { get; init; }
+
     public string? Notes { get; init; }
 
     /// <summary>Absolute http(s) URL of a cover art or picture shown on the item's card.</summary>

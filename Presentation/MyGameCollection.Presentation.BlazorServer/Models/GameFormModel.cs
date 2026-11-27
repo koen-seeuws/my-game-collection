@@ -98,6 +98,12 @@ public sealed class GameFormModel : ReleaseDateFormModel
     /// <summary>Bought new or secondhand; empty when unknown.</summary>
     public PurchaseOrigin? PurchaseOrigin { get; set; }
 
+    /// <summary>How far the owner got with playing the game; empty when not tracked.</summary>
+    public PlayStatus? PlayStatus { get; set; }
+
+    /// <summary>When the game was completed; only kept while the play status says it was finished.</summary>
+    public DateTime? CompletedOn { get; set; }
+
     [StringLength(2000)]
     public string? Notes { get; set; }
 
@@ -126,6 +132,8 @@ public sealed class GameFormModel : ReleaseDateFormModel
         PurchaseDate = game.PurchaseDate?.ToDateTime(TimeOnly.MinValue),
         PurchasePrice = game.PurchasePrice,
         PurchaseOrigin = game.PurchaseOrigin,
+        PlayStatus = game.PlayStatus,
+        CompletedOn = game.CompletedOn?.ToDateTime(TimeOnly.MinValue),
         Notes = game.Notes,
         ThumbnailUrl = game.ThumbnailUrl
     };
@@ -152,6 +160,8 @@ public sealed class GameFormModel : ReleaseDateFormModel
         PurchaseDate = PurchaseDateOrNull,
         PurchasePrice = PurchasePriceOrNull,
         PurchaseOrigin = PurchaseOriginOrNull,
+        PlayStatus = PlayStatus,
+        CompletedOn = CompletedOnOrNull,
         Notes = Notes,
         ThumbnailUrl = ThumbnailUrl
     };
@@ -179,6 +189,8 @@ public sealed class GameFormModel : ReleaseDateFormModel
         PurchaseDate = PurchaseDateOrNull,
         PurchasePrice = PurchasePriceOrNull,
         PurchaseOrigin = PurchaseOriginOrNull,
+        PlayStatus = PlayStatus,
+        CompletedOn = CompletedOnOrNull,
         Notes = Notes,
         ThumbnailUrl = ThumbnailUrl
     };
@@ -194,6 +206,10 @@ public sealed class GameFormModel : ReleaseDateFormModel
     /// <summary>Only owned physical copies can be bought secondhand; a download is always new.</summary>
     private PurchaseOrigin? PurchaseOriginOrNull =>
         Status == CollectionStatus.Owned && IsPhysical ? PurchaseOrigin : null;
+
+    /// <summary>Only a game that was played to the end has a completion date.</summary>
+    private DateOnly? CompletedOnOrNull =>
+        PlayStatus.IsFinished() && CompletedOn is { } date ? DateOnly.FromDateTime(date) : null;
 
     /// <summary>Only physical copies have a box, manual and wear.</summary>
     public bool IsPhysical => Format == GameFormat.Physical;

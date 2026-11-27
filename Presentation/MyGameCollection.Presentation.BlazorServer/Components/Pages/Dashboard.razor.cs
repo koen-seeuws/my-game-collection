@@ -42,6 +42,22 @@ public partial class Dashboard : IDisposable
         $"{_summary!.WishlistGames} games, {_summary.WishlistConsoles} consoles"
         + (_summary.WishlistAddOns > 0 ? $", {DisplayNames.AddOns(_summary.WishlistAddOns)}" : "");
 
+    /// <summary>The owned games that have a play status; the others are not tracked.</summary>
+    private int TrackedGames => _summary!.OwnedGamesByPlayStatus.Values.Sum();
+
+    /// <summary>"12 of 40 owned games finished · 5 not tracked".</summary>
+    private string PlayProgressDetail
+    {
+        get
+        {
+            var finished = _summary!.OwnedGamesByPlayStatus.GetValueOrDefault(PlayStatus.Completed)
+                           + _summary.OwnedGamesByPlayStatus.GetValueOrDefault(PlayStatus.HundredPercent);
+            var untracked = _summary.OwnedGames - TrackedGames;
+            return $"{finished} of {TrackedGames} tracked games finished"
+                   + (untracked > 0 ? $" · {untracked} not tracked" : "");
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         CurrentUser.Changed += OnUserChanged;

@@ -44,6 +44,8 @@ public record GetMyGamesQueryHandler : IQueryHandler<GetMyGamesQuery, IEnumerabl
                 PurchaseDate = game.PurchaseDate,
                 PurchasePrice = game.PurchasePrice,
                 PurchaseOrigin = game.PurchaseOrigin,
+                PlayStatus = game.PlayStatus,
+                CompletedOn = game.CompletedOn,
                 Notes = game.Notes,
                 ThumbnailUrl = game.ThumbnailUrl,
                 CatalogId = game.CatalogId,

@@ -24,11 +24,17 @@ internal static class GameCollectionValidation
             // A download is always new, and an item on the wishlist has not been bought yet.
             PurchaseOrigin = game.Status == CollectionStatus.Owned && game.Format == GameFormat.Physical
                 ? game.PurchaseOrigin
+                : null,
+            // Only a game that was played to the end has a completion date.
+            CompletedOn = game.PlayStatus is PlayStatus.Completed or PlayStatus.HundredPercent
+                ? game.CompletedOn
                 : null
         };
 
         EnsureValid(normalised.ReleaseDate, normalised.PurchasePrice);
         EnsureValidCatalogId(normalised.CatalogId);
+        if (normalised.PlayStatus is { } playStatus && !Enum.IsDefined(playStatus))
+            throw new ArgumentOutOfRangeException("playStatus", playStatus, "Unknown play status.");
         if (normalised.Type is { } type && !Enum.IsDefined(type))
             throw new ArgumentOutOfRangeException("type", type, "Unknown game type.");
         if (normalised.Players?.Problem is { } problem)

@@ -19,6 +19,7 @@ public class GameConfiguration : IEntityTypeConfiguration<Game>
         builder.Property(g => g.Type).HasConversion<string>().HasMaxLength(20);
         builder.Property(g => g.AgeRating).HasMaxLength(100);
         builder.Property(g => g.Format).HasConversion<string>().HasMaxLength(20);
+        builder.Property(g => g.PlayStatus).HasConversion<string>().HasMaxLength(20);
 
         builder.HasMany(g => g.AddOns)
             .WithOne(a => a.Game)

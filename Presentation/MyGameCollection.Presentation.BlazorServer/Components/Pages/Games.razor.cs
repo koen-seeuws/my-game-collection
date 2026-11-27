@@ -158,7 +158,7 @@ public partial class Games : IDisposable
 
     // ---- Filtering and sorting ----
 
-    private enum GameSort { Title, ReleaseDate, RecentlyPurchased, Price }
+    private enum GameSort { Title, ReleaseDate, RecentlyPurchased, Price, RecentlyCompleted }
 
     private string? _search;
     private CollectionStatus? _statusFilter;
@@ -199,6 +199,35 @@ public partial class Games : IDisposable
         PlayerFilter.OnlineCoop => players.OnlineCoop,
         _ => players.SinglePlayer
     };
+
+    /// <summary>Ways to narrow the games down to how far they were played, e.g. the backlog of unplayed games.</summary>
+    private enum PlayFilter { Backlog, Playing, OnHold, Dropped, Finished, HundredPercent, NotTracked }
+
+    private PlayFilter? _playFilter;
+
+    private static string PlayFilterLabel(PlayFilter? filter) => filter switch
+    {
+        PlayFilter.Backlog => "Backlog (not started)",
+        PlayFilter.Playing => PlayStatus.Playing.ToDisplayName(),
+        PlayFilter.OnHold => PlayStatus.OnHold.ToDisplayName(),
+        PlayFilter.Dropped => PlayStatus.Dropped.ToDisplayName(),
+        PlayFilter.Finished => "Completed or 100%",
+        PlayFilter.HundredPercent => PlayStatus.HundredPercent.ToDisplayName(),
+        PlayFilter.NotTracked => "Not tracked",
+        _ => "Any play status"
+    };
+
+    private static bool MatchesPlay(GameDto game, PlayFilter filter) => filter switch
+    {
+        PlayFilter.Backlog => game.PlayStatus == PlayStatus.NotStarted,
+        PlayFilter.Playing => game.PlayStatus == PlayStatus.Playing,
+        PlayFilter.OnHold => game.PlayStatus == PlayStatus.OnHold,
+        PlayFilter.Dropped => game.PlayStatus == PlayStatus.Dropped,
+        PlayFilter.Finished => game.PlayStatus.IsFinished(),
+        PlayFilter.HundredPercent => game.PlayStatus == PlayStatus.HundredPercent,
+        _ => game.PlayStatus is null
+    };
+
     private GameSort _sort = GameSort.Title;
     private bool _groupByPlatform;
 
@@ -215,12 +244,17 @@ public partial class Games : IDisposable
                 games = games.Where(g => g.Genres.Contains(genre, StringComparer.OrdinalIgnoreCase));
             if (_playerFilter is { } playerFilter)
                 games = games.Where(g => MatchesPlayers(g, playerFilter));
+            if (_playFilter is { } playFilter)
+                games = games.Where(g => MatchesPlay(g, playFilter));
 
             return _sort switch
             {
                 GameSort.ReleaseDate => games.OrderBy(g => g.ReleaseDate is null).ThenBy(g => g.ReleaseDate).ThenBy(g => g.Title),
                 GameSort.RecentlyPurchased => games.OrderByDescending(g => g.PurchaseDate ?? DateOnly.MinValue).ThenBy(g => g.Title),
                 GameSort.Price => games.OrderByDescending(g => g.PurchasePrice ?? -1).ThenBy(g => g.Title),
+                // Finished games first, the most recent completion first; finished games without a date after those.
+                GameSort.RecentlyCompleted => games.OrderByDescending(g => g.PlayStatus.IsFinished())
+                    .ThenByDescending(g => g.CompletedOn ?? DateOnly.MinValue).ThenBy(g => g.Title),
                 _ => games.OrderBy(g => g.Title, StringComparer.CurrentCultureIgnoreCase)
             };
         }

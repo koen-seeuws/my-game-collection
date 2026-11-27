@@ -134,5 +134,37 @@ else
                 </MudGrid>
             </MudPaper>
         </MudItem>
+
+        <MudItem xs="12">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudText Typo="Typo.h6" GutterBottom="true">How far you got</MudText>
+                @if (TrackedGames == 0)
+                {
+                    <MudText Typo="Typo.body2">
+                        Set a play status on your games (Not started, Playing, Completed, 100%...) to see your progress here.
+                    </MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block mb-3">@PlayProgressDetail</MudText>
+                    <MudGrid Spacing="4">
+                        @foreach (var (playStatus, count) in _summary.OwnedGamesByPlayStatus)
+                        {
+                            var percentage = 100.0 * count / TrackedGames;
+                            <MudItem xs="12" sm="6" md="4" lg="2">
+                                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                                        <MudIcon Icon="@playStatus.ToIcon()" Size="Size.Small" />
+                                        <MudText Typo="Typo.body2">@playStatus.ToDisplayName()</MudText>
+                                    </MudStack>
+                                    <MudText Typo="Typo.body2">@count (@percentage.ToString("0")%)</MudText>
+                                </MudStack>
+                                <MudProgressLinear Color="Color.Primary" Value="percentage" Rounded="true" Size="Size.Medium" />
+                            </MudItem>
+                        }
+                    </MudGrid>
+                }
+            </MudPaper>
+        </MudItem>
     </MudGrid>
 }

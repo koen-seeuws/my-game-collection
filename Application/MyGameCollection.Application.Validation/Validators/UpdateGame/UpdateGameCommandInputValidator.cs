@@ -27,6 +27,7 @@ public sealed class UpdateGameCommandInputValidator : CommandInputValidatorBase<
         RuleFor(c => c.ReleaseDate).ReleaseDate();
         RuleFor(c => c.PurchasePrice).Price();
         RuleFor(c => c.PurchaseOrigin).IsInEnum();
+        RuleFor(c => c.PlayStatus).IsInEnum();
         RuleFor(c => c.Notes).OptionalText(CollectionItemLimits.MaxNotesLength);
         RuleFor(c => c.ThumbnailUrl).OptionalHttpUrl();
         RuleFor(c => c.CatalogId).CatalogId();

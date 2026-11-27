@@ -58,6 +58,8 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 PurchaseDate = g.PurchaseDate,
                 PurchasePrice = g.PurchasePrice,
                 PurchaseOrigin = g.PurchaseOrigin,
+                PlayStatus = g.PlayStatus,
+                CompletedOn = g.CompletedOn,
                 Notes = g.Notes,
                 ThumbnailUrl = g.ThumbnailUrl,
                 CatalogId = g.CatalogId,
@@ -124,6 +126,8 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.AgeRating = g.AgeRating;
                 row.CatalogId = g.CatalogId;
                 row.Format = g.Format;
+                row.PlayStatus = g.PlayStatus;
+                row.CompletedOn = g.CompletedOn;
                 ApplyPlayerModes(row, g.Players);
                 row.Region = g.Region;
                 ApplyCommon(row, g.Condition, g.Completeness, g.Status, g.ReleaseDate, g.PurchaseDate,
