@@ -948,3 +948,42 @@ body::after {
         width: 100%;
     }
 }
+
+/* ---- Live details from IGDB, under a game's stored details ---- */
+
+.catalog-details {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--neon-line);
+}
+
+.catalog-rating {
+    font-family: var(--neon-heading-font);
+    color: var(--neon-cyan);
+}
+
+.catalog-screenshots {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.catalog-screenshots a {
+    flex-shrink: 0;
+}
+
+.catalog-screenshots img {
+    display: block;
+    height: 96px;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--neon-line);
+}
+
+.catalog-screenshots a:hover img,
+.catalog-screenshots a:focus-visible img {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 8px var(--neon-cyan-glow);
+}

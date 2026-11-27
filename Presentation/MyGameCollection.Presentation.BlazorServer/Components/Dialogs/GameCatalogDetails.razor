@@ -1,0 +1,120 @@
+@* What IGDB knows of a game right now (rating, time to beat, summary, screenshots), loaded when its details open.
+   Left out when the game was not picked from IGDB, or IGDB cannot be reached. *@
+@using MyGameCollection.Application.Abstractions.Queries.GetGameCatalogDetails
+@using MyGameCollection.Application.Abstractions.Services
+@inject IUseCaseDispatcher Dispatcher
+@implements IDisposable
+
+@if (_loading)
+{
+    <div class="catalog-details">
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="detail-label">From IGDB</MudText>
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="my-2" />
+    </div>
+}
+else if (_details is { } details && HasAnything(details))
+{
+    <div class="catalog-details">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="detail-label">From IGDB</MudText>
+            @if (details.CatalogUrl is not null)
+            {
+                <MudLink Href="@details.CatalogUrl" Target="_blank" rel="noopener" Typo="Typo.caption">View on IGDB</MudLink>
+            }
+        </MudStack>
+        <MudGrid Spacing="2" Class="mt-1">
+            @if (details.Rating is { } rating)
+            {
+                <DetailField Label="Rating">
+                    <span class="catalog-rating">@Math.Round(rating)</span> / 100
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Inline="true">
+                        · @DisplayNames.Count(details.RatingCount, "rating")
+                    </MudText>
+                </DetailField>
+            }
+            @if (details.TimeToBeat is { } time)
+            {
+                <DetailField Label="Time to beat">
+                    @string.Join(" · ", new[]
+                    {
+                        time.Rushed is { } rushed ? $"Rushed {DisplayNames.Hours(rushed)}" : null,
+                        time.Normal is { } normal ? $"Normal {DisplayNames.Hours(normal)}" : null,
+                        time.Completionist is { } all ? $"100% {DisplayNames.Hours(all)}" : null
+                    }.Where(part => part is not null))
+                </DetailField>
+            }
+            @if (details.Summary is { } summary)
+            {
+                <DetailField Label="Summary" Wide="true"><span class="detail-notes">@summary</span></DetailField>
+            }
+        </MudGrid>
+        @if (details.Screenshots.Count > 0)
+        {
+            <div class="catalog-screenshots mt-2">
+                @foreach (var screenshot in details.Screenshots)
+                {
+                    <a href="@screenshot.Url" target="_blank" rel="noopener">
+                        <img src="@screenshot.ThumbnailUrl" alt="Screenshot" loading="lazy" />
+                    </a>
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>The game's IGDB id; nothing is shown without one.</summary>
+    [Parameter] public long? CatalogId { get; set; }
+
+    private long? _loadedId;
+    private bool _loading;
+    private GameCatalogDetailsDto? _details;
+    private CancellationTokenSource? _cts;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (CatalogId == _loadedId)
+            return;
+
+        _loadedId = CatalogId;
+        _details = null;
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _cts = null;
+
+        if (CatalogId is not { } catalogId)
+            return;
+
+        var cts = _cts = new CancellationTokenSource();
+        _loading = true;
+        try
+        {
+            var details = await Dispatcher.QueryAsync(new GetGameCatalogDetailsQuery { CatalogId = catalogId }, cts.Token);
+            if (!cts.IsCancellationRequested)
+                _details = details;
+        }
+        catch (OperationCanceledException)
+        {
+            // The dialog closed, or another game is shown now.
+        }
+        catch (CatalogUnavailableException)
+        {
+            // Nice to have: the stored details are already shown.
+        }
+        finally
+        {
+            if (ReferenceEquals(_cts, cts))
+                _loading = false;
+        }
+    }
+
+    private static bool HasAnything(GameCatalogDetailsDto details) =>
+        details.Rating is not null || details.TimeToBeat is not null || details.Summary is not null
+        || details.Screenshots.Count > 0;
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+    }
+}

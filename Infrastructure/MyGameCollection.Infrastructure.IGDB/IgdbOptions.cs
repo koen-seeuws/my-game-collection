@@ -16,5 +16,11 @@ public sealed class IgdbOptions
     /// <summary>How many results a search returns.</summary>
     public int SearchLimit { get; set; } = 12;
 
+    /// <summary>
+    /// How long a game's live details (rating, summary, time to beat, screenshots) are kept before asking IGDB again.
+    /// They change slowly, and IGDB allows only a few requests per second.
+    /// </summary>
+    public TimeSpan DetailsCacheDuration { get; set; } = TimeSpan.FromDays(1);
+
     public bool IsConfigured => !string.IsNullOrWhiteSpace(ClientId) && !string.IsNullOrWhiteSpace(ClientSecret);
 }
