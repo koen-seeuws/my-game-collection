@@ -18,10 +18,10 @@ public class AcquireTests
 
         var acquired = Assert.Single(collection.Games);
         Assert.Equal(wished.Key, acquired.Key);
-        Assert.Equal("Chrono Trigger", acquired.Details.Title);
-        Assert.Equal(CollectionStatus.Owned, acquired.Details.Status);
-        Assert.Equal(Today, acquired.Details.PurchaseDate);
-        Assert.Equal(120m, acquired.Details.PurchasePrice);
+        Assert.Equal("Chrono Trigger", acquired.Title);
+        Assert.Equal(CollectionStatus.Owned, acquired.Status);
+        Assert.Equal(Today, acquired.PurchaseDate);
+        Assert.Equal(120m, acquired.PurchasePrice);
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public class AcquireTests
 
         collection.AcquireGame(wished.Key, Today, null);
 
-        Assert.Null(collection.Games[0].Details.PurchasePrice);
+        Assert.Null(collection.Games[0].PurchasePrice);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class AcquireTests
         var collection = WithGames(wished);
 
         Assert.Throws<ArgumentOutOfRangeException>(() => collection.AcquireGame(wished.Key, Today, -5m));
-        Assert.Equal(CollectionStatus.Wishlist, collection.Games[0].Details.Status);
+        Assert.Equal(CollectionStatus.Wishlist, collection.Games[0].Status);
     }
 
     [Fact]
@@ -72,9 +72,9 @@ public class AcquireTests
         collection.AcquireConsole(wished.Key, Today, 80m);
 
         var acquired = Assert.Single(collection.Consoles);
-        Assert.Equal(CollectionStatus.Owned, acquired.Details.Status);
-        Assert.Equal(Today, acquired.Details.PurchaseDate);
-        Assert.Equal(80m, acquired.Details.PurchasePrice);
+        Assert.Equal(CollectionStatus.Owned, acquired.Status);
+        Assert.Equal(Today, acquired.PurchaseDate);
+        Assert.Equal(80m, acquired.PurchasePrice);
     }
 
     [Fact]

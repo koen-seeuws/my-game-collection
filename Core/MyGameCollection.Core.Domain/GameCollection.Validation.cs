@@ -1,6 +1,6 @@
 namespace MyGameCollection.Core.Domain;
 
-/// <summary>Validates and normalises item details before they enter the collection.</summary>
+/// <summary>Validates and normalises items before they enter the collection.</summary>
 internal static class GameCollectionValidation
 {
     public const int MaxNameLength = 200;
@@ -10,33 +10,29 @@ internal static class GameCollectionValidation
     public const int MinReleaseYear = 1950;
     public const int MaxReleaseYear = 2100;
 
-    public static GameDetails Validated(GameDetails details)
+    public static Game Validated(Game game)
     {
-        ArgumentNullException.ThrowIfNull(details);
-
-        var normalised = details with
+        var normalised = game with
         {
-            Title = Required(details.Title, nameof(details.Title), MaxNameLength),
-            Platform = Required(details.Platform, nameof(details.Platform), MaxShortTextLength),
-            Notes = Optional(details.Notes, nameof(details.Notes), MaxNotesLength),
-            ThumbnailUrl = OptionalUrl(details.ThumbnailUrl, nameof(details.ThumbnailUrl))
+            Title = Required(game.Title, "title", MaxNameLength),
+            Platform = Required(game.Platform, "platform", MaxShortTextLength),
+            Notes = Optional(game.Notes, "notes", MaxNotesLength),
+            ThumbnailUrl = OptionalUrl(game.ThumbnailUrl, "thumbnailUrl")
         };
 
         EnsureValid(normalised.ReleaseYear, normalised.PurchasePrice);
         return normalised;
     }
 
-    public static ConsoleDetails Validated(ConsoleDetails details)
+    public static GameConsole Validated(GameConsole console)
     {
-        ArgumentNullException.ThrowIfNull(details);
-
-        var normalised = details with
+        var normalised = console with
         {
-            Name = Required(details.Name, nameof(details.Name), MaxNameLength),
-            Manufacturer = Required(details.Manufacturer, nameof(details.Manufacturer), MaxShortTextLength),
-            Model = Optional(details.Model, nameof(details.Model), MaxShortTextLength),
-            Notes = Optional(details.Notes, nameof(details.Notes), MaxNotesLength),
-            ThumbnailUrl = OptionalUrl(details.ThumbnailUrl, nameof(details.ThumbnailUrl))
+            Name = Required(console.Name, "name", MaxNameLength),
+            Manufacturer = Required(console.Manufacturer, "manufacturer", MaxShortTextLength),
+            Model = Optional(console.Model, "model", MaxShortTextLength),
+            Notes = Optional(console.Notes, "notes", MaxNotesLength),
+            ThumbnailUrl = OptionalUrl(console.ThumbnailUrl, "thumbnailUrl")
         };
 
         EnsureValid(normalised.ReleaseYear, normalised.PurchasePrice);

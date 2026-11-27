@@ -39,20 +39,17 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
             .Select(g => new Domain.Game
             {
                 Key = g.Key,
-                Details = new Domain.GameDetails
-                {
-                    Title = g.Title,
-                    Platform = g.Platform,
-                    Region = g.Region,
-                    Condition = g.Condition,
-                    Completeness = g.Completeness,
-                    Status = g.Status,
-                    ReleaseYear = g.ReleaseYear,
-                    PurchaseDate = g.PurchaseDate,
-                    PurchasePrice = g.PurchasePrice,
-                    Notes = g.Notes,
-                    ThumbnailUrl = g.ThumbnailUrl
-                }
+                Title = g.Title,
+                Platform = g.Platform,
+                Region = g.Region,
+                Condition = g.Condition,
+                Completeness = g.Completeness,
+                Status = g.Status,
+                ReleaseYear = g.ReleaseYear,
+                PurchaseDate = g.PurchaseDate,
+                PurchasePrice = g.PurchasePrice,
+                Notes = g.Notes,
+                ThumbnailUrl = g.ThumbnailUrl
             })
             .ToImmutableList(),
         Consoles = entity.Consoles
@@ -60,21 +57,18 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
             .Select(c => new Domain.GameConsole
             {
                 Key = c.Key,
-                Details = new Domain.ConsoleDetails
-                {
-                    Name = c.Name,
-                    Manufacturer = c.Manufacturer,
-                    Model = c.Model,
-                    Region = c.Region,
-                    Condition = c.Condition,
-                    Completeness = c.Completeness,
-                    Status = c.Status,
-                    ReleaseYear = c.ReleaseYear,
-                    PurchaseDate = c.PurchaseDate,
-                    PurchasePrice = c.PurchasePrice,
-                    Notes = c.Notes,
-                    ThumbnailUrl = c.ThumbnailUrl
-                }
+                Name = c.Name,
+                Manufacturer = c.Manufacturer,
+                Model = c.Model,
+                Region = c.Region,
+                Condition = c.Condition,
+                Completeness = c.Completeness,
+                Status = c.Status,
+                ReleaseYear = c.ReleaseYear,
+                PurchaseDate = c.PurchaseDate,
+                PurchasePrice = c.PurchasePrice,
+                Notes = c.Notes,
+                ThumbnailUrl = c.ThumbnailUrl
             })
             .ToImmutableList()
     };
@@ -82,26 +76,24 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
     protected override void ApplyToEntity(Domain.GameCollection aggregate, DataModel.GameCollection entity)
     {
         Synchronise(entity.Games, aggregate.Games, g => g.Key,
-            create: g => new DataModel.Game { Key = g.Key, Title = g.Details.Title, Platform = g.Details.Platform },
+            create: g => new DataModel.Game { Key = g.Key, Title = g.Title, Platform = g.Platform },
             apply: (g, row) =>
             {
-                var d = g.Details;
-                row.Title = d.Title;
-                row.Platform = d.Platform;
-                ApplyCommon(row, d.Region, d.Condition, d.Completeness, d.Status, d.ReleaseYear, d.PurchaseDate,
-                    d.PurchasePrice, d.Notes, d.ThumbnailUrl);
+                row.Title = g.Title;
+                row.Platform = g.Platform;
+                ApplyCommon(row, g.Region, g.Condition, g.Completeness, g.Status, g.ReleaseYear, g.PurchaseDate,
+                    g.PurchasePrice, g.Notes, g.ThumbnailUrl);
             });
 
         Synchronise(entity.Consoles, aggregate.Consoles, c => c.Key,
-            create: c => new DataModel.GameConsole { Key = c.Key, Name = c.Details.Name, Manufacturer = c.Details.Manufacturer },
+            create: c => new DataModel.GameConsole { Key = c.Key, Name = c.Name, Manufacturer = c.Manufacturer },
             apply: (c, row) =>
             {
-                var d = c.Details;
-                row.Name = d.Name;
-                row.Manufacturer = d.Manufacturer;
-                row.Model = d.Model;
-                ApplyCommon(row, d.Region, d.Condition, d.Completeness, d.Status, d.ReleaseYear, d.PurchaseDate,
-                    d.PurchasePrice, d.Notes, d.ThumbnailUrl);
+                row.Name = c.Name;
+                row.Manufacturer = c.Manufacturer;
+                row.Model = c.Model;
+                ApplyCommon(row, c.Region, c.Condition, c.Completeness, c.Status, c.ReleaseYear, c.PurchaseDate,
+                    c.PurchasePrice, c.Notes, c.ThumbnailUrl);
             });
     }
 

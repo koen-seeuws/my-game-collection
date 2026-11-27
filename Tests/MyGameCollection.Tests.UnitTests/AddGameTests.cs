@@ -9,14 +9,15 @@ public class AddGameTests
     public void AddGame_OnEmptyCollection_AddsGameWithGivenDetailsAndReturnsItsKey()
     {
         var collection = Empty();
-        var details = GameDetails("Sonic the Hedgehog", "Mega Drive") with { ReleaseYear = 1991, PurchasePrice = 15m };
-
-        var key = collection.AddGame(details);
+        var key = collection.AddGame("Sonic the Hedgehog", "Mega Drive", releaseYear: 1991, purchasePrice: 15m);
 
         var game = Assert.Single(collection.Games);
         Assert.Equal(key, game.Key);
         Assert.NotEqual(Guid.Empty, key);
-        Assert.Equal(details, game.Details);
+        Assert.Equal("Sonic the Hedgehog", game.Title);
+        Assert.Equal("Mega Drive", game.Platform);
+        Assert.Equal(1991, game.ReleaseYear);
+        Assert.Equal(15m, game.PurchasePrice);
     }
 
     [Fact]
@@ -24,8 +25,8 @@ public class AddGameTests
     {
         var collection = Empty();
 
-        collection.AddGame(GameDetails());
-        collection.AddGame(GameDetails());
+        collection.AddGame("Super Mario World", "Super Nintendo");
+        collection.AddGame("Super Mario World", "Super Nintendo");
 
         Assert.Equal(2, collection.Games.Count);
         Assert.NotEqual(collection.Games[0].Key, collection.Games[1].Key);
@@ -37,10 +38,10 @@ public class AddGameTests
         var existing = Game("Existing");
         var collection = WithGames(existing);
 
-        collection.AddGame(GameDetails("New"));
+        collection.AddGame("New", "Super Nintendo");
 
         Assert.Same(existing, collection.Games[0]);
-        Assert.Equal("New", collection.Games[1].Details.Title);
+        Assert.Equal("New", collection.Games[1].Title);
     }
 
     [Fact]
@@ -48,12 +49,12 @@ public class AddGameTests
     {
         var collection = Empty();
 
-        collection.AddGame(GameDetails("  Zelda  ", "  NES ") with { Notes = "   " });
+        collection.AddGame("  Zelda  ", "  NES ", notes: "   ");
 
-        var details = collection.Games[0].Details;
-        Assert.Equal("Zelda", details.Title);
-        Assert.Equal("NES", details.Platform);
-        Assert.Null(details.Notes);
+        var game = collection.Games[0];
+        Assert.Equal("Zelda", game.Title);
+        Assert.Equal("NES", game.Platform);
+        Assert.Null(game.Notes);
     }
 
     [Theory]
@@ -64,7 +65,7 @@ public class AddGameTests
     {
         var collection = Empty();
 
-        Assert.Throws<ArgumentException>(() => collection.AddGame(GameDetails(title, platform)));
+        Assert.Throws<ArgumentException>(() => collection.AddGame(title, platform));
         Assert.Empty(collection.Games);
     }
 
@@ -73,7 +74,7 @@ public class AddGameTests
     {
         var collection = Empty();
 
-        Assert.Throws<ArgumentException>(() => collection.AddGame(GameDetails(new string('x', 201))));
+        Assert.Throws<ArgumentException>(() => collection.AddGame(new string('x', 201), "Super Nintendo"));
     }
 
     [Fact]
@@ -81,7 +82,7 @@ public class AddGameTests
     {
         var collection = Empty();
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => collection.AddGame(GameDetails() with { PurchasePrice = -1m }));
+        Assert.Throws<ArgumentOutOfRangeException>(() => collection.AddGame("Super Mario World", "Super Nintendo", purchasePrice: -1m));
     }
 
     [Theory]
@@ -91,7 +92,7 @@ public class AddGameTests
     {
         var collection = Empty();
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => collection.AddGame(GameDetails() with { ReleaseYear = year }));
+        Assert.Throws<ArgumentOutOfRangeException>(() => collection.AddGame("Super Mario World", "Super Nintendo", releaseYear: year));
     }
 
     [Fact]
@@ -99,9 +100,9 @@ public class AddGameTests
     {
         var collection = Empty();
 
-        collection.AddGame(GameDetails() with { ThumbnailUrl = "  https://images.igdb.com/igdb/image/upload/t_cover_big/co1.png " });
+        collection.AddGame("Super Mario World", "Super Nintendo", thumbnailUrl: "  https://images.igdb.com/igdb/image/upload/t_cover_big/co1.png ");
 
-        Assert.Equal("https://images.igdb.com/igdb/image/upload/t_cover_big/co1.png", collection.Games[0].Details.ThumbnailUrl);
+        Assert.Equal("https://images.igdb.com/igdb/image/upload/t_cover_big/co1.png", collection.Games[0].ThumbnailUrl);
     }
 
     [Fact]
@@ -109,9 +110,9 @@ public class AddGameTests
     {
         var collection = Empty();
 
-        collection.AddGame(GameDetails() with { ThumbnailUrl = "  " });
+        collection.AddGame("Super Mario World", "Super Nintendo", thumbnailUrl: "  ");
 
-        Assert.Null(collection.Games[0].Details.ThumbnailUrl);
+        Assert.Null(collection.Games[0].ThumbnailUrl);
     }
 
     [Theory]
@@ -123,7 +124,7 @@ public class AddGameTests
     {
         var collection = Empty();
 
-        Assert.Throws<ArgumentException>(() => collection.AddGame(GameDetails() with { ThumbnailUrl = url }));
+        Assert.Throws<ArgumentException>(() => collection.AddGame("Super Mario World", "Super Nintendo", thumbnailUrl: url));
         Assert.Empty(collection.Games);
     }
 
@@ -133,7 +134,7 @@ public class AddGameTests
         var collection = Empty();
         var before = collection.Games;
 
-        collection.AddGame(GameDetails());
+        collection.AddGame("Super Mario World", "Super Nintendo");
 
         Assert.Empty(before);
         Assert.NotSame(before, collection.Games);

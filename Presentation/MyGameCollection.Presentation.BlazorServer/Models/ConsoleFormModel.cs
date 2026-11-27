@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using MyGameCollection.Application.Abstractions.Contracts;
+using MyGameCollection.Application.Abstractions.Commands.AddConsole;
+using MyGameCollection.Application.Abstractions.Commands.UpdateConsole;
 using MyGameCollection.Application.Abstractions.Queries.GetMyConsoles;
 using MyGameCollection.Core.Domain.Abstractions;
 
@@ -52,8 +53,7 @@ public sealed class ConsoleFormModel
         ThumbnailUrl = console.ThumbnailUrl
     };
 
-    /// <summary>Wishlist items have not been bought yet, so their purchase details are left out.</summary>
-    public ConsoleData ToData() => new()
+    public AddConsoleCommand ToAddCommand() => new()
     {
         Name = Name,
         Manufacturer = Manufacturer,
@@ -63,9 +63,32 @@ public sealed class ConsoleFormModel
         Condition = Condition,
         Completeness = Completeness,
         ReleaseYear = ReleaseYear,
-        PurchaseDate = Status == CollectionStatus.Owned && PurchaseDate is { } date ? DateOnly.FromDateTime(date) : null,
-        PurchasePrice = Status == CollectionStatus.Owned ? PurchasePrice : null,
+        PurchaseDate = PurchaseDateOrNull,
+        PurchasePrice = PurchasePriceOrNull,
         Notes = Notes,
         ThumbnailUrl = ThumbnailUrl
     };
+
+    public UpdateConsoleCommand ToUpdateCommand(Guid key) => new()
+    {
+        Key = key,
+        Name = Name,
+        Manufacturer = Manufacturer,
+        Model = Model,
+        Status = Status,
+        Region = Region,
+        Condition = Condition,
+        Completeness = Completeness,
+        ReleaseYear = ReleaseYear,
+        PurchaseDate = PurchaseDateOrNull,
+        PurchasePrice = PurchasePriceOrNull,
+        Notes = Notes,
+        ThumbnailUrl = ThumbnailUrl
+    };
+
+    /// <summary>Wishlist items have not been bought yet, so their purchase details are left out.</summary>
+    private DateOnly? PurchaseDateOrNull =>
+        Status == CollectionStatus.Owned && PurchaseDate is { } date ? DateOnly.FromDateTime(date) : null;
+
+    private decimal? PurchasePriceOrNull => Status == CollectionStatus.Owned ? PurchasePrice : null;
 }

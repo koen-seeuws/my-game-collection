@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using MyGameCollection.Application.Abstractions.Contracts;
+using MyGameCollection.Application.Abstractions.Commands.AddGame;
+using MyGameCollection.Application.Abstractions.Commands.UpdateGame;
 using MyGameCollection.Application.Abstractions.Queries.GetMyGames;
 using MyGameCollection.Core.Domain.Abstractions;
 
@@ -48,8 +49,7 @@ public sealed class GameFormModel
         ThumbnailUrl = game.ThumbnailUrl
     };
 
-    /// <summary>Wishlist items have not been bought yet, so their purchase details are left out.</summary>
-    public GameData ToData() => new()
+    public AddGameCommand ToAddCommand() => new()
     {
         Title = Title,
         Platform = Platform,
@@ -58,9 +58,31 @@ public sealed class GameFormModel
         Condition = Condition,
         Completeness = Completeness,
         ReleaseYear = ReleaseYear,
-        PurchaseDate = Status == CollectionStatus.Owned && PurchaseDate is { } date ? DateOnly.FromDateTime(date) : null,
-        PurchasePrice = Status == CollectionStatus.Owned ? PurchasePrice : null,
+        PurchaseDate = PurchaseDateOrNull,
+        PurchasePrice = PurchasePriceOrNull,
         Notes = Notes,
         ThumbnailUrl = ThumbnailUrl
     };
+
+    public UpdateGameCommand ToUpdateCommand(Guid key) => new()
+    {
+        Key = key,
+        Title = Title,
+        Platform = Platform,
+        Status = Status,
+        Region = Region,
+        Condition = Condition,
+        Completeness = Completeness,
+        ReleaseYear = ReleaseYear,
+        PurchaseDate = PurchaseDateOrNull,
+        PurchasePrice = PurchasePriceOrNull,
+        Notes = Notes,
+        ThumbnailUrl = ThumbnailUrl
+    };
+
+    /// <summary>Wishlist items have not been bought yet, so their purchase details are left out.</summary>
+    private DateOnly? PurchaseDateOrNull =>
+        Status == CollectionStatus.Owned && PurchaseDate is { } date ? DateOnly.FromDateTime(date) : null;
+
+    private decimal? PurchasePriceOrNull => Status == CollectionStatus.Owned ? PurchasePrice : null;
 }

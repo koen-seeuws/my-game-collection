@@ -13,13 +13,12 @@ public class UpdateAndDeleteGameTests
         var middle = Game("Middle");
         var last = Game("Last");
         var collection = WithGames(first, middle, last);
-        var details = GameDetails("Changed", "Game Boy") with { Completeness = Completeness.Sealed };
 
-        collection.UpdateGame(middle.Key, details);
+        collection.UpdateGame(middle.Key, "Changed", "Game Boy", completeness: Completeness.Sealed);
 
         Assert.Same(first, collection.Games[0]);
-        Assert.Equal(middle.Key, collection.Games[1].Key);
-        Assert.Equal(details, collection.Games[1].Details);
+        Assert.Equal(middle with { Title = "Changed", Platform = "Game Boy", Completeness = Completeness.Sealed },
+            collection.Games[1]);
         Assert.Same(last, collection.Games[2]);
     }
 
@@ -29,7 +28,7 @@ public class UpdateAndDeleteGameTests
         var game = Game();
         var collection = WithGames(game);
 
-        Assert.Throws<ArgumentException>(() => collection.UpdateGame(game.Key, GameDetails(title: "")));
+        Assert.Throws<ArgumentException>(() => collection.UpdateGame(game.Key, "", "Super Nintendo"));
         Assert.Same(game, collection.Games[0]);
     }
 
@@ -39,7 +38,7 @@ public class UpdateAndDeleteGameTests
         var collection = WithGames(Game());
         var unknownKey = Guid.NewGuid();
 
-        var ex = Assert.Throws<KeyNotFoundException>(() => collection.UpdateGame(unknownKey, GameDetails()));
+        var ex = Assert.Throws<KeyNotFoundException>(() => collection.UpdateGame(unknownKey, "Super Mario World", "Super Nintendo"));
 
         Assert.Contains(unknownKey.ToString(), ex.Message);
         Assert.Contains(Owner, ex.Message);
