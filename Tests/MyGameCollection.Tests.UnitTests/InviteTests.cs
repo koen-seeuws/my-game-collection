@@ -147,12 +147,16 @@ public sealed class InviteTests : IAsyncLifetime
     [Fact]
     public async Task Names_are_required()
     {
-        var result = await Dispatcher.SendAsync(new RedeemInviteCommand
-        {
-            Token = await CreateInviteAsync(), FirstName = " ", LastName = "User", Email = "a@example.com", Password = Password
-        });
+        var token = await CreateInviteAsync();
 
-        Assert.False(result.Succeeded);
+        var rejected = await Assert.ThrowsAsync<CommandValidationException>(() => Dispatcher.SendAsync(
+            new RedeemInviteCommand
+            {
+                Token = token, FirstName = " ", LastName = "User", Email = "a@example.com", Password = Password
+            }));
+
+        Assert.Equal("First Name is required.", Assert.Single(rejected.Errors));
+        Assert.Null(await FindUserAsync("a@example.com"));
     }
 
     [Fact]
@@ -168,7 +172,7 @@ public sealed class InviteTests : IAsyncLifetime
     [InlineData(91)]
     public async Task An_invite_must_be_valid_for_up_to_90_days(int days)
     {
-        await Assert.ThrowsAsync<ArgumentException>(() => CreateInviteAsync(TimeSpan.FromDays(days)));
+        await Assert.ThrowsAsync<CommandValidationException>(() => CreateInviteAsync(TimeSpan.FromDays(days)));
     }
 
     [Fact]

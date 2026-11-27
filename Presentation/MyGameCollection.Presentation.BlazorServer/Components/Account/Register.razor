@@ -87,14 +87,24 @@ else
         if (_invite is null)
             return;
 
-        var result = await Dispatcher.SendAsync(new RedeemInviteCommand
+        RedeemInviteResultDto result;
+        try
         {
-            Token = Token,
-            FirstName = Input.FirstName,
-            LastName = Input.LastName,
-            Email = Input.Email,
-            Password = Input.Password
-        });
+            result = await Dispatcher.SendAsync(new RedeemInviteCommand
+            {
+                Token = Token,
+                FirstName = Input.FirstName,
+                LastName = Input.LastName,
+                Email = Input.Email,
+                Password = Input.Password
+            });
+        }
+        catch (CommandValidationException ex)
+        {
+            _errors = ex.Errors;
+            return;
+        }
+
         if (!result.Succeeded)
         {
             _errors = result.Errors;

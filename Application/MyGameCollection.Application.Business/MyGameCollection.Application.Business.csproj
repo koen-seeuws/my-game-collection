@@ -9,6 +9,7 @@
     <ItemGroup>
       <ProjectReference Include="..\..\Core\MyGameCollection.Core.Domain\MyGameCollection.Core.Domain.csproj" />
       <ProjectReference Include="..\MyGameCollection.Application.Abstractions\MyGameCollection.Application.Abstractions.csproj" />
+      <ProjectReference Include="..\MyGameCollection.Application.Validation\MyGameCollection.Application.Validation.csproj" />
     </ItemGroup>
 
     <ItemGroup>

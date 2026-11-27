@@ -1,15 +1,10 @@
+using static MyGameCollection.Core.Domain.Abstractions.CollectionItemLimits;
+
 namespace MyGameCollection.Core.Domain;
 
 /// <summary>Validates and normalises items before they enter the collection.</summary>
 internal static class GameCollectionValidation
 {
-    public const int MaxNameLength = 200;
-    public const int MaxShortTextLength = 100;
-    public const int MaxNotesLength = 2000;
-    public const int MaxUrlLength = 500;
-    public const int MinReleaseYear = 1950;
-    public const int MaxReleaseYear = 2100;
-
     public static Game Validated(Game game)
     {
         var normalised = game with

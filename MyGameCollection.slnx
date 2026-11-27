@@ -6,6 +6,7 @@
   <Folder Name="/2. Application/">
     <Project Path="Application/MyGameCollection.Application.Abstractions/MyGameCollection.Application.Abstractions.csproj" />
     <Project Path="Application/MyGameCollection.Application.Business/MyGameCollection.Application.Business.csproj" />
+    <Project Path="Application/MyGameCollection.Application.Validation/MyGameCollection.Application.Validation.csproj" />
   </Folder>
   <Folder Name="/3. Infrastructure/">
     <Project Path="Infrastructure/MyGameCollection.Infrastructure.EFC/MyGameCollection.Infrastructure.EFC.csproj" />
