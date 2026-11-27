@@ -3,7 +3,7 @@ using MyGameCollection.Application.Abstractions.Commands.CreateFirstAdminInvite;
 using MyGameCollection.Application.Abstractions.Services.Accounts;
 using MyGameCollection.Application.Business.Decorators;
 
-namespace MyGameCollection.Application.Business.CommandHandlers.Accounts;
+namespace MyGameCollection.Application.Business.CommandHandlers.CreateFirstAdminInvite;
 
 /// <summary>Run by the server at startup, not by a user.</summary>
 [NonTransactional]

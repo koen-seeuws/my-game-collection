@@ -3,7 +3,7 @@ using MyGameCollection.Application.Abstractions.Commands.RedeemInvite;
 using MyGameCollection.Application.Abstractions.Services.Accounts;
 using MyGameCollection.Application.Business.Decorators;
 
-namespace MyGameCollection.Application.Business.CommandHandlers.Accounts;
+namespace MyGameCollection.Application.Business.CommandHandlers.RedeemInvite;
 
 /// <summary>Runs for someone who is not signed in yet: the invite token is the authorization.</summary>
 [NonTransactional]

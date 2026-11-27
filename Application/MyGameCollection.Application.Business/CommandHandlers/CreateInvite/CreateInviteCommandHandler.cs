@@ -3,7 +3,7 @@ using MyGameCollection.Application.Abstractions.Commands.CreateInvite;
 using MyGameCollection.Application.Abstractions.Services.Accounts;
 using MyGameCollection.Application.Business.Decorators;
 
-namespace MyGameCollection.Application.Business.CommandHandlers.Accounts;
+namespace MyGameCollection.Application.Business.CommandHandlers.CreateInvite;
 
 [NonTransactional]
 public class CreateInviteCommandHandler : ICommandHandler<CreateInviteCommand, CreatedInviteDto>
