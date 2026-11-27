@@ -7,6 +7,10 @@ public interface IGameCatalogService
     /// <exception cref="CatalogUnavailableException">The catalog is not configured or could not be reached.</exception>
     Task<IReadOnlyList<CatalogGameDto>> SearchGamesAsync(string search, CancellationToken cancellationToken = default);
 
+    /// <summary>The catalog game <paramref name="gameId"/>, to refresh a game picked from the catalog before; empty when it no longer exists.</summary>
+    /// <exception cref="CatalogUnavailableException">The catalog is not configured or could not be reached.</exception>
+    Task<CatalogGameDto?> GetGameAsync(long gameId, CancellationToken cancellationToken = default);
+
     /// <summary>The editions (GOTY, Deluxe...) of the catalog game <paramref name="gameId"/>, oldest first.</summary>
     /// <exception cref="CatalogUnavailableException">The catalog is not configured or could not be reached.</exception>
     Task<IReadOnlyList<CatalogGameEditionDto>> GetGameEditionsAsync(long gameId, CancellationToken cancellationToken = default);

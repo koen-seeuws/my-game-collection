@@ -35,6 +35,23 @@
                     </MudStack>
                 </ItemTemplate>
             </CatalogLookup>
+            @if (Model.CatalogId is not null)
+            {
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Refresh" Disabled="_refreshing" OnClick="RefreshFromCatalogAsync">
+                        Refresh from IGDB
+                    </MudButton>
+                    @if (_refreshing)
+                    {
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small" Color="Color.Primary" />
+                    }
+                    else if (_refreshResult is not null)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@_refreshResult</MudText>
+                    }
+                </MudStack>
+            }
             @if (_editionsLoading)
             {
                 <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
@@ -313,6 +330,17 @@
         Model.CatalogId = game.Id;
         Model.Title = game.Name;
         Model.Edition = null;
+        ApplyCatalogDescription(game);
+        Model.ThumbnailUrl = game.ThumbnailUrl ?? Model.ThumbnailUrl;
+
+        SetCatalogPlatforms(game);
+        Model.Platform = ChoosePlatform() ?? Model.Platform;
+        ApplyCatalogPlatformDetails();
+    }
+
+    /// <summary>What describes the game itself, whatever the copy: series, type, genres and companies.</summary>
+    private void ApplyCatalogDescription(CatalogGameDto game)
+    {
         Model.Series = game.Series ?? Model.Series;
         Model.Type = game.Type ?? Model.Type;
         if (game.Genres.Count > 0)
@@ -322,8 +350,10 @@
             Model.Developers = game.Developers.ToList();
             Model.Publishers = game.Publishers.ToList();
         }
-        Model.ThumbnailUrl = game.ThumbnailUrl ?? Model.ThumbnailUrl;
+    }
 
+    private void SetCatalogPlatforms(CatalogGameDto game)
+    {
         _catalogPlatforms = game.Platforms
             .Select(p => KnownPlatforms.Match(Platforms, p.Name, p.Abbreviation))
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -332,9 +362,54 @@
         _catalogPlatformDetails = game.Platforms
             .GroupBy(p => KnownPlatforms.Match(Platforms, p.Name, p.Abbreviation), StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+    }
 
-        Model.Platform = ChoosePlatform() ?? Model.Platform;
-        ApplyCatalogPlatformDetails();
+    private bool _refreshing;
+
+    /// <summary>How the last refresh went, shown next to the button.</summary>
+    private string? _refreshResult;
+
+    /// <summary>
+    /// Fetches the game again from IGDB by its stored id and fills in what IGDB knows now, keeping the title,
+    /// edition, platform and cover the user chose. Whatever IGDB does not know (any more) is kept as it was.
+    /// Nothing is stored until the dialog is saved.
+    /// </summary>
+    private async Task RefreshFromCatalogAsync()
+    {
+        if (Model.CatalogId is not { } catalogId)
+            return;
+
+        _refreshing = true;
+        _refreshResult = null;
+        try
+        {
+            if (await GameCatalog.GetGameAsync(catalogId) is not { } game)
+            {
+                _refreshResult = "IGDB no longer knows this game.";
+                return;
+            }
+
+            _catalogGame = game;
+            SetCatalogPlatforms(game);
+            ApplyCatalogDescription(game);
+
+            var platform = _catalogPlatformDetails.GetValueOrDefault(Model.Platform ?? string.Empty);
+            Model.Players = platform?.Players ?? game.Players ?? Model.Players;
+            Model.ReleaseDate = platform?.ReleaseDateFor(Model.Region) ?? game.ReleaseDate ?? Model.ReleaseDate;
+            Model.AgeRating = game.AgeRatingFor(Model.Region) ?? Model.AgeRating;
+            _playersSource = null;
+            _regionalSource = null;
+
+            _refreshResult = "Updated from IGDB. Save to keep the changes.";
+        }
+        catch (CatalogUnavailableException)
+        {
+            _refreshResult = "IGDB could not be reached. Try again later.";
+        }
+        finally
+        {
+            _refreshing = false;
+        }
     }
 
     /// <summary>The picked catalog game's platforms by their name in this collection, for their player modes.</summary>
