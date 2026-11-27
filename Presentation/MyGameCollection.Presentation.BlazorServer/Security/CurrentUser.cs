@@ -1,8 +1,11 @@
+using System.Security.Claims;
+using MyGameCollection.Infrastructure.Identity;
+
 namespace MyGameCollection.Presentation.BlazorServer.Security;
 
 /// <summary>
-/// The user signed in on the current circuit (one per browser tab).
-/// A stand-in until real authentication is added: the user simply picks a name.
+/// The user signed in on the current circuit (one per browser tab), kept up to date by
+/// <see cref="UserCircuitHandler"/> from the authentication state of the circuit.
 /// </summary>
 public sealed class CurrentUser
 {
@@ -10,20 +13,20 @@ public sealed class CurrentUser
 
     public bool IsSignedIn => UserName is not null;
 
-    /// <summary>Raised when the user signs in, switches user or signs out.</summary>
+    public bool IsAdmin { get; private set; }
+
+    /// <summary>Raised when the user signs in or out (e.g. when the account is removed).</summary>
     public event Action? Changed;
 
-    public void SignIn(string userName)
+    internal void Set(ClaimsPrincipal principal)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(userName);
+        var userName = principal.Identity?.IsAuthenticated == true ? principal.Identity.Name : null;
+        var isAdmin = userName is not null && principal.IsInRole(InviteService.AdminRole);
+        if (userName == UserName && isAdmin == IsAdmin)
+            return;
 
-        UserName = userName.Trim();
-        Changed?.Invoke();
-    }
-
-    public void SignOut()
-    {
-        UserName = null;
+        UserName = userName;
+        IsAdmin = isAdmin;
         Changed?.Invoke();
     }
 }

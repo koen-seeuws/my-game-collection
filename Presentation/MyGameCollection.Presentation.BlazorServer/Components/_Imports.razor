@@ -1,5 +1,7 @@
 @using System.Net.Http
 @using System.Net.Http.Json
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.AspNetCore.Components.Web
@@ -10,7 +12,9 @@
 @using MyGameCollection.Application.Abstractions
 @using MyGameCollection.Core.Domain.Abstractions
 @using MyGameCollection.Presentation.BlazorServer
+@using MyGameCollection.Infrastructure.Identity
 @using MyGameCollection.Presentation.BlazorServer.Components
+@using MyGameCollection.Presentation.BlazorServer.Components.Account
 @using MyGameCollection.Presentation.BlazorServer.Components.Dialogs
 @using MyGameCollection.Presentation.BlazorServer.Components.Layout
 @using MyGameCollection.Presentation.BlazorServer.Components.Shared

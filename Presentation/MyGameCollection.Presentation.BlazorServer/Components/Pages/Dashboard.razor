@@ -6,18 +6,7 @@
 
 <MudText Typo="Typo.h4" GutterBottom="true">Dashboard</MudText>
 
-@if (!CurrentUser.IsSignedIn)
-{
-    <MudPaper Elevation="1" Class="pa-8 d-flex flex-column align-center gap-4">
-        <MudIcon Icon="@Icons.Material.Filled.VideogameAsset" Color="Color.Primary" Style="font-size: 5rem" />
-        <MudText Typo="Typo.h5" Align="Align.Center">Welcome to your retro game shelf</MudText>
-        <MudText Align="Align.Center">
-            Keep track of your games and consoles, what you paid for them, and what you are still hunting for.
-            Sign in (top right) to get started.
-        </MudText>
-    </MudPaper>
-}
-else if (_summary is null)
+@if (_summary is null)
 {
     <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
 }

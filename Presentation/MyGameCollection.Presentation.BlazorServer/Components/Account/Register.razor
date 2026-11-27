@@ -1,0 +1,114 @@
+@page "/account/register/{Token}"
+@layout AccountLayout
+@attribute [AllowAnonymous]
+@attribute [ExcludeFromInteractiveRouting]
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@inject InviteService Invites
+@inject SignInManager<AppUser> SignInManager
+@inject NavigationManager Navigation
+
+<PageTitle>Create your account · My Game Collection</PageTitle>
+
+@if (_invite is null)
+{
+    <h1>Invite not valid</h1>
+    <p class="account-hint">
+        This invite link is invalid, has expired or has already been used. Ask for a new one.
+    </p>
+    <a class="account-button" href="account/login">Go to sign in</a>
+}
+else
+{
+    <h1>Create your account</h1>
+    @if (_invite.GrantsAdmin)
+    {
+        <p class="account-hint">This is the first account: it will be the administrator, who can invite others.</p>
+    }
+
+    @if (_errors.Count > 0)
+    {
+        <div class="account-error" role="alert">
+            @foreach (var error in _errors)
+            {
+                <div>@error</div>
+            }
+        </div>
+    }
+
+    <EditForm Model="Input" method="post" OnValidSubmit="RegisterAsync" FormName="register" class="account-form">
+        <DataAnnotationsValidator />
+
+        <label for="username">User name</label>
+        <InputText id="username" @bind-Value="Input.UserName" autocomplete="username" autofocus />
+        <ValidationMessage For="() => Input.UserName" />
+
+        <label for="email">Email</label>
+        <InputText id="email" type="email" @bind-Value="Input.Email" autocomplete="email" />
+        <ValidationMessage For="() => Input.Email" />
+
+        <label for="password">Password <span class="account-label-hint">(at least 10 characters)</span></label>
+        <InputText id="password" type="password" @bind-Value="Input.Password" autocomplete="new-password" />
+        <ValidationMessage For="() => Input.Password" />
+
+        <label for="confirm">Confirm password</label>
+        <InputText id="confirm" type="password" @bind-Value="Input.ConfirmPassword" autocomplete="new-password" />
+        <ValidationMessage For="() => Input.ConfirmPassword" />
+
+        <button type="submit" class="account-button">Create account</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public string Token { get; set; } = string.Empty;
+
+    [SupplyParameterFromForm]
+    private RegisterModel Input { get; set; } = default!;
+
+    private Invite? _invite;
+    private IReadOnlyList<string> _errors = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        Input ??= new();
+        _invite = await Invites.FindOpenAsync(Token);
+    }
+
+    private async Task RegisterAsync()
+    {
+        if (_invite is null)
+            return;
+
+        var result = await Invites.RedeemAsync(Token, Input.UserName, Input.Email, Input.Password);
+        if (!result.IsSuccess)
+        {
+            _errors = result.Errors;
+            return;
+        }
+
+        await SignInManager.SignInAsync(result.User!, isPersistent: false);
+        Navigation.NavigateTo("/");
+    }
+
+    private sealed class RegisterModel
+    {
+        [Required(ErrorMessage = "Choose a user name.")]
+        [StringLength(50, MinimumLength = 3, ErrorMessage = "Use 3 to 50 characters.")]
+        [RegularExpression(@"^[A-Za-z0-9._-]+$", ErrorMessage = "Use letters, digits, dots, dashes or underscores.")]
+        public string UserName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Enter your email address.")]
+        [EmailAddress(ErrorMessage = "Enter a valid email address.")]
+        [StringLength(256)]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Choose a password.")]
+        [StringLength(128, MinimumLength = 10, ErrorMessage = "Use at least 10 characters.")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Confirm your password.")]
+        [Compare(nameof(Password), ErrorMessage = "The passwords don't match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}
