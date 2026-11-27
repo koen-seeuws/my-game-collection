@@ -1,11 +1,11 @@
-@* A grid of game cards, with the edit, delete and acquire actions handed to the page. *@
+@* A grid of game cards, with the open, delete and acquire actions handed to the page. *@
 <div class="item-grid">
     @foreach (var game in Games)
     {
         <ItemCard @key="game.Key" Title="@game.Title" Subtitle="@Subtitle(game)" ThumbnailUrl="@game.ThumbnailUrl"
                   Icon="@Icons.Material.Outlined.VideogameAsset" Status="game.Status" Notes="@game.Notes"
                   PurchasePrice="game.PurchasePrice" PurchaseDate="game.PurchaseDate"
-                  OnEdit="() => OnEdit.InvokeAsync(game)" OnDelete="() => OnDelete.InvokeAsync(game)"
+                  OnOpen="() => OnOpen.InvokeAsync(game)" OnDelete="() => OnDelete.InvokeAsync(game)"
                   OnAcquire="() => OnAcquire.InvokeAsync(game)">
             <ItemTags Format="game.Format" Region="game.Region"
                       Completeness="@(game.Format == GameFormat.Physical ? game.Completeness : null)"

@@ -43,7 +43,7 @@ else
                 <ItemCard @key="game.Key" Title="@game.Title" Subtitle="@GameCardGrid.Subtitle(game)"
                           ThumbnailUrl="@game.ThumbnailUrl" Icon="@Icons.Material.Outlined.VideogameAsset" Status="game.Status"
                           ShowStatus="false" Notes="@game.Notes"
-                          OnEdit="() => EditGameAsync(game)" OnDelete="() => DeleteGameAsync(game)"
+                          OnOpen="() => OpenGameAsync(game)" OnDelete="() => DeleteGameAsync(game)"
                           OnAcquire="() => AcquireGameAsync(game)">
                     <ItemTags Format="game.Format" Region="game.Region"
                               Completeness="@(game.Format == GameFormat.Physical ? game.Completeness : null)" />
@@ -73,7 +73,7 @@ else
                 <ItemCard @key="console.Key" Title="@console.Name" Subtitle="@console.Manufacturer"
                           ThumbnailUrl="@console.ThumbnailUrl" Icon="@Icons.Material.Outlined.SportsEsports" Logo="true"
                           Status="console.Status" ShowStatus="false" Notes="@console.Notes"
-                          OnEdit="() => EditConsoleAsync(console)" OnDelete="() => DeleteConsoleAsync(console)"
+                          OnOpen="() => OpenConsoleAsync(console)" OnDelete="() => DeleteConsoleAsync(console)"
                           OnAcquire="() => AcquireConsoleAsync(console)">
                     <ItemTags Region="console.Region" Completeness="console.Completeness" />
                 </ItemCard>

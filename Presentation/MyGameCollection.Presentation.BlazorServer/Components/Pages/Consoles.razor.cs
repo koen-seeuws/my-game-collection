@@ -72,9 +72,9 @@ public partial class Consoles : IDisposable
         await ExecuteAsync(model.ToAddCommand(), $"'{model.Name}' added.");
     }
 
-    private async Task EditConsoleAsync(ConsoleDto console)
+    private async Task OpenConsoleAsync(ConsoleDto console)
     {
-        if (await ShowConsoleDialogAsync("Edit console", ConsoleFormModel.From(console)) is not { } model)
+        if (await ShowConsoleDialogAsync(console.Name, ConsoleFormModel.From(console), readOnly: true) is not { } model)
             return;
 
         await ExecuteAsync(model.ToUpdateCommand(console.Key), $"'{model.Name}' updated.");
@@ -107,11 +107,12 @@ public partial class Consoles : IDisposable
         }, $"'{console.Name}' is now part of your collection!");
     }
 
-    private async Task<ConsoleFormModel?> ShowConsoleDialogAsync(string title, ConsoleFormModel model)
+    private async Task<ConsoleFormModel?> ShowConsoleDialogAsync(string title, ConsoleFormModel model, bool readOnly = false)
     {
         var parameters = new DialogParameters
         {
             { "Model", model },
+            { "ReadOnly", readOnly },
             { "Platforms", PlatformsInUse() }
         };
         var dialog = await DialogService.ShowAsync<ConsoleDialog>(title, parameters,

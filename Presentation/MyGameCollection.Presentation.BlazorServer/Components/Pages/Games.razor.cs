@@ -68,9 +68,9 @@ public partial class Games : IDisposable
         await ExecuteAsync(model.ToAddCommand(), $"'{model.Title}' added.");
     }
 
-    private async Task EditGameAsync(GameDto game)
+    private async Task OpenGameAsync(GameDto game)
     {
-        if (await ShowGameDialogAsync("Edit game", GameFormModel.From(game)) is not { } model)
+        if (await ShowGameDialogAsync(game.Title, GameFormModel.From(game), readOnly: true) is not { } model)
             return;
 
         await ExecuteAsync(model.ToUpdateCommand(game.Key), $"'{model.Title}' updated.");
@@ -107,11 +107,12 @@ public partial class Games : IDisposable
         }, $"'{game.Title}' is now part of your collection!");
     }
 
-    private async Task<GameFormModel?> ShowGameDialogAsync(string title, GameFormModel model)
+    private async Task<GameFormModel?> ShowGameDialogAsync(string title, GameFormModel model, bool readOnly = false)
     {
         var parameters = new DialogParameters
         {
             { "Model", model },
+            { "ReadOnly", readOnly },
             { "Platforms", _platformsInUse },
             { "Companies", _games.SelectMany(g => g.Developers.Concat(g.Publishers)).ToList() }
         };

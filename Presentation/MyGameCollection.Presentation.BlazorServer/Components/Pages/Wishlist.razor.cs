@@ -75,9 +75,9 @@ public partial class Wishlist : IDisposable
         await ExecuteAsync(model.ToAddCommand(), $"'{model.Title}' added.");
     }
 
-    private async Task EditGameAsync(GameDto game)
+    private async Task OpenGameAsync(GameDto game)
     {
-        if (await ShowFormDialogAsync<GameDialog, GameFormModel>("Edit game", GameFormModel.From(game)) is not { } model)
+        if (await ShowFormDialogAsync<GameDialog, GameFormModel>(game.Title, GameFormModel.From(game), readOnly: true) is not { } model)
             return;
 
         await ExecuteAsync(model.ToUpdateCommand(game.Key), $"'{model.Title}' updated.");
@@ -115,9 +115,9 @@ public partial class Wishlist : IDisposable
         await ExecuteAsync(model.ToAddCommand(), $"'{model.Name}' added.");
     }
 
-    private async Task EditConsoleAsync(ConsoleDto console)
+    private async Task OpenConsoleAsync(ConsoleDto console)
     {
-        if (await ShowFormDialogAsync<ConsoleDialog, ConsoleFormModel>("Edit console", ConsoleFormModel.From(console)) is not { } model)
+        if (await ShowFormDialogAsync<ConsoleDialog, ConsoleFormModel>(console.Name, ConsoleFormModel.From(console), readOnly: true) is not { } model)
             return;
 
         await ExecuteAsync(model.ToUpdateCommand(console.Key), $"'{model.Name}' updated.");
@@ -145,12 +145,13 @@ public partial class Wishlist : IDisposable
 
     // ---- Helpers ----
 
-    private async Task<TModel?> ShowFormDialogAsync<TDialog, TModel>(string title, TModel model)
+    private async Task<TModel?> ShowFormDialogAsync<TDialog, TModel>(string title, TModel model, bool readOnly = false)
         where TDialog : ComponentBase where TModel : class
     {
         var parameters = new DialogParameters
         {
             { "Model", model },
+            { "ReadOnly", readOnly },
             { "Platforms", PlatformsInUse() }
         };
         if (typeof(TDialog) == typeof(GameDialog))

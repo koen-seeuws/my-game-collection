@@ -1,0 +1,14 @@
+@* One labelled value in the read-only details of a game or console, as a grid item. *@
+<MudItem xs="12" sm="@(Wide ? 12 : 6)">
+    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="detail-label">@Label</MudText>
+    <div class="detail-value">@ChildContent</div>
+</MudItem>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Takes the full width, e.g. for notes.</summary>
+    [Parameter] public bool Wide { get; set; }
+}

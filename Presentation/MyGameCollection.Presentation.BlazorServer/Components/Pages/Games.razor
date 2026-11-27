@@ -85,11 +85,11 @@ else
         @foreach (var group in games.GroupBy(g => g.Platform, StringComparer.OrdinalIgnoreCase).OrderBy(g => g.Key))
         {
             <MudText Typo="Typo.h6" Class="item-group-title">@group.Key <span class="item-group-count">@group.Count()</span></MudText>
-            <GameCardGrid Games="group" OnEdit="EditGameAsync" OnDelete="DeleteGameAsync" OnAcquire="AcquireGameAsync" />
+            <GameCardGrid Games="group" OnOpen="OpenGameAsync" OnDelete="DeleteGameAsync" OnAcquire="AcquireGameAsync" />
         }
     }
     else
     {
-        <GameCardGrid Games="games" OnEdit="EditGameAsync" OnDelete="DeleteGameAsync" OnAcquire="AcquireGameAsync" />
+        <GameCardGrid Games="games" OnOpen="OpenGameAsync" OnDelete="DeleteGameAsync" OnAcquire="AcquireGameAsync" />
     }
 }

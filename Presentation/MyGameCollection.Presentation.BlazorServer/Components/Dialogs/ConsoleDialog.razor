@@ -4,129 +4,145 @@
 
 <MudDialog>
     <DialogContent>
-        <CatalogLookup TItem="CatalogConsoleDto" Label="Find the console on IGDB" SearchFunc="SearchCatalogAsync"
-                       ItemName="c => c.Name" InitialSearch="@Model.Name" AutoFocus="string.IsNullOrEmpty(Model.Name)" OnSelected="ApplyCatalogConsole">
-            <ItemTemplate Context="console">
-                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                    @if (console.LogoUrl is not null)
-                    {
-                        <img src="@console.LogoUrl" alt="" class="catalog-cover" style="object-fit: contain" loading="lazy" />
-                    }
-                    else
-                    {
-                        <MudIcon Icon="@Icons.Material.Outlined.SportsEsports" Class="catalog-cover" />
-                    }
-                    <div>
-                        <MudText Typo="Typo.body1">
-                            @console.Name @(console.ReleaseDate is { } released ? $"({released})" : "")
-                        </MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">
-                            @string.Join(" · ", new[] { console.Manufacturer, console.AlternativeName }.Where(t => !string.IsNullOrWhiteSpace(t)))
-                        </MudText>
-                    </div>
-                </MudStack>
-            </ItemTemplate>
-        </CatalogLookup>
-        @if (_catalogConsole is { Versions.Count: > 1 } catalogConsole)
+        @if (!_editing)
         {
-            <div class="mb-4">
-                <MudText Typo="Typo.subtitle2">Which model is it?</MudText>
-                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                    IGDB knows @catalogConsole.Versions.Count models of the @catalogConsole.Name. Pick yours to use its picture.
-                </MudText>
-                <div class="version-picker mt-2">
-                    @foreach (var version in catalogConsole.Versions)
-                    {
-                        var selected = version.Id == _catalogVersion?.Id;
-                        <button type="button" class="@($"version-option{(selected ? " selected" : "")}")"
-                                aria-pressed="@(selected ? "true" : "false")" @onclick="() => ApplyCatalogVersion(version)">
-                            @if (version.LogoUrl is not null)
-                            {
-                                <img src="@version.LogoUrl" alt="" loading="lazy" />
-                            }
-                            else
-                            {
-                                <MudIcon Icon="@Icons.Material.Outlined.SportsEsports" Class="version-option-placeholder" />
-                            }
-                            <span class="version-option-name">@version.Name</span>
-                            @if (version.ReleaseDate is { } released)
-                            {
-                                <span class="version-option-year">@released.Year</span>
-                            }
-                        </button>
-                    }
-                </div>
-            </div>
+            <ConsoleDetails Model="Model" />
         }
-        <EditForm id="@_formId" Model="Model" OnValidSubmit="Submit">
-            <DataAnnotationsValidator />
-            <MudGrid Spacing="2">
-                <MudItem xs="12" sm="6">
-                    <MudAutocomplete T="string" Value="Model.Name" ValueChanged="OnNameChanged" For="() => Model.Name"
-                                     Label="System" Variant="Variant.Outlined" SearchFunc="SearchNamesAsync" MaxItems="null"
-                                     CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true"
-                                     HelperText="Games use this name as their platform" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudAutocomplete T="string" @bind-Value="Model.Manufacturer" For="() => Model.Manufacturer"
-                                     Label="Manufacturer" Variant="Variant.Outlined" SearchFunc="SearchManufacturersAsync"
-                                     MaxItems="null" CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="Model.Model" For="() => Model.Model" Label="Model / revision"
-                                  Variant="Variant.Outlined" MaxLength="100" Placeholder="e.g. SCPH-1002, Slim" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="Model.Colour" For="() => Model.Colour" Label="Colour / edition"
-                                  Variant="Variant.Outlined" MaxLength="100" Placeholder="e.g. Tribal Edition, Pearl Pink" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <EnumSelect TEnum="CollectionStatus" @bind-Value="Model.Status" Label="Status" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                    <EnumSelect TEnum="Region" @bind-Value="Model.Region" Label="Region" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                    <EnumSelect TEnum="Completeness" @bind-Value="Model.Completeness" Label="Completeness" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                    <EnumSelect TEnum="ItemCondition" @bind-Value="Model.Condition" Label="Condition" />
-                </MudItem>
-                <ReleaseDateFields Model="Model" />
-                @if (Model.Status == CollectionStatus.Owned)
-                {
+        else
+        {
+            <CatalogLookup TItem="CatalogConsoleDto" Label="Find the console on IGDB" SearchFunc="SearchCatalogAsync"
+                           ItemName="c => c.Name" InitialSearch="@Model.Name" AutoFocus="string.IsNullOrEmpty(Model.Name)" OnSelected="ApplyCatalogConsole">
+                <ItemTemplate Context="console">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        @if (console.LogoUrl is not null)
+                        {
+                            <img src="@console.LogoUrl" alt="" class="catalog-cover" style="object-fit: contain" loading="lazy" />
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Outlined.SportsEsports" Class="catalog-cover" />
+                        }
+                        <div>
+                            <MudText Typo="Typo.body1">
+                                @console.Name @(console.ReleaseDate is { } released ? $"({released})" : "")
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @string.Join(" · ", new[] { console.Manufacturer, console.AlternativeName }.Where(t => !string.IsNullOrWhiteSpace(t)))
+                            </MudText>
+                        </div>
+                    </MudStack>
+                </ItemTemplate>
+            </CatalogLookup>
+            @if (_catalogConsole is { Versions.Count: > 1 } catalogConsole)
+            {
+                <div class="mb-4">
+                    <MudText Typo="Typo.subtitle2">Which model is it?</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        IGDB knows @catalogConsole.Versions.Count models of the @catalogConsole.Name. Pick yours to use its picture.
+                    </MudText>
+                    <div class="version-picker mt-2">
+                        @foreach (var version in catalogConsole.Versions)
+                        {
+                            var selected = version.Id == _catalogVersion?.Id;
+                            <button type="button" class="@($"version-option{(selected ? " selected" : "")}")"
+                                    aria-pressed="@(selected ? "true" : "false")" @onclick="() => ApplyCatalogVersion(version)">
+                                @if (version.LogoUrl is not null)
+                                {
+                                    <img src="@version.LogoUrl" alt="" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <MudIcon Icon="@Icons.Material.Outlined.SportsEsports" Class="version-option-placeholder" />
+                                }
+                                <span class="version-option-name">@version.Name</span>
+                                @if (version.ReleaseDate is { } released)
+                                {
+                                    <span class="version-option-year">@released.Year</span>
+                                }
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+            <EditForm id="@_formId" Model="Model" OnValidSubmit="Submit">
+                <DataAnnotationsValidator />
+                <MudGrid Spacing="2">
                     <MudItem xs="12" sm="6">
-                        <MudDatePicker @bind-Date="Model.PurchaseDate" Label="Purchase date" Variant="Variant.Outlined"
-                                       Clearable="true" MaxDate="DateTime.Today" />
+                        <MudAutocomplete T="string" Value="Model.Name" ValueChanged="OnNameChanged" For="() => Model.Name"
+                                         Label="System" Variant="Variant.Outlined" SearchFunc="SearchNamesAsync" MaxItems="null"
+                                         CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true"
+                                         HelperText="Games use this name as their platform" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudNumericField T="decimal?" @bind-Value="Model.PurchasePrice" For="() => Model.PurchasePrice"
-                                         Label="Price paid" Variant="Variant.Outlined" HideSpinButtons="true" Min="0"
-                                         Adornment="Adornment.Start" AdornmentText="@CurrencySymbol" />
+                        <MudAutocomplete T="string" @bind-Value="Model.Manufacturer" For="() => Model.Manufacturer"
+                                         Label="Manufacturer" Variant="Variant.Outlined" SearchFunc="SearchManufacturersAsync"
+                                         MaxItems="null" CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="Model.Model" For="() => Model.Model" Label="Model / revision"
+                                      Variant="Variant.Outlined" MaxLength="100" Placeholder="e.g. SCPH-1002, Slim" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="Model.Colour" For="() => Model.Colour" Label="Colour / edition"
+                                      Variant="Variant.Outlined" MaxLength="100" Placeholder="e.g. Tribal Edition, Pearl Pink" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <EnumSelect TEnum="CollectionStatus" @bind-Value="Model.Status" Label="Status" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <EnumSelect TEnum="Region" @bind-Value="Model.Region" Label="Region" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <EnumSelect TEnum="Completeness" @bind-Value="Model.Completeness" Label="Completeness" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <EnumSelect TEnum="ItemCondition" @bind-Value="Model.Condition" Label="Condition" />
+                    </MudItem>
+                    <ReleaseDateFields Model="Model" />
+                    @if (Model.Status == CollectionStatus.Owned)
+                    {
+                        <MudItem xs="12" sm="6">
+                            <MudDatePicker @bind-Date="Model.PurchaseDate" Label="Purchase date" Variant="Variant.Outlined"
+                                           Clearable="true" MaxDate="DateTime.Today" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField T="decimal?" @bind-Value="Model.PurchasePrice" For="() => Model.PurchasePrice"
+                                             Label="Price paid" Variant="Variant.Outlined" HideSpinButtons="true" Min="0"
+                                             Adornment="Adornment.Start" AdornmentText="@CurrencySymbol" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <PurchaseOriginField @bind-Value="Model.PurchaseOrigin" />
+                        </MudItem>
+                    }
+                    <MudItem xs="12">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <ItemThumbnail Url="@Model.ThumbnailUrl" Icon="@Icons.Material.Outlined.SportsEsports" Class="thumbnail-preview logo" />
+                            <MudTextField @bind-Value="Model.ThumbnailUrl" For="() => Model.ThumbnailUrl" Label="Thumbnail URL"
+                                          Variant="Variant.Outlined" MaxLength="500" Immediate="true" Clearable="true"
+                                          Placeholder="https://..." HelperText="Filled in from IGDB when available"
+                                          Class="flex-grow-1" />
+                        </MudStack>
                     </MudItem>
                     <MudItem xs="12">
-                        <PurchaseOriginField @bind-Value="Model.PurchaseOrigin" />
+                        <MudTextField @bind-Value="Model.Notes" For="() => Model.Notes" Label="Notes" Variant="Variant.Outlined"
+                                      Lines="3" MaxLength="2000" />
                     </MudItem>
-                }
-                <MudItem xs="12">
-                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                        <ItemThumbnail Url="@Model.ThumbnailUrl" Icon="@Icons.Material.Outlined.SportsEsports" Class="thumbnail-preview logo" />
-                        <MudTextField @bind-Value="Model.ThumbnailUrl" For="() => Model.ThumbnailUrl" Label="Thumbnail URL"
-                                      Variant="Variant.Outlined" MaxLength="500" Immediate="true" Clearable="true"
-                                      Placeholder="https://..." HelperText="Filled in from IGDB when available"
-                                      Class="flex-grow-1" />
-                    </MudStack>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="Model.Notes" For="() => Model.Notes" Label="Notes" Variant="Variant.Outlined"
-                                  Lines="3" MaxLength="2000" />
-                </MudItem>
-            </MudGrid>
-        </EditForm>
+                </MudGrid>
+            </EditForm>
+        }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
-        <MudButton ButtonType="ButtonType.Submit" form="@_formId" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+        @if (!_editing)
+        {
+            <MudButton OnClick="() => MudDialog.Cancel()">Close</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Edit"
+                       OnClick="() => _editing = true">Edit</MudButton>
+        }
+        else
+        {
+            <MudButton OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" form="@_formId" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+        }
     </DialogActions>
 </MudDialog>
 
@@ -140,6 +156,14 @@
     /// <summary>Platforms already used in the collection, suggested before the well-known ones.</summary>
     [Parameter]
     public IEnumerable<string> Platforms { get; set; } = [];
+
+    /// <summary>Opens an existing console read-only; its form only shows after pressing Edit.</summary>
+    [Parameter]
+    public bool ReadOnly { get; set; }
+
+    private bool _editing;
+
+    protected override void OnInitialized() => _editing = !ReadOnly;
 
 
     private readonly string _formId = $"console-form-{Guid.NewGuid():N}";
