@@ -1,0 +1,39 @@
+@* A console's details, read-only, shown when opening it before choosing to edit. *@
+<div class="item-details">
+    <ItemThumbnail Url="@Model.ThumbnailUrl" Icon="@Icons.Material.Outlined.SportsEsports" Alt="@Model.Name"
+                   Class="item-details-thumbnail logo" />
+    <div class="item-details-body">
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            @string.Join(" · ", new[] { Model.Manufacturer, Model.Model, Model.Colour }.Where(t => !string.IsNullOrWhiteSpace(t)))
+        </MudText>
+        <StatusChip Status="Model.Status" />
+        <ItemTags Region="Model.Region" Completeness="Model.Completeness"
+                  Condition="@(Owned ? Model.Condition : null)"
+                  Origin="@(Owned ? Model.PurchaseOrigin : null)" />
+
+        <MudGrid Spacing="2" Class="mt-2">
+            @if (Model.ReleaseDate is { } released)
+            {
+                <DetailField Label="Released">@released</DetailField>
+            }
+            @if (Owned && Model.PurchaseDate is { } purchased)
+            {
+                <DetailField Label="Purchased">@DisplayNames.Date(DateOnly.FromDateTime(purchased))</DetailField>
+            }
+            @if (Owned && Model.PurchasePrice is not null)
+            {
+                <DetailField Label="Price paid">@DisplayNames.Money(Model.PurchasePrice)</DetailField>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.Notes))
+            {
+                <DetailField Label="Notes" Wide="true"><span class="detail-notes">@Model.Notes</span></DetailField>
+            }
+        </MudGrid>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ConsoleFormModel Model { get; set; } = default!;
+
+    private bool Owned => Model.Status == CollectionStatus.Owned;
+}

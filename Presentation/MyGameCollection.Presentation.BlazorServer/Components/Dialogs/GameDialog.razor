@@ -6,217 +6,233 @@
 
 <MudDialog>
     <DialogContent>
-        <CatalogLookup TItem="CatalogGameDto" Label="Find the game on IGDB" SearchFunc="SearchCatalogAsync"
-                       ItemName="g => g.Name" InitialSearch="@Model.Title" AutoFocus="string.IsNullOrEmpty(Model.Title)" OnSelected="ApplyCatalogGame">
-            <ItemTemplate Context="game">
-                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                    @if (game.CoverUrl is not null)
-                    {
-                        <img src="@game.CoverUrl" alt="" class="catalog-cover" loading="lazy" />
-                    }
-                    else
-                    {
-                        <MudIcon Icon="@Icons.Material.Outlined.VideogameAsset" Class="catalog-cover" />
-                    }
-                    <div>
-                        <MudText Typo="Typo.body1">
-                            @game.Name @(game.ReleaseDate is { } released ? $"({released})" : "")
-                        </MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">
-                            @string.Join(", ", game.Platforms.Select(p => p.Abbreviation ?? p.Name))
-                        </MudText>
-                    </div>
-                </MudStack>
-            </ItemTemplate>
-        </CatalogLookup>
-        @if (_editionsLoading)
+        @if (!_editing)
         {
-            <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+            <GameDetails Model="Model" />
         }
-        else if (_catalogGame is { } catalogGame && _catalogEditions.Count > 0)
+        else
         {
-            <div class="mb-4">
-                <MudText Typo="Typo.subtitle2">Which edition is it?</MudText>
-                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                    IGDB knows @(_catalogEditions.Count + 1) editions of @catalogGame.Name. Pick yours to use its cover.
-                </MudText>
-                <div class="version-picker covers mt-2">
-                    <button type="button" class="@($"version-option{(_catalogEdition is null ? " selected" : "")}")"
-                            aria-pressed="@(_catalogEdition is null ? "true" : "false")" @onclick="ApplyStandardEdition">
-                        <EditionCover Url="@catalogGame.CoverUrl" />
-                        <span class="version-option-name">Standard edition</span>
-                        @if (catalogGame.ReleaseDate is { } standardReleased)
+            <CatalogLookup TItem="CatalogGameDto" Label="Find the game on IGDB" SearchFunc="SearchCatalogAsync"
+                           ItemName="g => g.Name" InitialSearch="@Model.Title" AutoFocus="string.IsNullOrEmpty(Model.Title)" OnSelected="ApplyCatalogGame">
+                <ItemTemplate Context="game">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        @if (game.CoverUrl is not null)
                         {
-                            <span class="version-option-year">@standardReleased.Year</span>
+                            <img src="@game.CoverUrl" alt="" class="catalog-cover" loading="lazy" />
                         }
-                    </button>
-                    @foreach (var edition in _catalogEditions)
-                    {
-                        var selected = edition.Id == _catalogEdition?.Id;
-                        <button type="button" class="@($"version-option{(selected ? " selected" : "")}")"
-                                aria-pressed="@(selected ? "true" : "false")" @onclick="() => ApplyCatalogEdition(edition)">
-                            <EditionCover Url="@edition.CoverUrl" />
-                            <span class="version-option-name">@edition.Edition</span>
-                            @if (edition.ReleaseDate is { } released)
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Outlined.VideogameAsset" Class="catalog-cover" />
+                        }
+                        <div>
+                            <MudText Typo="Typo.body1">
+                                @game.Name @(game.ReleaseDate is { } released ? $"({released})" : "")
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @string.Join(", ", game.Platforms.Select(p => p.Abbreviation ?? p.Name))
+                            </MudText>
+                        </div>
+                    </MudStack>
+                </ItemTemplate>
+            </CatalogLookup>
+            @if (_editionsLoading)
+            {
+                <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+            }
+            else if (_catalogGame is { } catalogGame && _catalogEditions.Count > 0)
+            {
+                <div class="mb-4">
+                    <MudText Typo="Typo.subtitle2">Which edition is it?</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        IGDB knows @(_catalogEditions.Count + 1) editions of @catalogGame.Name. Pick yours to use its cover.
+                    </MudText>
+                    <div class="version-picker covers mt-2">
+                        <button type="button" class="@($"version-option{(_catalogEdition is null ? " selected" : "")}")"
+                                aria-pressed="@(_catalogEdition is null ? "true" : "false")" @onclick="ApplyStandardEdition">
+                            <EditionCover Url="@catalogGame.CoverUrl" />
+                            <span class="version-option-name">Standard edition</span>
+                            @if (catalogGame.ReleaseDate is { } standardReleased)
                             {
-                                <span class="version-option-year">@released.Year</span>
+                                <span class="version-option-year">@standardReleased.Year</span>
                             }
                         </button>
-                    }
+                        @foreach (var edition in _catalogEditions)
+                        {
+                            var selected = edition.Id == _catalogEdition?.Id;
+                            <button type="button" class="@($"version-option{(selected ? " selected" : "")}")"
+                                    aria-pressed="@(selected ? "true" : "false")" @onclick="() => ApplyCatalogEdition(edition)">
+                                <EditionCover Url="@edition.CoverUrl" />
+                                <span class="version-option-name">@edition.Edition</span>
+                                @if (edition.ReleaseDate is { } released)
+                                {
+                                    <span class="version-option-year">@released.Year</span>
+                                }
+                            </button>
+                        }
+                    </div>
                 </div>
-            </div>
-        }
-        <EditForm id="@_formId" Model="Model" OnValidSubmit="Submit">
-            <DataAnnotationsValidator />
-            <MudGrid Spacing="2">
-                <MudItem xs="12" sm="7">
-                    <MudTextField @bind-Value="Model.Title" For="() => Model.Title" Label="Title"
-                                  Variant="Variant.Outlined" MaxLength="200" Immediate="true" />
-                </MudItem>
-                <MudItem xs="12" sm="5">
-                    <MudAutocomplete T="string" @bind-Value="Model.Platform" For="() => Model.Platform" Label="Platform"
-                                     Variant="Variant.Outlined" SearchFunc="SearchPlatformsAsync" MaxItems="null"
-                                     CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true"
-                                     HelperText="Use the same name as the console" @bind-Value:after="ApplyCatalogPlayers" />
-                </MudItem>
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="Model.Edition" For="() => Model.Edition" Label="Edition"
-                                  Variant="Variant.Outlined" MaxLength="100" Clearable="true"
-                                  Placeholder="e.g. Game of the Year Edition" HelperText="Leave empty for the standard edition" />
-                </MudItem>
-                <MudItem xs="12">
-                    <MudSelect T="string" MultiSelection="true" SelectedValues="Model.Genres"
-                               SelectedValuesChanged="genres => Model.Genres = genres.OfType<string>().ToList()"
-                               Label="Genres" Variant="Variant.Outlined" Clearable="true"
-                               HelperText="Filled in from IGDB when available">
-                        @foreach (var genre in KnownGenres.Including(Model.Genres))
-                        {
-                            <MudSelectItem T="string" Value="genre">@genre</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <NameListField Label="Developers" @bind-Values="Model.Developers" Suggestions="Companies"
-                                   MaxCount="CollectionItemLimits.MaxCompanies" HelperText="Filled in from IGDB when available" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <NameListField Label="Publishers" @bind-Values="Model.Publishers" Suggestions="Companies"
-                                   MaxCount="CollectionItemLimits.MaxCompanies" HelperText="Filled in from IGDB when available" />
-                </MudItem>
-                @if (_catalogPlatforms.Count > 1)
-                {
+            }
+            <EditForm id="@_formId" Model="Model" OnValidSubmit="Submit">
+                <DataAnnotationsValidator />
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="7">
+                        <MudTextField @bind-Value="Model.Title" For="() => Model.Title" Label="Title"
+                                      Variant="Variant.Outlined" MaxLength="200" Immediate="true" />
+                    </MudItem>
+                    <MudItem xs="12" sm="5">
+                        <MudAutocomplete T="string" @bind-Value="Model.Platform" For="() => Model.Platform" Label="Platform"
+                                         Variant="Variant.Outlined" SearchFunc="SearchPlatformsAsync" MaxItems="null"
+                                         CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true"
+                                         HelperText="Use the same name as the console" @bind-Value:after="ApplyCatalogPlayers" />
+                    </MudItem>
                     <MudItem xs="12">
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">Released on:</MudText>
-                        <MudChipSet T="string" SelectedValue="Model.Platform" SelectedValueChanged="SelectPlatform"
-                                    SelectionMode="SelectionMode.SingleSelection" Size="Size.Small" Color="Color.Primary">
-                            @foreach (var platform in _catalogPlatforms)
+                        <MudTextField @bind-Value="Model.Edition" For="() => Model.Edition" Label="Edition"
+                                      Variant="Variant.Outlined" MaxLength="100" Clearable="true"
+                                      Placeholder="e.g. Game of the Year Edition" HelperText="Leave empty for the standard edition" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudSelect T="string" MultiSelection="true" SelectedValues="Model.Genres"
+                                   SelectedValuesChanged="genres => Model.Genres = genres.OfType<string>().ToList()"
+                                   Label="Genres" Variant="Variant.Outlined" Clearable="true"
+                                   HelperText="Filled in from IGDB when available">
+                            @foreach (var genre in KnownGenres.Including(Model.Genres))
                             {
-                                <MudChip T="string" Value="platform" Text="@platform" />
+                                <MudSelectItem T="string" Value="genre">@genre</MudSelectItem>
                             }
-                        </MudChipSet>
-                    </MudItem>
-                }
-                <MudItem xs="12">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Format</MudText>
-                    <MudToggleGroup T="GameFormat" @bind-Value="Model.Format" SelectionMode="SelectionMode.SingleSelection"
-                                    Color="Color.Primary" CheckMark="true" FixedContent="true" Size="Size.Small">
-                        @foreach (var format in Enum.GetValues<GameFormat>())
-                        {
-                            <MudToggleItem T="GameFormat" Value="format" Text="@format.ToDisplayName()" />
-                        }
-                    </MudToggleGroup>
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">@Model.Format.ToDescription()</MudText>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Players</MudText>
-                    <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="0">
-                        <MudCheckBox T="bool" @bind-Value="Model.SinglePlayer" Label="Single-player" Color="Color.Primary" Dense="true" />
-                        <MudCheckBox T="bool" @bind-Value="Model.Multiplayer" Label="Multiplayer" Color="Color.Primary" Dense="true" />
-                    </MudStack>
-                    @if (_playersSource is not null)
-                    {
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">@_playersSource</MudText>
-                    }
-                </MudItem>
-                @if (Model.Multiplayer)
-                {
-                    <MudItem xs="12" sm="6">
-                        <MudNumericField T="int?" @bind-Value="Model.MaxLocalPlayers" For="() => Model.MaxLocalPlayers"
-                                         Label="Players on one console" Variant="Variant.Outlined" Clearable="true"
-                                         Min="CollectionItemLimits.MinMultiplayerPlayers" Max="CollectionItemLimits.MaxPlayers"
-                                         Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Weekend"
-                                         HelperText="Couch or split screen; empty when unknown or none" />
-                        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="0">
-                            <MudCheckBox T="bool" @bind-Value="Model.CouchCoop" Label="Couch co-op" Color="Color.Primary" Dense="true" />
-                            <MudCheckBox T="bool" @bind-Value="Model.SplitScreen" Label="Split-screen" Color="Color.Primary" Dense="true" />
-                        </MudStack>
+                        </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudNumericField T="int?" @bind-Value="Model.MaxOnlinePlayers" For="() => Model.MaxOnlinePlayers"
-                                         Label="Players online" Variant="Variant.Outlined" Clearable="true"
-                                         Min="CollectionItemLimits.MinMultiplayerPlayers" Max="CollectionItemLimits.MaxPlayers"
-                                         Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Public"
-                                         HelperText="Empty when unknown or none" />
-                        <MudCheckBox T="bool" @bind-Value="Model.OnlineCoop" Label="Online co-op" Color="Color.Primary" Dense="true" />
-                    </MudItem>
-                }
-                <MudItem xs="12" sm="6">
-                    <EnumSelect TEnum="CollectionStatus" @bind-Value="Model.Status" Label="Status" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <EnumSelect TEnum="Region" @bind-Value="Model.Region" Label="Region" />
-                </MudItem>
-                @if (Model.IsPhysical)
-                {
-                    <MudItem xs="12" sm="6">
-                        <EnumSelect TEnum="Completeness" @bind-Value="Model.Completeness" Label="Completeness" />
+                        <NameListField Label="Developers" @bind-Values="Model.Developers" Suggestions="Companies"
+                                       MaxCount="CollectionItemLimits.MaxCompanies" HelperText="Filled in from IGDB when available" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <EnumSelect TEnum="ItemCondition" @bind-Value="Model.Condition" Label="Condition" />
+                        <NameListField Label="Publishers" @bind-Values="Model.Publishers" Suggestions="Companies"
+                                       MaxCount="CollectionItemLimits.MaxCompanies" HelperText="Filled in from IGDB when available" />
                     </MudItem>
-                }
-                <ReleaseDateFields Model="Model" />
-                @if (Model.Status == CollectionStatus.Owned)
-                {
-                    <MudItem xs="12" sm="6">
-                        <MudDatePicker @bind-Date="Model.PurchaseDate"
-                                       Label="@(Model.Format == GameFormat.Subscription ? "Claimed on" : "Purchase date")"
-                                       Variant="Variant.Outlined" Clearable="true" MaxDate="DateTime.Today" />
-                    </MudItem>
-                    @if (Model.Format != GameFormat.Subscription)
-                    {
-                        <MudItem xs="12" sm="6">
-                            <MudNumericField T="decimal?" @bind-Value="Model.PurchasePrice" For="() => Model.PurchasePrice"
-                                             Label="Price paid" Variant="Variant.Outlined" HideSpinButtons="true" Min="0"
-                                             Adornment="Adornment.Start" AdornmentText="@CurrencySymbol" />
-                        </MudItem>
-                    }
-                    @if (Model.IsPhysical)
+                    @if (_catalogPlatforms.Count > 1)
                     {
                         <MudItem xs="12">
-                            <PurchaseOriginField @bind-Value="Model.PurchaseOrigin" />
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Released on:</MudText>
+                            <MudChipSet T="string" SelectedValue="Model.Platform" SelectedValueChanged="SelectPlatform"
+                                        SelectionMode="SelectionMode.SingleSelection" Size="Size.Small" Color="Color.Primary">
+                                @foreach (var platform in _catalogPlatforms)
+                                {
+                                    <MudChip T="string" Value="platform" Text="@platform" />
+                                }
+                            </MudChipSet>
                         </MudItem>
                     }
-                }
-                <MudItem xs="12">
-                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                        <ItemThumbnail Url="@Model.ThumbnailUrl" Icon="@Icons.Material.Outlined.VideogameAsset" Class="thumbnail-preview" />
-                        <MudTextField @bind-Value="Model.ThumbnailUrl" For="() => Model.ThumbnailUrl" Label="Thumbnail URL"
-                                      Variant="Variant.Outlined" MaxLength="500" Immediate="true" Clearable="true"
-                                      Placeholder="https://..." HelperText="Filled in from IGDB when available"
-                                      Class="flex-grow-1" />
-                    </MudStack>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="Model.Notes" For="() => Model.Notes" Label="Notes" Variant="Variant.Outlined"
-                                  Lines="3" MaxLength="2000" />
-                </MudItem>
-            </MudGrid>
-        </EditForm>
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Format</MudText>
+                        <MudToggleGroup T="GameFormat" @bind-Value="Model.Format" SelectionMode="SelectionMode.SingleSelection"
+                                        Color="Color.Primary" CheckMark="true" FixedContent="true" Size="Size.Small">
+                            @foreach (var format in Enum.GetValues<GameFormat>())
+                            {
+                                <MudToggleItem T="GameFormat" Value="format" Text="@format.ToDisplayName()" />
+                            }
+                        </MudToggleGroup>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@Model.Format.ToDescription()</MudText>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Players</MudText>
+                        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="0">
+                            <MudCheckBox T="bool" @bind-Value="Model.SinglePlayer" Label="Single-player" Color="Color.Primary" Dense="true" />
+                            <MudCheckBox T="bool" @bind-Value="Model.Multiplayer" Label="Multiplayer" Color="Color.Primary" Dense="true" />
+                        </MudStack>
+                        @if (_playersSource is not null)
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@_playersSource</MudText>
+                        }
+                    </MudItem>
+                    @if (Model.Multiplayer)
+                    {
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField T="int?" @bind-Value="Model.MaxLocalPlayers" For="() => Model.MaxLocalPlayers"
+                                             Label="Players on one console" Variant="Variant.Outlined" Clearable="true"
+                                             Min="CollectionItemLimits.MinMultiplayerPlayers" Max="CollectionItemLimits.MaxPlayers"
+                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Weekend"
+                                             HelperText="Couch or split screen; empty when unknown or none" />
+                            <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="0">
+                                <MudCheckBox T="bool" @bind-Value="Model.CouchCoop" Label="Couch co-op" Color="Color.Primary" Dense="true" />
+                                <MudCheckBox T="bool" @bind-Value="Model.SplitScreen" Label="Split-screen" Color="Color.Primary" Dense="true" />
+                            </MudStack>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField T="int?" @bind-Value="Model.MaxOnlinePlayers" For="() => Model.MaxOnlinePlayers"
+                                             Label="Players online" Variant="Variant.Outlined" Clearable="true"
+                                             Min="CollectionItemLimits.MinMultiplayerPlayers" Max="CollectionItemLimits.MaxPlayers"
+                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Public"
+                                             HelperText="Empty when unknown or none" />
+                            <MudCheckBox T="bool" @bind-Value="Model.OnlineCoop" Label="Online co-op" Color="Color.Primary" Dense="true" />
+                        </MudItem>
+                    }
+                    <MudItem xs="12" sm="6">
+                        <EnumSelect TEnum="CollectionStatus" @bind-Value="Model.Status" Label="Status" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <EnumSelect TEnum="Region" @bind-Value="Model.Region" Label="Region" />
+                    </MudItem>
+                    @if (Model.IsPhysical)
+                    {
+                        <MudItem xs="12" sm="6">
+                            <EnumSelect TEnum="Completeness" @bind-Value="Model.Completeness" Label="Completeness" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <EnumSelect TEnum="ItemCondition" @bind-Value="Model.Condition" Label="Condition" />
+                        </MudItem>
+                    }
+                    <ReleaseDateFields Model="Model" />
+                    @if (Model.Status == CollectionStatus.Owned)
+                    {
+                        <MudItem xs="12" sm="6">
+                            <MudDatePicker @bind-Date="Model.PurchaseDate"
+                                           Label="@(Model.Format == GameFormat.Subscription ? "Claimed on" : "Purchase date")"
+                                           Variant="Variant.Outlined" Clearable="true" MaxDate="DateTime.Today" />
+                        </MudItem>
+                        @if (Model.Format != GameFormat.Subscription)
+                        {
+                            <MudItem xs="12" sm="6">
+                                <MudNumericField T="decimal?" @bind-Value="Model.PurchasePrice" For="() => Model.PurchasePrice"
+                                                 Label="Price paid" Variant="Variant.Outlined" HideSpinButtons="true" Min="0"
+                                                 Adornment="Adornment.Start" AdornmentText="@CurrencySymbol" />
+                            </MudItem>
+                        }
+                        @if (Model.IsPhysical)
+                        {
+                            <MudItem xs="12">
+                                <PurchaseOriginField @bind-Value="Model.PurchaseOrigin" />
+                            </MudItem>
+                        }
+                    }
+                    <MudItem xs="12">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <ItemThumbnail Url="@Model.ThumbnailUrl" Icon="@Icons.Material.Outlined.VideogameAsset" Class="thumbnail-preview" />
+                            <MudTextField @bind-Value="Model.ThumbnailUrl" For="() => Model.ThumbnailUrl" Label="Thumbnail URL"
+                                          Variant="Variant.Outlined" MaxLength="500" Immediate="true" Clearable="true"
+                                          Placeholder="https://..." HelperText="Filled in from IGDB when available"
+                                          Class="flex-grow-1" />
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="Model.Notes" For="() => Model.Notes" Label="Notes" Variant="Variant.Outlined"
+                                      Lines="3" MaxLength="2000" />
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
-        <MudButton ButtonType="ButtonType.Submit" form="@_formId" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+        @if (!_editing)
+        {
+            <MudButton OnClick="() => MudDialog.Cancel()">Close</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Edit"
+                       OnClick="() => _editing = true">Edit</MudButton>
+        }
+        else
+        {
+            <MudButton OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" form="@_formId" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+        }
     </DialogActions>
 </MudDialog>
 
@@ -230,6 +246,14 @@
     /// <summary>Platforms already used in the collection, suggested before the well-known ones.</summary>
     [Parameter]
     public IEnumerable<string> Platforms { get; set; } = [];
+
+    /// <summary>Opens an existing game read-only; its form only shows after pressing Edit.</summary>
+    [Parameter]
+    public bool ReadOnly { get; set; }
+
+    private bool _editing;
+
+    protected override void OnInitialized() => _editing = !ReadOnly;
 
     /// <summary>Developers and publishers already used in the collection, suggested while typing one.</summary>
     [Parameter]

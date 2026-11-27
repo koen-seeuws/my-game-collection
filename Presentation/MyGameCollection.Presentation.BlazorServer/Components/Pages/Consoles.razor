@@ -61,7 +61,7 @@ else
                 <ItemCard @key="console.Key" Title="@console.Name" Subtitle="@Subtitle(console)" ThumbnailUrl="@console.ThumbnailUrl"
                           Icon="@Icons.Material.Outlined.SportsEsports" Logo="true" Status="console.Status" Notes="@console.Notes"
                           PurchasePrice="console.PurchasePrice" PurchaseDate="console.PurchaseDate"
-                          OnEdit="() => EditConsoleAsync(console)" OnDelete="() => DeleteConsoleAsync(console)"
+                          OnOpen="() => OpenConsoleAsync(console)" OnDelete="() => DeleteConsoleAsync(console)"
                           OnAcquire="() => AcquireConsoleAsync(console)">
                     <Badge>
                         @if (gameCount > 0)

@@ -887,3 +887,64 @@ body::after {
     word-break: break-all;
     user-select: all;
 }
+
+/* ---- Read-only game and console details ---- */
+
+.item-details {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.item-details-thumbnail {
+    width: 150px;
+    aspect-ratio: 3 / 4;
+    flex-shrink: 0;
+    border-radius: 6px;
+    border: 1px solid var(--neon-line);
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.14), rgba(244, 114, 208, 0.1));
+}
+
+.item-details-thumbnail img {
+    object-fit: cover;
+}
+
+.item-details-thumbnail.logo {
+    width: 200px;
+    aspect-ratio: 16 / 9;
+}
+
+.item-details-thumbnail.logo img {
+    object-fit: contain;
+    padding: 8px;
+}
+
+.item-details-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.detail-label {
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.detail-value {
+    overflow-wrap: anywhere;
+}
+
+.detail-notes {
+    white-space: pre-line;
+}
+
+@media (max-width: 599px) {
+    .item-details {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .item-details-body {
+        width: 100%;
+    }
+}
