@@ -15,6 +15,9 @@ public sealed class GameFormModel
     [Required, StringLength(100)]
     public string Platform { get; set; } = string.Empty;
 
+    [StringLength(100)]
+    public string? Edition { get; set; }
+
     public CollectionStatus Status { get; set; } = CollectionStatus.Owned;
     public Region Region { get; set; } = Region.Pal;
     public ItemCondition Condition { get; set; } = ItemCondition.Good;
@@ -38,6 +41,7 @@ public sealed class GameFormModel
     {
         Title = game.Title,
         Platform = game.Platform,
+        Edition = game.Edition,
         Status = game.Status,
         Region = game.Region,
         Condition = game.Condition,
@@ -53,6 +57,7 @@ public sealed class GameFormModel
     {
         Title = Title,
         Platform = Platform,
+        Edition = Edition,
         Status = Status,
         Region = Region,
         Condition = Condition,
@@ -69,6 +74,7 @@ public sealed class GameFormModel
         Key = key,
         Title = Title,
         Platform = Platform,
+        Edition = Edition,
         Status = Status,
         Region = Region,
         Condition = Condition,

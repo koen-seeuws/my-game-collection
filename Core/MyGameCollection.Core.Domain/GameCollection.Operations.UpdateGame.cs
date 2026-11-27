@@ -9,6 +9,7 @@ public static partial class GameCollectionOperations
         Guid key,
         string title,
         string platform,
+        string? edition = null,
         Region region = Region.Pal,
         ItemCondition condition = ItemCondition.Good,
         Completeness completeness = Completeness.Loose,
@@ -24,6 +25,7 @@ public static partial class GameCollectionOperations
         {
             Title = title,
             Platform = platform,
+            Edition = edition,
             Region = region,
             Condition = condition,
             Completeness = completeness,

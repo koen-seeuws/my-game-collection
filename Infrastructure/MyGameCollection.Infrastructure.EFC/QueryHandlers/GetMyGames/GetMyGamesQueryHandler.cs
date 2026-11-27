@@ -27,6 +27,7 @@ public record GetMyGamesQueryHandler : IQueryHandler<GetMyGamesQuery, IEnumerabl
                 Key = game.Key,
                 Title = game.Title,
                 Platform = game.Platform,
+                Edition = game.Edition,
                 Region = game.Region,
                 Condition = game.Condition,
                 Completeness = game.Completeness,

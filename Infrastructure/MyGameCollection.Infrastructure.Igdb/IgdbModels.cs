@@ -7,6 +7,7 @@ namespace MyGameCollection.Infrastructure.Igdb;
 internal sealed record IgdbGame(
     [property: JsonPropertyName("id")] long Id,
     [property: JsonPropertyName("name")] string? Name,
+    [property: JsonPropertyName("version_title")] string? VersionTitle,
     [property: JsonPropertyName("first_release_date")] long? FirstReleaseDate,
     [property: JsonPropertyName("cover")] IgdbImage? Cover,
     [property: JsonPropertyName("platforms")] IReadOnlyList<IgdbPlatformRef>? Platforms);

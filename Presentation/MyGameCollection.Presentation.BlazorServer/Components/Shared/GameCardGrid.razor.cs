@@ -11,6 +11,8 @@ public partial class GameCardGrid
     [Parameter] public EventCallback<GameDto> OnDelete { get; set; }
     [Parameter] public EventCallback<GameDto> OnAcquire { get; set; }
 
-    private static string Subtitle(GameDto game) =>
-        game.ReleaseYear is { } year ? $"{game.Platform} · {year}" : game.Platform;
+    /// <summary>"Platform · Edition · Year", leaving out what is unknown.</summary>
+    public static string Subtitle(GameDto game) =>
+        string.Join(" · ", new[] { game.Platform, game.Edition, game.ReleaseYear?.ToString() }
+            .Where(part => !string.IsNullOrWhiteSpace(part)));
 }

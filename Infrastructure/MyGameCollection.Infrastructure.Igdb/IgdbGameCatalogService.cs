@@ -36,6 +36,42 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
             .ToList();
     }
 
+    public async Task<IReadOnlyList<CatalogGameEditionDto>> GetGameEditionsAsync(long gameId, CancellationToken cancellationToken = default)
+    {
+        // Editions are games of their own on IGDB, pointing to the standard release through version_parent.
+        var editions = await igdb.QueryAsync<IgdbGame>("games",
+            "fields name, version_title, first_release_date, cover.image_id; " +
+            $"where version_parent = {gameId}; sort first_release_date asc; limit 50;", cancellationToken);
+
+        return editions
+            .Select(edition => (edition, title: EditionTitle(edition)))
+            .Where(e => e.title is not null)
+            .Select(e => new CatalogGameEditionDto
+            {
+                Id = e.edition.Id,
+                Edition = e.title!,
+                ReleaseYear = e.edition.FirstReleaseDate is { } seconds
+                    ? DateTimeOffset.FromUnixTimeSeconds(seconds).Year
+                    : null,
+                CoverUrl = IgdbClient.ImageUrl(e.edition.Cover?.ImageId, "t_cover_small"),
+                ThumbnailUrl = IgdbClient.ImageUrl(e.edition.Cover?.ImageId, "t_cover_big")
+            })
+            .ToList();
+    }
+
+    /// <summary>
+    /// The edition's own name: IGDB's version_title ("Pre-Udder Edition"), or else whatever follows the
+    /// colon in the full name ("Goat Simulator 3: Pre-Udder Edition").
+    /// </summary>
+    private static string? EditionTitle(IgdbGame edition)
+    {
+        if (!string.IsNullOrWhiteSpace(edition.VersionTitle))
+            return edition.VersionTitle.Trim();
+
+        var colon = edition.Name?.LastIndexOf(':') ?? -1;
+        return colon >= 0 && colon < edition.Name!.Length - 1 ? edition.Name[(colon + 1)..].Trim() : edition.Name?.Trim();
+    }
+
     public async Task<IReadOnlyList<CatalogConsoleDto>> SearchConsolesAsync(string search, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(search))
