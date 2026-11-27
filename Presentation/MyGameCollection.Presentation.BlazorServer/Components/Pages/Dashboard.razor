@@ -1,5 +1,4 @@
 @page "/"
-@inherits CollectionPageBase
 @using MyGameCollection.Application.Abstractions.Queries.GetMyCollectionSummary
 
 <PageTitle>My Game Collection</PageTitle>
@@ -129,7 +128,7 @@ else
 
     private bool IsEmpty => _summary is { OwnedGames: 0, WishlistGames: 0, OwnedConsoles: 0, WishlistConsoles: 0 };
 
-    protected override async Task LoadDataAsync()
+    private async Task LoadSummaryAsync()
     {
         _summary = await Dispatcher.QueryAsync(new GetMyCollectionSummaryQuery());
 
@@ -143,6 +142,4 @@ else
         _chartValues = slices.Select(s => (double)s.Count).ToArray();
         _chartSeries = _chartValues.AsChartDataSet();
     }
-
-    protected override void ClearData() => _summary = null;
 }

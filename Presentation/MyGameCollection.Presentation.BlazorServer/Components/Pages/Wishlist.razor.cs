@@ -14,24 +14,16 @@ using MyGameCollection.Presentation.BlazorServer.Security;
 
 namespace MyGameCollection.Presentation.BlazorServer.Components.Pages;
 
-/// <summary>
-/// Shared behaviour of the collection pages: (re)loading the signed-in user's games and consoles, and the
-/// add / edit / delete / acquire flows with their dialogs and feedback.
-/// </summary>
-public abstract class CollectionPageBase : ComponentBase, IDisposable
+public partial class Wishlist : IDisposable
 {
-    [Inject] protected IUseCaseDispatcher Dispatcher { get; set; } = default!;
-    [Inject] protected CurrentUser CurrentUser { get; set; } = default!;
-    [Inject] protected IDialogService DialogService { get; set; } = default!;
-    [Inject] protected ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private IUseCaseDispatcher Dispatcher { get; set; } = default!;
+    [Inject] private CurrentUser CurrentUser { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
-    protected IReadOnlyList<GameDto> Games { get; private set; } = [];
-    protected IReadOnlyList<ConsoleDto> Consoles { get; private set; } = [];
-    protected bool Loading { get; private set; }
-
-    /// <summary>Platform names already in use, suggested first when entering a game or console.</summary>
-    protected IEnumerable<string> PlatformsInUse =>
-        Consoles.Select(c => c.Name).Concat(Games.Select(g => g.Platform)).Distinct(StringComparer.OrdinalIgnoreCase);
+    private IReadOnlyList<GameDto> _games = [];
+    private IReadOnlyList<ConsoleDto> _consoles = [];
+    private bool _loading;
 
     protected override async Task OnInitializedAsync()
     {
@@ -39,70 +31,65 @@ public abstract class CollectionPageBase : ComponentBase, IDisposable
         await LoadAsync();
     }
 
-    protected async Task LoadAsync()
+    private async Task LoadAsync()
     {
         if (!CurrentUser.IsSignedIn)
         {
-            ClearData();
+            _games = [];
+            _consoles = [];
             return;
         }
 
-        Loading = true;
+        _loading = true;
         try
         {
-            await LoadDataAsync();
+            _games = (await Dispatcher.QueryAsync(new GetMyGamesQuery())).ToList();
+            _consoles = (await Dispatcher.QueryAsync(new GetMyConsolesQuery())).ToList();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Could not load your collection: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Could not load your wishlist: {ex.Message}", Severity.Error);
         }
         finally
         {
-            Loading = false;
+            _loading = false;
         }
     }
 
-    /// <summary>Loads what the page shows; by default the user's games and consoles.</summary>
-    protected virtual async Task LoadDataAsync()
-    {
-        Games = (await Dispatcher.QueryAsync(new GetMyGamesQuery())).ToList();
-        Consoles = (await Dispatcher.QueryAsync(new GetMyConsolesQuery())).ToList();
-    }
-
-    /// <summary>Forgets the shown data when nobody is signed in.</summary>
-    protected virtual void ClearData()
-    {
-        Games = [];
-        Consoles = [];
-    }
+    /// <summary>Platform names already in use, suggested first when entering a game or console.</summary>
+    private List<string> PlatformsInUse() =>
+        _consoles.Select(c => c.Name)
+            .Concat(_games.Select(g => g.Platform))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
     // ---- Games ----
 
-    protected async Task AddGameAsync(CollectionStatus status = CollectionStatus.Owned)
+    private async Task WishForGameAsync()
     {
-        var title = status == CollectionStatus.Owned ? "Add game" : "Add game to wishlist";
-
-        if (await ShowDialogAsync<GameDialog, GameFormModel>(title, new GameFormModel { Status = status }) is not { } model)
+        var model = await ShowFormDialogAsync<GameDialog, GameFormModel>("Add game to wishlist",
+            new GameFormModel { Status = CollectionStatus.Wishlist });
+        if (model is null)
             return;
 
         await ExecuteAsync(model.ToAddCommand(), $"'{model.Title}' added.");
     }
 
-    protected async Task EditGameAsync(GameDto game)
+    private async Task EditGameAsync(GameDto game)
     {
-        if (await ShowDialogAsync<GameDialog, GameFormModel>("Edit game", GameFormModel.From(game)) is not { } model)
+        if (await ShowFormDialogAsync<GameDialog, GameFormModel>("Edit game", GameFormModel.From(game)) is not { } model)
             return;
 
         await ExecuteAsync(model.ToUpdateCommand(game.Key), $"'{model.Title}' updated.");
     }
 
-    protected async Task DeleteGameAsync(GameDto game)
+    private async Task DeleteGameAsync(GameDto game)
     {
         if (await ConfirmDeleteAsync(game.Title))
             await ExecuteAsync(new DeleteGameCommand { Key = game.Key }, $"'{game.Title}' deleted.");
     }
 
-    protected async Task AcquireGameAsync(GameDto game)
+    private async Task AcquireGameAsync(GameDto game)
     {
         if (await ShowAcquireDialogAsync(game.Title) is not { } model)
             return;
@@ -117,31 +104,31 @@ public abstract class CollectionPageBase : ComponentBase, IDisposable
 
     // ---- Consoles ----
 
-    protected async Task AddConsoleAsync(CollectionStatus status = CollectionStatus.Owned)
+    private async Task WishForConsoleAsync()
     {
-        var title = status == CollectionStatus.Owned ? "Add console" : "Add console to wishlist";
-
-        if (await ShowDialogAsync<ConsoleDialog, ConsoleFormModel>(title, new ConsoleFormModel { Status = status }) is not { } model)
+        var model = await ShowFormDialogAsync<ConsoleDialog, ConsoleFormModel>("Add console to wishlist",
+            new ConsoleFormModel { Status = CollectionStatus.Wishlist });
+        if (model is null)
             return;
 
         await ExecuteAsync(model.ToAddCommand(), $"'{model.Name}' added.");
     }
 
-    protected async Task EditConsoleAsync(ConsoleDto console)
+    private async Task EditConsoleAsync(ConsoleDto console)
     {
-        if (await ShowDialogAsync<ConsoleDialog, ConsoleFormModel>("Edit console", ConsoleFormModel.From(console)) is not { } model)
+        if (await ShowFormDialogAsync<ConsoleDialog, ConsoleFormModel>("Edit console", ConsoleFormModel.From(console)) is not { } model)
             return;
 
         await ExecuteAsync(model.ToUpdateCommand(console.Key), $"'{model.Name}' updated.");
     }
 
-    protected async Task DeleteConsoleAsync(ConsoleDto console)
+    private async Task DeleteConsoleAsync(ConsoleDto console)
     {
         if (await ConfirmDeleteAsync(console.Name))
             await ExecuteAsync(new DeleteConsoleCommand { Key = console.Key }, $"'{console.Name}' deleted.");
     }
 
-    protected async Task AcquireConsoleAsync(ConsoleDto console)
+    private async Task AcquireConsoleAsync(ConsoleDto console)
     {
         if (await ShowAcquireDialogAsync(console.Name) is not { } model)
             return;
@@ -156,13 +143,13 @@ public abstract class CollectionPageBase : ComponentBase, IDisposable
 
     // ---- Helpers ----
 
-    private async Task<TModel?> ShowDialogAsync<TDialog, TModel>(string title, TModel model)
+    private async Task<TModel?> ShowFormDialogAsync<TDialog, TModel>(string title, TModel model)
         where TDialog : ComponentBase where TModel : class
     {
         var parameters = new DialogParameters
         {
             { "Model", model },
-            { "Platforms", PlatformsInUse.ToList() }
+            { "Platforms", PlatformsInUse() }
         };
         var dialog = await DialogService.ShowAsync<TDialog>(title, parameters,
             new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true });

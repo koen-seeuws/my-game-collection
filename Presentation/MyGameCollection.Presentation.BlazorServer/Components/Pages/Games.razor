@@ -1,5 +1,4 @@
 @page "/games"
-@inherits CollectionPageBase
 @using MyGameCollection.Application.Abstractions.Queries.GetMyGames
 
 <PageTitle>Games · My Game Collection</PageTitle>
@@ -39,19 +38,19 @@ else
         </MudStack>
     </MudPaper>
 
-    @if (Loading)
+    @if (_loading)
     {
         <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
     }
 
     var games = VisibleGames.ToList();
 
-    @if (games.Count == 0 && !Loading)
+    @if (games.Count == 0 && !_loading)
     {
         <MudPaper Elevation="0" Outlined="true" Class="pa-8 d-flex flex-column align-center">
             <MudIcon Icon="@Icons.Material.Outlined.VideogameAsset" Size="Size.Large" Color="Color.Secondary" />
             <MudText Class="mt-2">
-                @(Games.Count == 0 ? "No games here yet. Blow on that cartridge and add your first one!" : "No games match your filters.")
+                @(_games.Count == 0 ? "No games here yet. Blow on that cartridge and add your first one!" : "No games match your filters.")
             </MudText>
         </MudPaper>
     }
@@ -101,7 +100,7 @@ else
     {
         get
         {
-            var games = Games.Where(MatchesSearch);
+            var games = _games.Where(MatchesSearch);
             if (_statusFilter is { } status)
                 games = games.Where(g => g.Status == status);
 

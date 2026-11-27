@@ -1,5 +1,4 @@
 @page "/wishlist"
-@inherits CollectionPageBase
 @using MyGameCollection.Application.Abstractions.Queries.GetMyConsoles
 @using MyGameCollection.Application.Abstractions.Queries.GetMyGames
 
@@ -18,7 +17,7 @@ else
         to move it into your collection.
     </MudText>
 
-    @if (Loading)
+    @if (_loading)
     {
         <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
     }
@@ -30,7 +29,7 @@ else
         <MudText Typo="Typo.h6">Games <span class="item-group-count">@games.Count</span></MudText>
         <MudSpacer />
         <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
-                   OnClick="() => AddGameAsync(CollectionStatus.Wishlist)">
+                   OnClick="() => WishForGameAsync()">
             Wish for a game
         </MudButton>
     </MudStack>
@@ -58,7 +57,7 @@ else
         <MudText Typo="Typo.h6">Consoles <span class="item-group-count">@consoles.Count</span></MudText>
         <MudSpacer />
         <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
-                   OnClick="() => AddConsoleAsync(CollectionStatus.Wishlist)">
+                   OnClick="() => WishForConsoleAsync()">
             Wish for a console
         </MudButton>
     </MudStack>
@@ -85,8 +84,8 @@ else
 
 @code {
     private IEnumerable<GameDto> WishedGames =>
-        Games.Where(g => g.Status == CollectionStatus.Wishlist).OrderBy(g => g.Title);
+        _games.Where(g => g.Status == CollectionStatus.Wishlist).OrderBy(g => g.Title);
 
     private IEnumerable<ConsoleDto> WishedConsoles =>
-        Consoles.Where(c => c.Status == CollectionStatus.Wishlist).OrderBy(c => c.Name);
+        _consoles.Where(c => c.Status == CollectionStatus.Wishlist).OrderBy(c => c.Name);
 }
