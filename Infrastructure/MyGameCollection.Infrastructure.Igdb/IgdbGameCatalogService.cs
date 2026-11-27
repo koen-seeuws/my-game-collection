@@ -16,7 +16,7 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
         var games = await igdb.QueryAsync<IgdbGame>("games",
             $"search {IgdbClient.Quote(search.Trim())}; " +
             $"fields name, first_release_date, {ReleaseDateFields("release_dates")}, cover.image_id, platforms.name, platforms.abbreviation, genres.name, " +
-            $"{IgdbPlayerModes.Fields}; " +
+            $"{IgdbPlayerModes.Fields}, {IgdbCompanies.Fields}; " +
             $"where version_parent = null; limit {options.Value.SearchLimit};", cancellationToken);
 
         return games
@@ -43,7 +43,9 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
                     .Where(name => !string.IsNullOrEmpty(name))
                     .Select(name => name!)
                     .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToList()
+                    .ToList(),
+                Developers = IgdbCompanies.Developers(game),
+                Publishers = IgdbCompanies.Publishers(game)
             })
             .ToList();
     }

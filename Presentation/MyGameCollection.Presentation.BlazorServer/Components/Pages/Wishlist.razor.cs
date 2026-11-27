@@ -153,6 +153,8 @@ public partial class Wishlist : IDisposable
             { "Model", model },
             { "Platforms", PlatformsInUse() }
         };
+        if (typeof(TDialog) == typeof(GameDialog))
+            parameters.Add("Companies", _games.SelectMany(g => g.Developers.Concat(g.Publishers)).ToList());
         var dialog = await DialogService.ShowAsync<TDialog>(title, parameters,
             new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true });
 

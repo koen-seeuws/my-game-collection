@@ -13,7 +13,9 @@ internal static class GameCollectionValidation
             Title = Required(game.Title, "title", MaxNameLength),
             Platform = Required(game.Platform, "platform", MaxShortTextLength),
             Edition = Optional(game.Edition, "edition", MaxShortTextLength),
-            Genres = Genres(game.Genres),
+            Genres = Names(game.Genres, "genres", MaxGenres),
+            Developers = Names(game.Developers, "developers", MaxCompanies),
+            Publishers = Names(game.Publishers, "publishers", MaxCompanies),
             Notes = Optional(game.Notes, "notes", MaxNotesLength),
             ThumbnailUrl = OptionalUrl(game.ThumbnailUrl, "thumbnailUrl"),
             Players = game.Players?.Normalised(),
@@ -77,17 +79,20 @@ internal static class GameCollectionValidation
     private static string? Optional(string? value, string name, int maxLength) =>
         string.IsNullOrWhiteSpace(value) ? null : Required(value, name, maxLength);
 
-    /// <summary>The genres trimmed, without blanks or duplicates (ignoring case), in their original order.</summary>
-    private static IReadOnlyList<string> Genres(IReadOnlyList<string>? genres)
+    /// <summary>
+    /// A list of names (genres, developers...) trimmed, without blanks or duplicates (ignoring case), in their
+    /// original order.
+    /// </summary>
+    private static IReadOnlyList<string> Names(IReadOnlyList<string>? values, string name, int maxCount)
     {
-        var normalised = (genres ?? [])
-            .Where(genre => !string.IsNullOrWhiteSpace(genre))
-            .Select(genre => Required(genre, "genres", MaxShortTextLength))
+        var normalised = (values ?? [])
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(value => Required(value, name, MaxShortTextLength))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        if (normalised.Count > MaxGenres)
-            throw new ArgumentException($"A game cannot have more than {MaxGenres} genres.", "genres");
+        if (normalised.Count > maxCount)
+            throw new ArgumentException($"A game cannot have more than {maxCount} {name}.", name);
 
         return normalised;
     }

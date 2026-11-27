@@ -10,6 +10,11 @@ public class Game : CollectionItem
 
     /// <summary>Stored as a primitive collection (a JSON column on SQLite, an array on PostgreSQL).</summary>
     public List<string> Genres { get; set; } = [];
+
+    // Like Genres, stored as primitive collections.
+    public List<string> Developers { get; set; } = [];
+    public List<string> Publishers { get; set; } = [];
+
     public GameFormat Format { get; set; }
 
     // Player modes (see Domain.Abstractions.PlayerModes); all false / empty when unknown.

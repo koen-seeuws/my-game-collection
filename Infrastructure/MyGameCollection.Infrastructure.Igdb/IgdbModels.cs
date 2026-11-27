@@ -14,7 +14,14 @@ internal sealed record IgdbGame(
     [property: JsonPropertyName("platforms")] IReadOnlyList<IgdbPlatformRef>? Platforms,
     [property: JsonPropertyName("genres")] IReadOnlyList<IgdbGenre>? Genres,
     [property: JsonPropertyName("game_modes")] IReadOnlyList<long>? GameModes = null,
-    [property: JsonPropertyName("multiplayer_modes")] IReadOnlyList<IgdbMultiplayerMode>? MultiplayerModes = null);
+    [property: JsonPropertyName("multiplayer_modes")] IReadOnlyList<IgdbMultiplayerMode>? MultiplayerModes = null,
+    [property: JsonPropertyName("involved_companies")] IReadOnlyList<IgdbInvolvedCompany>? InvolvedCompanies = null);
+
+/// <summary>A company's part in a game: it can have developed it, published it, or both (or only ported it).</summary>
+internal sealed record IgdbInvolvedCompany(
+    [property: JsonPropertyName("company")] IgdbCompany? Company,
+    [property: JsonPropertyName("developer")] bool Developer = false,
+    [property: JsonPropertyName("publisher")] bool Publisher = false);
 
 internal sealed record IgdbGenre(
     [property: JsonPropertyName("id")] long Id,
