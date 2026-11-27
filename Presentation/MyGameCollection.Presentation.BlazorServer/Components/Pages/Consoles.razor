@@ -76,7 +76,8 @@ else
                     </Badge>
                     <ChildContent>
                         <ItemTags Region="console.Region" Completeness="console.Completeness"
-                                  Condition="@(console.Status == CollectionStatus.Owned ? console.Condition : null)" />
+                                  Condition="@(console.Status == CollectionStatus.Owned ? console.Condition : null)"
+                                  Origin="console.PurchaseOrigin" />
                     </ChildContent>
                 </ItemCard>
             }

@@ -50,6 +50,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 ReleaseDate = ToReleaseDate(g),
                 PurchaseDate = g.PurchaseDate,
                 PurchasePrice = g.PurchasePrice,
+                PurchaseOrigin = g.PurchaseOrigin,
                 Notes = g.Notes,
                 ThumbnailUrl = g.ThumbnailUrl
             })
@@ -69,6 +70,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 ReleaseDate = ToReleaseDate(c),
                 PurchaseDate = c.PurchaseDate,
                 PurchasePrice = c.PurchasePrice,
+                PurchaseOrigin = c.PurchaseOrigin,
                 Notes = c.Notes,
                 ThumbnailUrl = c.ThumbnailUrl
             })
@@ -86,7 +88,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.Edition = g.Edition;
                 row.Format = g.Format;
                 ApplyCommon(row, g.Region, g.Condition, g.Completeness, g.Status, g.ReleaseDate, g.PurchaseDate,
-                    g.PurchasePrice, g.Notes, g.ThumbnailUrl);
+                    g.PurchasePrice, g.PurchaseOrigin, g.Notes, g.ThumbnailUrl);
             });
 
         Synchronise(entity.Consoles, aggregate.Consoles, c => c.Key,
@@ -97,7 +99,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.Manufacturer = c.Manufacturer;
                 row.Model = c.Model;
                 ApplyCommon(row, c.Region, c.Condition, c.Completeness, c.Status, c.ReleaseDate, c.PurchaseDate,
-                    c.PurchasePrice, c.Notes, c.ThumbnailUrl);
+                    c.PurchasePrice, c.PurchaseOrigin, c.Notes, c.ThumbnailUrl);
             });
     }
 
@@ -134,7 +136,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
     private static void ApplyCommon(CollectionItem row, Region region,
         ItemCondition condition, Completeness completeness,
         CollectionStatus status, ReleaseDate? releaseDate, DateOnly? purchaseDate,
-        decimal? purchasePrice, string? notes, string? thumbnailUrl)
+        decimal? purchasePrice, PurchaseOrigin? purchaseOrigin, string? notes, string? thumbnailUrl)
     {
         row.Region = region;
         row.Condition = condition;
@@ -145,6 +147,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
         row.ReleaseDay = releaseDate?.Day;
         row.PurchaseDate = purchaseDate;
         row.PurchasePrice = purchasePrice;
+        row.PurchaseOrigin = purchaseOrigin;
         row.Notes = notes;
         row.ThumbnailUrl = thumbnailUrl;
     }

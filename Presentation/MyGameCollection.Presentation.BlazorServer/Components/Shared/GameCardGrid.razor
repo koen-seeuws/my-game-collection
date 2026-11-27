@@ -9,7 +9,8 @@
                   OnAcquire="() => OnAcquire.InvokeAsync(game)">
             <ItemTags Format="game.Format" Region="game.Region"
                       Completeness="@(game.Format == GameFormat.Physical ? game.Completeness : null)"
-                      Condition="@(game.Status == CollectionStatus.Owned && game.Format == GameFormat.Physical ? game.Condition : null)" />
+                      Condition="@(game.Status == CollectionStatus.Owned && game.Format == GameFormat.Physical ? game.Condition : null)"
+                      Origin="game.PurchaseOrigin" />
         </ItemCard>
     }
 </div>

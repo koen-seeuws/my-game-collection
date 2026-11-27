@@ -10,5 +10,6 @@ public sealed class AcquireConsoleCommandInputValidator : CommandInputValidatorB
         RuleFor(c => c.Key).ItemKey();
         RuleFor(c => c.PurchaseDate).NotEmpty().WithMessage("Enter the purchase date.");
         RuleFor(c => c.PurchasePrice).Price();
+        RuleFor(c => c.PurchaseOrigin).IsInEnum();
     }
 }

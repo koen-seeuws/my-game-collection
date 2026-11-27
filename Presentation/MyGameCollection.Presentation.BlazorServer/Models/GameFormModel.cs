@@ -29,6 +29,9 @@ public sealed class GameFormModel : ReleaseDateFormModel
     [Range(typeof(decimal), "0", "1000000")]
     public decimal? PurchasePrice { get; set; }
 
+    /// <summary>Bought new or secondhand; empty when unknown.</summary>
+    public PurchaseOrigin? PurchaseOrigin { get; set; }
+
     [StringLength(2000)]
     public string? Notes { get; set; }
 
@@ -48,6 +51,7 @@ public sealed class GameFormModel : ReleaseDateFormModel
         ReleaseDate = game.ReleaseDate,
         PurchaseDate = game.PurchaseDate?.ToDateTime(TimeOnly.MinValue),
         PurchasePrice = game.PurchasePrice,
+        PurchaseOrigin = game.PurchaseOrigin,
         Notes = game.Notes,
         ThumbnailUrl = game.ThumbnailUrl
     };
@@ -65,6 +69,7 @@ public sealed class GameFormModel : ReleaseDateFormModel
         ReleaseDate = ReleaseDate,
         PurchaseDate = PurchaseDateOrNull,
         PurchasePrice = PurchasePriceOrNull,
+        PurchaseOrigin = PurchaseOriginOrNull,
         Notes = Notes,
         ThumbnailUrl = ThumbnailUrl
     };
@@ -83,6 +88,7 @@ public sealed class GameFormModel : ReleaseDateFormModel
         ReleaseDate = ReleaseDate,
         PurchaseDate = PurchaseDateOrNull,
         PurchasePrice = PurchasePriceOrNull,
+        PurchaseOrigin = PurchaseOriginOrNull,
         Notes = Notes,
         ThumbnailUrl = ThumbnailUrl
     };
@@ -94,6 +100,10 @@ public sealed class GameFormModel : ReleaseDateFormModel
     /// <summary>Subscription games are not bought, so they have no price either.</summary>
     private decimal? PurchasePriceOrNull =>
         Status == CollectionStatus.Owned && Format != GameFormat.Subscription ? PurchasePrice : null;
+
+    /// <summary>Only owned physical copies can be bought secondhand; a download is always new.</summary>
+    private PurchaseOrigin? PurchaseOriginOrNull =>
+        Status == CollectionStatus.Owned && IsPhysical ? PurchaseOrigin : null;
 
     /// <summary>Only physical copies have a box, manual and wear.</summary>
     public bool IsPhysical => Format == GameFormat.Physical;

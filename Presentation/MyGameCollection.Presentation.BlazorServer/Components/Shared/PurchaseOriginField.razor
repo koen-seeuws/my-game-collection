@@ -1,0 +1,17 @@
+@* Picks whether an item was bought new or secondhand; clicking the selected option again clears it (unknown). *@
+<MudText Typo="Typo.caption" Color="Color.Secondary">Bought</MudText>
+<MudToggleGroup T="PurchaseOrigin?" Value="Value" ValueChanged="ValueChanged" SelectionMode="SelectionMode.ToggleSelection"
+                Color="Color.Primary" CheckMark="true" FixedContent="true" Size="Size.Small">
+    @foreach (var origin in Enum.GetValues<PurchaseOrigin>())
+    {
+        <MudToggleItem T="PurchaseOrigin?" Value="origin" Text="@origin.ToDisplayName()" />
+    }
+</MudToggleGroup>
+
+@code {
+    [Parameter]
+    public PurchaseOrigin? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<PurchaseOrigin?> ValueChanged { get; set; }
+}

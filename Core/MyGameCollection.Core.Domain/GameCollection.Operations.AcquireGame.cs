@@ -5,7 +5,8 @@ namespace MyGameCollection.Core.Domain;
 public static partial class GameCollectionOperations
 {
     /// <summary>Moves a game from the wishlist into the collection.</summary>
-    public static void AcquireGame(this GameCollection collection, Guid key, DateOnly purchaseDate, decimal? purchasePrice)
+    public static void AcquireGame(this GameCollection collection, Guid key, DateOnly purchaseDate, decimal? purchasePrice,
+        PurchaseOrigin? purchaseOrigin = null)
     {
         var index = collection.IndexOfGame(key);
         var game = collection.Games[index];
@@ -19,9 +20,10 @@ public static partial class GameCollectionOperations
         {
             Status = CollectionStatus.Owned,
             PurchaseDate = purchaseDate,
-            PurchasePrice = purchasePrice
+            PurchasePrice = purchasePrice,
+            PurchaseOrigin = purchaseOrigin
         };
 
-        collection.Games = collection.Games.SetItem(index, acquired);
+        collection.Games = collection.Games.SetItem(index, GameCollectionValidation.Validated(acquired));
     }
 }

@@ -35,6 +35,7 @@ public class UpdateGameCommandHandler : ICommandHandler<UpdateGameCommand>
             releaseDate: command.ReleaseDate,
             purchaseDate: command.PurchaseDate,
             purchasePrice: command.PurchasePrice,
+            purchaseOrigin: command.PurchaseOrigin,
             notes: command.Notes,
             thumbnailUrl: command.ThumbnailUrl);
 

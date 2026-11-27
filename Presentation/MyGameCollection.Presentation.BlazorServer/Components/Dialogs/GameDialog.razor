@@ -139,6 +139,12 @@
                                              Adornment="Adornment.Start" AdornmentText="@CurrencySymbol" />
                         </MudItem>
                     }
+                    @if (Model.IsPhysical)
+                    {
+                        <MudItem xs="12">
+                            <PurchaseOriginField @bind-Value="Model.PurchaseOrigin" />
+                        </MudItem>
+                    }
                 }
                 <MudItem xs="12">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">

@@ -222,6 +222,10 @@ h1:focus {
     color: var(--mud-palette-info);
 }
 
+.item-tag.origin.secondhand {
+    border-style: dashed;
+}
+
 .item-tag.format.subscription {
     border-color: var(--mud-palette-warning);
     color: var(--mud-palette-warning);

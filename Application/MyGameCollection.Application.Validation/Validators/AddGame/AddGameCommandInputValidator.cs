@@ -18,6 +18,7 @@ public sealed class AddGameCommandInputValidator : CommandInputValidatorBase<Add
         RuleFor(c => c.Status).IsInEnum();
         RuleFor(c => c.ReleaseDate).ReleaseDate();
         RuleFor(c => c.PurchasePrice).Price();
+        RuleFor(c => c.PurchaseOrigin).IsInEnum();
         RuleFor(c => c.Notes).OptionalText(CollectionItemLimits.MaxNotesLength);
         RuleFor(c => c.ThumbnailUrl).OptionalHttpUrl();
     }

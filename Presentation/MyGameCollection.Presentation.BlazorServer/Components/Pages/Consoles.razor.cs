@@ -102,7 +102,8 @@ public partial class Consoles : IDisposable
         {
             Key = console.Key,
             PurchaseDate = DateOnly.FromDateTime(model.PurchaseDate ?? DateTime.Today),
-            PurchasePrice = model.PurchasePrice
+            PurchasePrice = model.PurchasePrice,
+            PurchaseOrigin = model.PurchaseOrigin
         }, $"'{console.Name}' is now part of your collection!");
     }
 

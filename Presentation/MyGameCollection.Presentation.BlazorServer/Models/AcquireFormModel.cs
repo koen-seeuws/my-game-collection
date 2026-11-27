@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MyGameCollection.Core.Domain.Abstractions;
 
 namespace MyGameCollection.Presentation.BlazorServer.Models;
 
@@ -10,4 +11,7 @@ public sealed class AcquireFormModel
 
     [Range(typeof(decimal), "0", "1000000")]
     public decimal? PurchasePrice { get; set; }
+
+    /// <summary>Bought new or secondhand; empty when unknown.</summary>
+    public PurchaseOrigin? PurchaseOrigin { get; set; }
 }
