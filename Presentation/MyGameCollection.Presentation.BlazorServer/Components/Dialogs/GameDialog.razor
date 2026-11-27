@@ -84,6 +84,17 @@
                                   Variant="Variant.Outlined" MaxLength="100" Clearable="true"
                                   Placeholder="e.g. Game of the Year Edition" HelperText="Leave empty for the standard edition" />
                 </MudItem>
+                <MudItem xs="12">
+                    <MudSelect T="string" MultiSelection="true" SelectedValues="Model.Genres"
+                               SelectedValuesChanged="genres => Model.Genres = genres.OfType<string>().ToList()"
+                               Label="Genres" Variant="Variant.Outlined" Clearable="true"
+                               HelperText="Filled in from IGDB when available">
+                        @foreach (var genre in KnownGenres.Including(Model.Genres))
+                        {
+                            <MudSelectItem T="string" Value="genre">@genre</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
                 @if (_catalogPlatforms.Count > 1)
                 {
                     <MudItem xs="12">
@@ -213,6 +224,8 @@
         Model.Title = game.Name;
         Model.Edition = null;
         Model.ReleaseDate = game.ReleaseDate ?? Model.ReleaseDate;
+        if (game.Genres.Count > 0)
+            Model.Genres = game.Genres.ToList();
         Model.ThumbnailUrl = game.ThumbnailUrl ?? Model.ThumbnailUrl;
 
         _catalogPlatforms = game.Platforms

@@ -24,6 +24,14 @@ public static class RuleBuilderExtensions
             .Must(value => string.IsNullOrWhiteSpace(value) || IsHttpUrl(value.Trim()))
             .WithMessage("{PropertyName} must be an absolute http(s) URL.");
 
+    /// <summary>At most <see cref="CollectionItemLimits.MaxGenres"/> genres, none of them too long.</summary>
+    public static IRuleBuilderOptions<T, IReadOnlyList<string>> Genres<T>(this IRuleBuilder<T, IReadOnlyList<string>> ruleBuilder) =>
+        ruleBuilder
+            .Must(genres => genres is null || genres.Count(g => !string.IsNullOrWhiteSpace(g)) <= CollectionItemLimits.MaxGenres)
+            .WithMessage($"A game cannot have more than {CollectionItemLimits.MaxGenres} genres.")
+            .Must(genres => genres is null || genres.All(g => g is null || g.Trim().Length <= CollectionItemLimits.MaxShortTextLength))
+            .WithMessage($"A genre cannot be longer than {CollectionItemLimits.MaxShortTextLength} characters.");
+
     /// <summary>Empty, or a year, month or day that exists (see <see cref="Core.Domain.Abstractions.ReleaseDate.Problem"/>).</summary>
     public static IRuleBuilderOptions<T, ReleaseDate?> ReleaseDate<T>(this IRuleBuilder<T, ReleaseDate?> ruleBuilder) =>
         ruleBuilder

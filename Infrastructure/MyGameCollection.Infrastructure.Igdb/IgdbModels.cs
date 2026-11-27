@@ -11,7 +11,12 @@ internal sealed record IgdbGame(
     [property: JsonPropertyName("first_release_date")] long? FirstReleaseDate,
     [property: JsonPropertyName("release_dates")] IReadOnlyList<IgdbReleaseDate>? ReleaseDates,
     [property: JsonPropertyName("cover")] IgdbImage? Cover,
-    [property: JsonPropertyName("platforms")] IReadOnlyList<IgdbPlatformRef>? Platforms);
+    [property: JsonPropertyName("platforms")] IReadOnlyList<IgdbPlatformRef>? Platforms,
+    [property: JsonPropertyName("genres")] IReadOnlyList<IgdbGenre>? Genres);
+
+internal sealed record IgdbGenre(
+    [property: JsonPropertyName("id")] long Id,
+    [property: JsonPropertyName("name")] string? Name);
 
 internal sealed record IgdbPlatformRef(
     [property: JsonPropertyName("id")] long Id,

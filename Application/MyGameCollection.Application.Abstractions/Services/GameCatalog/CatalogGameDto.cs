@@ -16,6 +16,9 @@ public record CatalogGameDto
 
     /// <summary>The platforms the game was released on, in the catalog's naming.</summary>
     public IReadOnlyList<CatalogPlatformDto> Platforms { get; init; } = [];
+
+    /// <summary>The game's genres, in the catalog's naming, e.g. "Role-playing (RPG)".</summary>
+    public IReadOnlyList<string> Genres { get; init; } = [];
 }
 
 public record CatalogPlatformDto

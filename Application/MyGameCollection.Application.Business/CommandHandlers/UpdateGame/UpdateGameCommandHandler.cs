@@ -27,6 +27,7 @@ public class UpdateGameCommandHandler : ICommandHandler<UpdateGameCommand>
             title: command.Title,
             platform: command.Platform,
             edition: command.Edition,
+            genres: command.Genres,
             format: command.Format,
             region: command.Region,
             condition: command.Condition,
