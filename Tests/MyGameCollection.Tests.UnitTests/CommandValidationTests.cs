@@ -26,7 +26,7 @@ public class CommandValidationTests
     {
         using var services = new ServiceCollection().AddGameCollectionApplicationServices().BuildServiceProvider();
 
-        Assert.NotNull(services.GetService(typeof(IValidator<>).MakeGenericType(commandType)));
+        services.GetService(typeof(IValidator<>).MakeGenericType(commandType)).Should().NotBeNull();
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public class CommandValidationTests
     {
         var result = new AddGameCommandInputValidator().Validate(ValidGame());
 
-        Assert.True(result.IsValid);
+        result.IsValid.Should().BeTrue();
     }
 
     [Fact]
@@ -50,9 +50,8 @@ public class CommandValidationTests
             ThumbnailUrl = "ftp://example.com/cover.png"
         });
 
-        Assert.Equal(
-            ["Title", "Platform", "Region", "ReleaseYear", "PurchasePrice", "ThumbnailUrl"],
-            result.Errors.Select(e => e.PropertyName));
+        result.Errors.Select(e => e.PropertyName).Should()
+            .Equal("Title", "Platform", "Region", "ReleaseYear", "PurchasePrice", "ThumbnailUrl");
     }
 
     [Fact]
@@ -63,7 +62,7 @@ public class CommandValidationTests
             Title = new string('x', CollectionItemLimits.MaxNameLength) + "   "
         });
 
-        Assert.True(result.IsValid);
+        result.IsValid.Should().BeTrue();
     }
 
     [Fact]
@@ -74,7 +73,7 @@ public class CommandValidationTests
             Name = "Mega Drive", Manufacturer = "Sega", Model = null, Notes = "", ThumbnailUrl = "  "
         });
 
-        Assert.True(result.IsValid);
+        result.IsValid.Should().BeTrue();
     }
 
     [Fact]
@@ -85,7 +84,7 @@ public class CommandValidationTests
             Key = Guid.Empty, Title = "Sonic the Hedgehog", Platform = "Mega Drive"
         });
 
-        Assert.Equal("Key", Assert.Single(result.Errors).PropertyName);
+        result.Errors.Should().ContainSingle().Which.PropertyName.Should().Be("Key");
     }
 
     [Fact]
@@ -96,7 +95,7 @@ public class CommandValidationTests
             Key = Guid.NewGuid(), PurchaseDate = default
         });
 
-        Assert.Equal("Enter the purchase date.", Assert.Single(result.Errors).ErrorMessage);
+        result.Errors.Should().ContainSingle().Which.ErrorMessage.Should().Be("Enter the purchase date.");
     }
 
     private static AddGameCommand ValidGame() => new()

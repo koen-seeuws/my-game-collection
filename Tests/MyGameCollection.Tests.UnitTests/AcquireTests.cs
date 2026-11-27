@@ -16,12 +16,12 @@ public class AcquireTests
 
         collection.AcquireGame(wished.Key, Today, 120m);
 
-        var acquired = Assert.Single(collection.Games);
-        Assert.Equal(wished.Key, acquired.Key);
-        Assert.Equal("Chrono Trigger", acquired.Title);
-        Assert.Equal(CollectionStatus.Owned, acquired.Status);
-        Assert.Equal(Today, acquired.PurchaseDate);
-        Assert.Equal(120m, acquired.PurchasePrice);
+        var acquired = collection.Games.Should().ContainSingle().Subject;
+        acquired.Key.Should().Be(wished.Key);
+        acquired.Title.Should().Be("Chrono Trigger");
+        acquired.Status.Should().Be(CollectionStatus.Owned);
+        acquired.PurchaseDate.Should().Be(Today);
+        acquired.PurchasePrice.Should().Be(120m);
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public class AcquireTests
 
         collection.AcquireGame(wished.Key, Today, null);
 
-        Assert.Null(collection.Games[0].PurchasePrice);
+        collection.Games[0].PurchasePrice.Should().BeNull();
     }
 
     [Fact]
@@ -41,8 +41,8 @@ public class AcquireTests
         var owned = Game(status: CollectionStatus.Owned);
         var collection = WithGames(owned);
 
-        Assert.Throws<InvalidOperationException>(() => collection.AcquireGame(owned.Key, Today, 10m));
-        Assert.Same(owned, collection.Games[0]);
+        collection.Invoking(c => c.AcquireGame(owned.Key, Today, 10m)).Should().Throw<InvalidOperationException>();
+        collection.Games[0].Should().BeSameAs(owned);
     }
 
     [Fact]
@@ -51,8 +51,8 @@ public class AcquireTests
         var wished = Game(status: CollectionStatus.Wishlist);
         var collection = WithGames(wished);
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => collection.AcquireGame(wished.Key, Today, -5m));
-        Assert.Equal(CollectionStatus.Wishlist, collection.Games[0].Status);
+        collection.Invoking(c => c.AcquireGame(wished.Key, Today, -5m)).Should().Throw<ArgumentOutOfRangeException>();
+        collection.Games[0].Status.Should().Be(CollectionStatus.Wishlist);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class AcquireTests
     {
         var collection = Empty();
 
-        Assert.Throws<KeyNotFoundException>(() => collection.AcquireGame(Guid.NewGuid(), Today, null));
+        collection.Invoking(c => c.AcquireGame(Guid.NewGuid(), Today, null)).Should().Throw<KeyNotFoundException>();
     }
 
     [Fact]
@@ -71,10 +71,10 @@ public class AcquireTests
 
         collection.AcquireConsole(wished.Key, Today, 80m);
 
-        var acquired = Assert.Single(collection.Consoles);
-        Assert.Equal(CollectionStatus.Owned, acquired.Status);
-        Assert.Equal(Today, acquired.PurchaseDate);
-        Assert.Equal(80m, acquired.PurchasePrice);
+        var acquired = collection.Consoles.Should().ContainSingle().Subject;
+        acquired.Status.Should().Be(CollectionStatus.Owned);
+        acquired.PurchaseDate.Should().Be(Today);
+        acquired.PurchasePrice.Should().Be(80m);
     }
 
     [Fact]
@@ -83,6 +83,6 @@ public class AcquireTests
         var owned = Console();
         var collection = WithConsoles(owned);
 
-        Assert.Throws<InvalidOperationException>(() => collection.AcquireConsole(owned.Key, Today, null));
+        collection.Invoking(c => c.AcquireConsole(owned.Key, Today, null)).Should().Throw<InvalidOperationException>();
     }
 }

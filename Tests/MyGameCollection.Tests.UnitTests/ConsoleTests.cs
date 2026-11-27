@@ -12,12 +12,12 @@ public class ConsoleTests
 
         var key = collection.AddConsole(" PlayStation ", " Sony ", model: "  ");
 
-        var console = Assert.Single(collection.Consoles);
-        Assert.Equal(key, console.Key);
-        Assert.Equal("PlayStation", console.Name);
-        Assert.Equal("Sony", console.Manufacturer);
-        Assert.Null(console.Model);
-        Assert.Empty(collection.Games);
+        var console = collection.Consoles.Should().ContainSingle().Subject;
+        console.Key.Should().Be(key);
+        console.Name.Should().Be("PlayStation");
+        console.Manufacturer.Should().Be("Sony");
+        console.Model.Should().BeNull();
+        collection.Games.Should().BeEmpty();
     }
 
     [Theory]
@@ -27,8 +27,8 @@ public class ConsoleTests
     {
         var collection = Empty();
 
-        Assert.Throws<ArgumentException>(() => collection.AddConsole(name, manufacturer));
-        Assert.Empty(collection.Consoles);
+        collection.Invoking(c => c.AddConsole(name, manufacturer)).Should().Throw<ArgumentException>();
+        collection.Consoles.Should().BeEmpty();
     }
 
     [Fact]
@@ -39,8 +39,8 @@ public class ConsoleTests
 
         collection.UpdateConsole(console.Key, "Mega Drive", "Sega", model: "Model 2");
 
-        Assert.Equal(console.Key, collection.Consoles[0].Key);
-        Assert.Equal("Model 2", collection.Consoles[0].Model);
+        collection.Consoles[0].Key.Should().Be(console.Key);
+        collection.Consoles[0].Model.Should().Be("Model 2");
     }
 
     [Fact]
@@ -48,7 +48,8 @@ public class ConsoleTests
     {
         var collection = WithConsoles(Console());
 
-        Assert.Throws<KeyNotFoundException>(() => collection.UpdateConsole(Guid.NewGuid(), "Super Nintendo", "Nintendo"));
+        collection.Invoking(c => c.UpdateConsole(Guid.NewGuid(), "Super Nintendo", "Nintendo"))
+            .Should().Throw<KeyNotFoundException>();
     }
 
     [Fact]
@@ -60,7 +61,7 @@ public class ConsoleTests
 
         collection.DeleteConsole(remove.Key);
 
-        Assert.Equal([keep], collection.Consoles);
+        collection.Consoles.Should().Equal(keep);
     }
 
     [Fact]
@@ -68,6 +69,6 @@ public class ConsoleTests
     {
         var collection = Empty();
 
-        Assert.Throws<KeyNotFoundException>(() => collection.DeleteConsole(Guid.NewGuid()));
+        collection.Invoking(c => c.DeleteConsole(Guid.NewGuid())).Should().Throw<KeyNotFoundException>();
     }
 }

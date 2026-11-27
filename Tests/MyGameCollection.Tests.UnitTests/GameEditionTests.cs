@@ -12,7 +12,7 @@ public class GameEditionTests
 
         collection.AddGame("Goat Simulator 3", "PlayStation 5");
 
-        Assert.Null(Assert.Single(collection.Games).Edition);
+        collection.Games.Should().ContainSingle().Which.Edition.Should().BeNull();
     }
 
     [Fact]
@@ -22,7 +22,7 @@ public class GameEditionTests
 
         collection.AddGame("Goat Simulator 3", "PlayStation 5", edition: "  Pre-Udder Edition ");
 
-        Assert.Equal("Pre-Udder Edition", Assert.Single(collection.Games).Edition);
+        collection.Games.Should().ContainSingle().Which.Edition.Should().Be("Pre-Udder Edition");
     }
 
     [Theory]
@@ -34,7 +34,7 @@ public class GameEditionTests
 
         collection.AddGame("Goat Simulator 3", "PlayStation 5", edition: edition);
 
-        Assert.Null(Assert.Single(collection.Games).Edition);
+        collection.Games.Should().ContainSingle().Which.Edition.Should().BeNull();
     }
 
     [Fact]
@@ -42,11 +42,10 @@ public class GameEditionTests
     {
         var collection = Empty();
 
-        var ex = Assert.Throws<ArgumentException>(() =>
-            collection.AddGame("Goat Simulator 3", "PlayStation 5", edition: new string('x', 101)));
-
-        Assert.Equal("edition", ex.ParamName);
-        Assert.Empty(collection.Games);
+        collection.Invoking(c => c.AddGame("Goat Simulator 3", "PlayStation 5", edition: new string('x', 101)))
+            .Should().Throw<ArgumentException>()
+            .WithParameterName("edition");
+        collection.Games.Should().BeEmpty();
     }
 
     [Fact]
@@ -56,9 +55,9 @@ public class GameEditionTests
         var key = collection.AddGame("Goat Simulator 3", "PlayStation 5");
 
         collection.UpdateGame(key, "Goat Simulator 3", "PlayStation 5", edition: "Goat in a Box Edition");
-        Assert.Equal("Goat in a Box Edition", collection.Games[0].Edition);
+        collection.Games[0].Edition.Should().Be("Goat in a Box Edition");
 
         collection.UpdateGame(key, "Goat Simulator 3", "PlayStation 5");
-        Assert.Null(collection.Games[0].Edition);
+        collection.Games[0].Edition.Should().BeNull();
     }
 }
