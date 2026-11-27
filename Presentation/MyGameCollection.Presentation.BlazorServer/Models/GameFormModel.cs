@@ -31,7 +31,7 @@ public sealed class GameFormModel : ReleaseDateFormModel
     [StringLength(100)]
     public string? Series { get; set; }
 
-    /// <summary>A game of its own, a remake, a DLC... Empty when unknown.</summary>
+    /// <summary>A game of its own, a remake, a bundle... Empty when unknown.</summary>
     public GameType? Type { get; set; }
 
     /// <summary>The age rating on the box, e.g. "PEGI 7"; filled in from IGDB for the chosen region.</summary>

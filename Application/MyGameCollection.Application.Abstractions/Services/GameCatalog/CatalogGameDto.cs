@@ -29,7 +29,7 @@ public record CatalogGameDto
     /// <summary>The series or franchise the game belongs to, e.g. "Super Mario". Empty when unknown.</summary>
     public string? Series { get; init; }
 
-    /// <summary>A game of its own, a remake, a DLC... Empty when unknown.</summary>
+    /// <summary>A game of its own, a remake, a bundle... Empty when unknown.</summary>
     public GameType? Type { get; init; }
 
     /// <summary>The ratings the game got from the rating boards of the world (PEGI, ESRB, CERO...).</summary>

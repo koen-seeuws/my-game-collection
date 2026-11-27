@@ -70,7 +70,7 @@ public partial class Games : IDisposable
 
     private async Task OpenGameAsync(GameDto game)
     {
-        if (await ShowGameDialogAsync(game.Title, GameFormModel.From(game), readOnly: true) is not { } model)
+        if (await ShowGameDialogAsync(game.Title, GameFormModel.From(game), game) is not { } model)
             return;
 
         await ExecuteAsync(model.ToUpdateCommand(game.Key), $"'{model.Title}' updated.");
@@ -107,12 +107,16 @@ public partial class Games : IDisposable
         }, $"'{game.Title}' is now part of your collection!");
     }
 
-    private async Task<GameFormModel?> ShowGameDialogAsync(string title, GameFormModel model, bool readOnly = false)
+    /// <summary>Shows the game form; an <paramref name="existing"/> game opens read-only, with its add-ons.</summary>
+    private async Task<GameFormModel?> ShowGameDialogAsync(string title, GameFormModel model, GameDto? existing = null)
     {
         var parameters = new DialogParameters
         {
             { "Model", model },
-            { "ReadOnly", readOnly },
+            { "ReadOnly", existing is not null },
+            { "GameKey", existing?.Key },
+            { "AddOns", existing?.AddOns ?? [] },
+            { "OnAddOnsChanged", EventCallback.Factory.Create(this, ReloadAsync) },
             { "Platforms", _platformsInUse },
             { "Companies", _games.SelectMany(g => g.Developers.Concat(g.Publishers)).ToList() }
         };
@@ -120,6 +124,13 @@ public partial class Games : IDisposable
             new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true });
 
         return await dialog.Result is { Canceled: false, Data: GameFormModel result } ? result : null;
+    }
+
+    /// <summary>Reloads the games behind an open dialog, e.g. after one of their add-ons changed.</summary>
+    private async Task ReloadAsync()
+    {
+        await LoadAsync();
+        StateHasChanged();
     }
 
     private async Task ExecuteAsync(ICommand command, string successMessage)
@@ -223,6 +234,7 @@ public partial class Games : IDisposable
         || (game.Series?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
         || game.Genres.Any(genre => genre.Contains(_search, StringComparison.OrdinalIgnoreCase))
         || game.Developers.Concat(game.Publishers).Any(company => company.Contains(_search, StringComparison.OrdinalIgnoreCase))
+        || game.AddOns.Any(addOn => addOn.Title.Contains(_search, StringComparison.OrdinalIgnoreCase))
         || (game.Notes?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false);
 
     private void OnUserChanged() => InvokeAsync(async () =>

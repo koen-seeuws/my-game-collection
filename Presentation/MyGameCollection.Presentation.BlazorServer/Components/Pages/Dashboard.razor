@@ -26,16 +26,16 @@ else
     <MudGrid>
         <MudItem xs="12" sm="6" lg="3">
             <StatCard Label="Games" Value="@_summary.OwnedGames.ToString()" Icon="@Icons.Material.Filled.SportsEsports"
-                      Detail="@($"on {_summary.Platforms.Count(p => p.OwnedGames > 0)} platforms")" />
+                      Detail="@GamesDetail" />
         </MudItem>
         <MudItem xs="12" sm="6" lg="3">
             <StatCard Label="Consoles" Value="@_summary.OwnedConsoles.ToString()" Icon="@Icons.Material.Filled.VideogameAsset"
                       Color="Color.Info" />
         </MudItem>
         <MudItem xs="12" sm="6" lg="3">
-            <StatCard Label="On the wishlist" Value="@((_summary.WishlistGames + _summary.WishlistConsoles).ToString())"
+            <StatCard Label="On the wishlist" Value="@((_summary.WishlistGames + _summary.WishlistConsoles + _summary.WishlistAddOns).ToString())"
                       Icon="@Icons.Material.Filled.Favorite" Color="Color.Warning"
-                      Detail="@($"{_summary.WishlistGames} games, {_summary.WishlistConsoles} consoles")" />
+                      Detail="@WishlistDetail" />
         </MudItem>
         <MudItem xs="12" sm="6" lg="3">
             <StatCard Label="Total spent" Value="@DisplayNames.Money(_summary.TotalSpent)" Icon="@Icons.Material.Filled.Savings"

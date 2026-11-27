@@ -29,4 +29,6 @@ public class Game : CollectionItem
     public bool CouchCoop { get; set; }
     public bool OnlineCoop { get; set; }
     public bool SplitScreen { get; set; }
+
+    public List<AddOn> AddOns { get; set; } = [];
 }

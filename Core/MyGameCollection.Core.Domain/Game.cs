@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using MyGameCollection.Core.Domain.Abstractions;
 
 namespace MyGameCollection.Core.Domain;
@@ -29,7 +30,7 @@ public record Game
     /// <summary>The series or franchise the game belongs to, e.g. "Super Mario". Empty when unknown.</summary>
     public string? Series { get; init; }
 
-    /// <summary>A game of its own, a remake, a DLC... Empty when unknown.</summary>
+    /// <summary>A game of its own, a remake, a bundle... Empty when unknown. Add-ons are not games: see <see cref="AddOns"/>.</summary>
     public GameType? Type { get; init; }
 
     /// <summary>The age rating on the box for the game's region, e.g. "PEGI 7" or "ESRB E10+". Empty when unknown.</summary>
@@ -56,4 +57,7 @@ public record Game
 
     /// <summary>Absolute http(s) URL of a cover art or picture shown on the item's card.</summary>
     public string? ThumbnailUrl { get; init; }
+
+    /// <summary>The DLC, expansions... owned or wished for this game.</summary>
+    public ImmutableList<AddOn> AddOns { get; init; } = [];
 }

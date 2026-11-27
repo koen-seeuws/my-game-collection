@@ -3,16 +3,21 @@ using MyGameCollection.Infrastructure.EFC.DataModel;
 
 namespace MyGameCollection.Infrastructure.EFC.Configurations;
 
-/// <summary>Maps the columns shared by games and consoles (each still gets its own table).</summary>
+/// <summary>Maps the columns shared by games, consoles and add-ons (each still gets its own table).</summary>
 internal static class CollectionItemConfiguration
 {
     public static void ConfigureCollectionItem<TItem>(this EntityTypeBuilder<TItem> builder) where TItem : CollectionItem
+    {
+        builder.ConfigureItemRow();
+        builder.Property(i => i.Region).HasConversion<string>().HasMaxLength(20);
+    }
+
+    public static void ConfigureItemRow<TItem>(this EntityTypeBuilder<TItem> builder) where TItem : ItemRow
     {
         builder.HasKey(i => i.Id);
         builder.HasIndex(i => i.Key).IsUnique();
 
         // Enums are stored by name so the database stays readable.
-        builder.Property(i => i.Region).HasConversion<string>().HasMaxLength(20);
         builder.Property(i => i.Condition).HasConversion<string>().HasMaxLength(20);
         builder.Property(i => i.Completeness).HasConversion<string>().HasMaxLength(20);
         builder.Property(i => i.Status).HasConversion<string>().HasMaxLength(20);

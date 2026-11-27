@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using MyGameCollection.Application.Abstractions;
+using MyGameCollection.Application.Abstractions.Commands.AcquireAddOn;
 using MyGameCollection.Application.Abstractions.Commands.AcquireConsole;
 using MyGameCollection.Application.Abstractions.Commands.AcquireGame;
+using MyGameCollection.Application.Abstractions.Commands.DeleteAddOn;
 using MyGameCollection.Application.Abstractions.Commands.DeleteConsole;
 using MyGameCollection.Application.Abstractions.Commands.DeleteGame;
 using MyGameCollection.Application.Abstractions.Queries.GetMyConsoles;
@@ -77,7 +79,7 @@ public partial class Wishlist : IDisposable
 
     private async Task OpenGameAsync(GameDto game)
     {
-        if (await ShowFormDialogAsync<GameDialog, GameFormModel>(game.Title, GameFormModel.From(game), readOnly: true) is not { } model)
+        if (await ShowFormDialogAsync<GameDialog, GameFormModel>(game.Title, GameFormModel.From(game), readOnly: true, game) is not { } model)
             return;
 
         await ExecuteAsync(model.ToUpdateCommand(game.Key), $"'{model.Title}' updated.");
@@ -101,6 +103,43 @@ public partial class Wishlist : IDisposable
             PurchasePrice = model.PurchasePrice,
             PurchaseOrigin = model.PurchaseOrigin
         }, $"'{game.Title}' is now part of your collection!");
+    }
+
+    // ---- Add-ons ----
+
+    private async Task OpenAddOnAsync(GameDto game, AddOnDto addOn)
+    {
+        var parameters = new DialogParameters<AddOnDialog>
+        {
+            { d => d.Model, AddOnFormModel.From(addOn) },
+            { d => d.GameTitle, game.Title },
+            { d => d.GameCatalogId, game.CatalogId }
+        };
+        var dialog = await DialogService.ShowAsync<AddOnDialog>(addOn.Title, parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+
+        if (await dialog.Result is { Canceled: false, Data: AddOnFormModel model })
+            await ExecuteAsync(model.ToUpdateCommand(addOn.Key), $"'{model.Title}' updated.");
+    }
+
+    private async Task DeleteAddOnAsync(AddOnDto addOn)
+    {
+        if (await ConfirmDeleteAsync(addOn.Title))
+            await ExecuteAsync(new DeleteAddOnCommand { Key = addOn.Key }, $"'{addOn.Title}' deleted.");
+    }
+
+    private async Task AcquireAddOnAsync(AddOnDto addOn)
+    {
+        if (await ShowAcquireDialogAsync(addOn.Title, askOrigin: addOn.Format == GameFormat.Physical) is not { } model)
+            return;
+
+        await ExecuteAsync(new AcquireAddOnCommand
+        {
+            Key = addOn.Key,
+            PurchaseDate = DateOnly.FromDateTime(model.PurchaseDate ?? DateTime.Today),
+            PurchasePrice = model.PurchasePrice,
+            PurchaseOrigin = model.PurchaseOrigin
+        }, $"'{addOn.Title}' is now part of your collection!");
     }
 
     // ---- Consoles ----
@@ -145,7 +184,8 @@ public partial class Wishlist : IDisposable
 
     // ---- Helpers ----
 
-    private async Task<TModel?> ShowFormDialogAsync<TDialog, TModel>(string title, TModel model, bool readOnly = false)
+    private async Task<TModel?> ShowFormDialogAsync<TDialog, TModel>(string title, TModel model, bool readOnly = false,
+        GameDto? game = null)
         where TDialog : ComponentBase where TModel : class
     {
         var parameters = new DialogParameters
@@ -156,6 +196,12 @@ public partial class Wishlist : IDisposable
         };
         if (typeof(TDialog) == typeof(GameDialog))
             parameters.Add("Companies", _games.SelectMany(g => g.Developers.Concat(g.Publishers)).ToList());
+        if (game is not null)
+        {
+            parameters.Add("GameKey", game.Key);
+            parameters.Add("AddOns", game.AddOns);
+            parameters.Add("OnAddOnsChanged", EventCallback.Factory.Create(this, ReloadAsync));
+        }
         var dialog = await DialogService.ShowAsync<TDialog>(title, parameters,
             new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true });
 
@@ -178,6 +224,13 @@ public partial class Wishlist : IDisposable
     private async Task<bool> ConfirmDeleteAsync(string name) =>
         await DialogService.ShowMessageBoxAsync("Delete", $"Are you sure you want to delete '{name}'?",
             yesText: "Delete", cancelText: "Cancel") == true;
+
+    /// <summary>Reloads the wishlist behind an open dialog, e.g. after an add-on of a game changed.</summary>
+    private async Task ReloadAsync()
+    {
+        await LoadAsync();
+        StateHasChanged();
+    }
 
     private async Task ExecuteAsync(ICommand command, string successMessage)
     {
@@ -204,6 +257,11 @@ public partial class Wishlist : IDisposable
 
     private IEnumerable<GameDto> WishedGames =>
         _games.Where(g => g.Status == CollectionStatus.Wishlist).OrderBy(g => g.Title);
+
+    /// <summary>The wished-for add-ons, with the game each one is for (whether that game is owned or wished for too).</summary>
+    private IEnumerable<(GameDto Game, AddOnDto AddOn)> WishedAddOns =>
+        _games.SelectMany(g => g.AddOns.Where(a => a.Status == CollectionStatus.Wishlist).Select(a => (g, a)))
+            .OrderBy(x => x.g.Title).ThenBy(x => x.a.Title);
 
     private IEnumerable<ConsoleDto> WishedConsoles =>
         _consoles.Where(c => c.Status == CollectionStatus.Wishlist).OrderBy(c => c.Name);

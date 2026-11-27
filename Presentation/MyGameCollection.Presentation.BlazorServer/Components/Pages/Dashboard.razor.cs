@@ -32,6 +32,16 @@ public partial class Dashboard : IDisposable
 
     private bool IsEmpty => _summary is { OwnedGames: 0, WishlistGames: 0, OwnedConsoles: 0, WishlistConsoles: 0 };
 
+    /// <summary>"on 3 platforms · 4 add-ons".</summary>
+    private string GamesDetail =>
+        $"on {_summary!.Platforms.Count(p => p.OwnedGames > 0)} platforms"
+        + (_summary.OwnedAddOns > 0 ? $" · {DisplayNames.AddOns(_summary.OwnedAddOns)}" : "");
+
+    /// <summary>"2 games, 1 console" plus the add-ons, when there are any.</summary>
+    private string WishlistDetail =>
+        $"{_summary!.WishlistGames} games, {_summary.WishlistConsoles} consoles"
+        + (_summary.WishlistAddOns > 0 ? $", {DisplayNames.AddOns(_summary.WishlistAddOns)}" : "");
+
     protected override async Task OnInitializedAsync()
     {
         CurrentUser.Changed += OnUserChanged;

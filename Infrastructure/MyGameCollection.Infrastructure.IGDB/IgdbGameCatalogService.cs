@@ -12,10 +12,12 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
         if (string.IsNullOrWhiteSpace(search))
             return [];
 
-        // version_parent = null leaves out editions (GOTY, Deluxe...) that would otherwise crowd the results.
+        // version_parent = null leaves out editions (GOTY, Deluxe...) that would otherwise crowd the results, and
+        // add-ons are added to their game instead.
         var games = await igdb.QueryAsync<IgdbGame>("games",
             $"search {IgdbClient.Quote(search.Trim())}; fields {GameFields}; " +
-            $"where version_parent = null; limit {options.Value.SearchLimit};", cancellationToken);
+            $"where version_parent = null & game_type != {IgdbGameDetails.AddOnTypeIds}; " +
+            $"limit {options.Value.SearchLimit};", cancellationToken);
 
         return games
             .Where(game => !string.IsNullOrWhiteSpace(game.Name))
@@ -103,6 +105,46 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
         var colon = edition.Name?.LastIndexOf(':') ?? -1;
         return colon >= 0 && colon < edition.Name!.Length - 1 ? edition.Name[(colon + 1)..].Trim() : edition.Name?.Trim();
     }
+
+    public async Task<IReadOnlyList<CatalogAddOnDto>> GetGameAddOnsAsync(long gameId, CancellationToken cancellationToken = default)
+    {
+        var addOns = await igdb.QueryAsync<IgdbGame>("games",
+            $"fields {AddOnFields}; where parent_game = {gameId} & game_type = {IgdbGameDetails.AddOnTypeIds}; " +
+            "sort first_release_date asc; limit 200;", cancellationToken);
+
+        return ToCatalogAddOns(addOns);
+    }
+
+    public async Task<IReadOnlyList<CatalogAddOnDto>> SearchAddOnsAsync(string search, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+            return [];
+
+        var addOns = await igdb.QueryAsync<IgdbGame>("games",
+            $"search {IgdbClient.Quote(search.Trim())}; fields {AddOnFields}; " +
+            $"where game_type = {IgdbGameDetails.AddOnTypeIds}; limit {options.Value.SearchLimit};", cancellationToken);
+
+        return ToCatalogAddOns(addOns);
+    }
+
+    /// <summary>What the add-on lookups ask for of an add-on.</summary>
+    private static readonly string AddOnFields =
+        $"name, game_type, parent_game.name, first_release_date, {ReleaseDateFields("release_dates")}, cover.image_id";
+
+    private static IReadOnlyList<CatalogAddOnDto> ToCatalogAddOns(IEnumerable<IgdbGame> addOns) =>
+        addOns
+            .Where(addOn => !string.IsNullOrWhiteSpace(addOn.Name))
+            .Select(addOn => new CatalogAddOnDto
+            {
+                Id = addOn.Id,
+                Name = IgdbGameDetails.AddOnName(addOn),
+                Type = IgdbGameDetails.AddOnType(addOn),
+                GameName = addOn.ParentGame?.Name?.Trim(),
+                ReleaseDate = FirstReleaseDate(addOn),
+                CoverUrl = IgdbClient.ImageUrl(addOn.Cover?.ImageId, "t_cover_small"),
+                ThumbnailUrl = IgdbClient.ImageUrl(addOn.Cover?.ImageId, "t_cover_big")
+            })
+            .ToList();
 
     public async Task<IReadOnlyList<CatalogConsoleDto>> SearchConsolesAsync(string search, CancellationToken cancellationToken = default)
     {

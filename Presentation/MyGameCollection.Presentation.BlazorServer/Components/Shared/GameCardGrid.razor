@@ -21,6 +21,16 @@
                 <MudText Typo="Typo.caption" Class="item-card-companies" title="@companies">@companies</MudText>
             }
             <PlayerTags Players="game.Players" />
+            @if (game.AddOns.Count > 0)
+            {
+                var titles = string.Join(", ", game.AddOns.Select(a => a.Title));
+                <div class="item-tags" title="@titles">
+                    <span class="item-tag add-ons">
+                        <MudIcon Icon="@Icons.Material.Outlined.Extension" Style="font-size: 0.8rem; vertical-align: -2px" />
+                        @DisplayNames.AddOns(game.AddOns.Count)
+                    </span>
+                </div>
+            }
         </ItemCard>
     }
 </div>

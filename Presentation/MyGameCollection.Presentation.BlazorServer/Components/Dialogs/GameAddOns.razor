@@ -1,0 +1,180 @@
+@using MyGameCollection.Application.Abstractions
+@using MyGameCollection.Application.Abstractions.Commands.AcquireAddOn
+@using MyGameCollection.Application.Abstractions.Commands.DeleteAddOn
+@using MyGameCollection.Application.Abstractions.Queries.GetMyGames
+@inject IUseCaseDispatcher Dispatcher
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+@* The add-ons (DLC, expansions...) of a game, with adding, editing, acquiring and deleting them. *@
+<div class="game-add-ons">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-1">
+        <MudText Typo="Typo.subtitle2">
+            Add-ons
+            @if (_addOns.Count > 0)
+            {
+                <span class="item-group-count">@_addOns.Count</span>
+            }
+        </MudText>
+        <MudSpacer />
+        <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="AddAsync">
+            Add DLC or expansion
+        </MudButton>
+    </MudStack>
+
+    @if (_addOns.Count == 0)
+    {
+        <MudText Typo="Typo.body2" Class="mud-text-secondary">No DLC or expansions for this game yet.</MudText>
+    }
+    else
+    {
+        <ul class="add-on-list">
+            @foreach (var addOn in _addOns)
+            {
+                <li @key="addOn.Key" class="add-on-row">
+                    <button type="button" class="add-on-open" title="Edit @addOn.Title" @onclick="() => EditAsync(addOn)">
+                        <ItemThumbnail Url="@addOn.ThumbnailUrl" Icon="@Icons.Material.Outlined.Extension" Alt="@addOn.Title"
+                                       Class="add-on-thumbnail" />
+                        <span class="add-on-text">
+                            <span class="add-on-title">@addOn.Title</span>
+                            <span class="item-tags">
+                                <span class="item-tag">@addOn.Type.ToDisplayName()</span>
+                                <span class="@($"item-tag format {addOn.Format.ToString().ToLowerInvariant()}")">@addOn.Format.ToDisplayName()</span>
+                                @if (addOn.Status == CollectionStatus.Wishlist)
+                                {
+                                    <span class="item-tag wishlist">Wishlist</span>
+                                }
+                                else if (addOn.PurchasePrice is not null)
+                                {
+                                    <span class="item-tag">@DisplayNames.Money(addOn.PurchasePrice)</span>
+                                }
+                            </span>
+                        </span>
+                    </button>
+                    @if (addOn.Status == CollectionStatus.Wishlist)
+                    {
+                        <MudTooltip Text="Got it!">
+                            <MudIconButton Icon="@Icons.Material.Filled.AddTask" Size="Size.Small" Color="Color.Success"
+                                           aria-label="@($"Got {addOn.Title}")" OnClick="() => AcquireAsync(addOn)" />
+                        </MudTooltip>
+                    }
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                   aria-label="@($"Delete {addOn.Title}")" OnClick="() => DeleteAsync(addOn)" />
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Guid GameKey { get; set; }
+    [Parameter, EditorRequired] public string GameTitle { get; set; } = string.Empty;
+
+    /// <summary>The game's IGDB id, to offer the add-ons IGDB knows of it.</summary>
+    [Parameter] public long? GameCatalogId { get; set; }
+
+    /// <summary>The add-ons as the game was loaded; kept up to date here after each change.</summary>
+    [Parameter] public IReadOnlyList<AddOnDto> AddOns { get; set; } = [];
+
+    /// <summary>Raised after an add-on was added, changed or deleted, so the page can reload.</summary>
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    private IReadOnlyList<AddOnDto> _addOns = [];
+
+    protected override void OnInitialized() => _addOns = AddOns;
+
+    private async Task AddAsync()
+    {
+        if (await ShowDialogAsync($"Add-on for {GameTitle}", new AddOnFormModel()) is { } model)
+            await ExecuteAsync(model.ToAddCommand(GameKey), $"'{model.Title}' added to {GameTitle}.");
+    }
+
+    private async Task EditAsync(AddOnDto addOn)
+    {
+        if (await ShowDialogAsync(addOn.Title, AddOnFormModel.From(addOn)) is { } model)
+            await ExecuteAsync(model.ToUpdateCommand(addOn.Key), $"'{model.Title}' updated.");
+    }
+
+    private async Task DeleteAsync(AddOnDto addOn)
+    {
+        var confirmed = await DialogService.ShowMessageBoxAsync("Delete",
+            $"Are you sure you want to delete '{addOn.Title}'?", yesText: "Delete", cancelText: "Cancel") == true;
+
+        if (confirmed)
+            await ExecuteAsync(new DeleteAddOnCommand { Key = addOn.Key }, $"'{addOn.Title}' deleted.");
+    }
+
+    private async Task AcquireAsync(AddOnDto addOn)
+    {
+        var parameters = new DialogParameters<AcquireDialog>
+        {
+            { d => d.ItemName, addOn.Title },
+            { d => d.AskOrigin, addOn.Format == GameFormat.Physical }
+        };
+        var dialog = await DialogService.ShowAsync<AcquireDialog>("Got it!", parameters,
+            new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true });
+
+        if (await dialog.Result is not { Canceled: false, Data: AcquireFormModel model })
+            return;
+
+        await ExecuteAsync(new AcquireAddOnCommand
+        {
+            Key = addOn.Key,
+            PurchaseDate = DateOnly.FromDateTime(model.PurchaseDate ?? DateTime.Today),
+            PurchasePrice = model.PurchasePrice,
+            PurchaseOrigin = model.PurchaseOrigin
+        }, $"'{addOn.Title}' is now part of your collection!");
+    }
+
+    private async Task<AddOnFormModel?> ShowDialogAsync(string title, AddOnFormModel model)
+    {
+        var parameters = new DialogParameters<AddOnDialog>
+        {
+            { d => d.Model, model },
+            { d => d.GameTitle, GameTitle },
+            { d => d.GameCatalogId, GameCatalogId }
+        };
+        var dialog = await DialogService.ShowAsync<AddOnDialog>(title, parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+
+        return await dialog.Result is { Canceled: false, Data: AddOnFormModel result } ? result : null;
+    }
+
+    private async Task ExecuteAsync(ICommand command, string successMessage)
+    {
+        try
+        {
+            await Dispatcher.SendAsync(command);
+            Snackbar.Add(successMessage, Severity.Success);
+        }
+        catch (KeyNotFoundException)
+        {
+            Snackbar.Add("That game or add-on no longer exists.", Severity.Warning);
+        }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+        {
+            Snackbar.Add(ex.Message, Severity.Warning);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Something went wrong: {ex.Message}", Severity.Error);
+        }
+
+        await ReloadAsync();
+        await OnChanged.InvokeAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        try
+        {
+            var games = await Dispatcher.QueryAsync(new GetMyGamesQuery());
+            _addOns = games.FirstOrDefault(g => g.Key == GameKey)?.AddOns ?? [];
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Could not load the add-ons: {ex.Message}", Severity.Error);
+        }
+    }
+}

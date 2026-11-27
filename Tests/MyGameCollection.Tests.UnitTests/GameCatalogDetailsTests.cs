@@ -104,8 +104,9 @@ public class GameCatalogDetailsTests
     [Theory]
     [InlineData(null, null)]
     [InlineData(0L, GameType.MainGame)]
-    [InlineData(1L, GameType.Dlc)]
-    [InlineData(13L, GameType.Dlc)]
+    [InlineData(1L, null)]
+    [InlineData(2L, null)]
+    [InlineData(13L, null)]
     [InlineData(4L, GameType.Expansion)]
     [InlineData(3L, GameType.Bundle)]
     [InlineData(8L, GameType.Remake)]
@@ -115,6 +116,24 @@ public class GameCatalogDetailsTests
     [InlineData(5L, GameType.Other)]
     public void Igdb_MapsGameTypes(long? igdbType, GameType? expected) =>
         IgdbGameDetails.Type(IgdbGame() with { GameType = igdbType }).Should().Be(expected);
+
+    [Theory]
+    [InlineData("Assassin's Creed IV Black Flag: Kraken Ship Pack", "Kraken Ship Pack")]
+    [InlineData("Assassin's Creed IV Black Flag - Freedom Cry", "Freedom Cry")]
+    [InlineData("Hearts of Stone", "Hearts of Stone")]
+    [InlineData("Assassin's Creed IV Black Flag", "Assassin's Creed IV Black Flag")]
+    [InlineData("Assassin's Creed IV Black Flagship", "Assassin's Creed IV Black Flagship")]
+    public void Igdb_AddOnName_LeavesOutItsGame(string name, string expected) =>
+        IgdbGameDetails.AddOnName(IgdbGame() with { Name = name, ParentGame = new IgdbNamed("Assassin's Creed IV Black Flag") })
+            .Should().Be(expected);
+
+    [Theory]
+    [InlineData(1L, AddOnType.Dlc)]
+    [InlineData(2L, AddOnType.Expansion)]
+    [InlineData(13L, AddOnType.Pack)]
+    [InlineData(6L, AddOnType.Other)]
+    public void Igdb_MapsAddOnTypes(long igdbType, AddOnType expected) =>
+        IgdbGameDetails.AddOnType(IgdbGame() with { GameType = igdbType }).Should().Be(expected);
 
     [Fact]
     public void Igdb_KeepsCompleteAgeRatings_OnePerBoard()
