@@ -106,8 +106,34 @@ public static class DisplayNames
         _ => "Other"
     };
 
+    public static string ToDisplayName(this AccessoryType type) => type switch
+    {
+        AccessoryType.Controller => "Controller",
+        AccessoryType.Peripheral => "Peripheral",
+        AccessoryType.Storage => "Memory & storage",
+        AccessoryType.AudioVideo => "Audio & video",
+        AccessoryType.CableOrPower => "Cable & power",
+        AccessoryType.Figure => "Figure",
+        _ => "Other"
+    };
+
+    /// <summary>An icon for each kind of accessory, for tags and placeholder thumbnails.</summary>
+    public static string ToIcon(this AccessoryType type) => type switch
+    {
+        AccessoryType.Controller => MudBlazor.Icons.Material.Outlined.Gamepad,
+        AccessoryType.Peripheral => MudBlazor.Icons.Material.Outlined.SettingsRemote,
+        AccessoryType.Storage => MudBlazor.Icons.Material.Outlined.SdCard,
+        AccessoryType.AudioVideo => MudBlazor.Icons.Material.Outlined.Headset,
+        AccessoryType.CableOrPower => MudBlazor.Icons.Material.Outlined.Cable,
+        AccessoryType.Figure => MudBlazor.Icons.Material.Outlined.Toys,
+        _ => MudBlazor.Icons.Material.Outlined.Category
+    };
+
     /// <summary>"1 add-on", "3 add-ons".</summary>
     public static string AddOns(int count) => count == 1 ? "1 add-on" : $"{count} add-ons";
+
+    /// <summary>"1 accessory", "3 accessories".</summary>
+    public static string Accessories(int count) => count == 1 ? "1 accessory" : $"{count} accessories";
 
     /// <summary>"Couch co-op · 4P": playing together on one console, for a game card.</summary>
     public static string LocalPlayersLabel(PlayerModes players) =>
@@ -145,6 +171,7 @@ public static class DisplayNames
         PlayStatus p => p.ToDisplayName(),
         GameType t => t.ToDisplayName(),
         AddOnType t => t.ToDisplayName(),
+        AccessoryType t => t.ToDisplayName(),
         _ => value.ToString()
     };
 

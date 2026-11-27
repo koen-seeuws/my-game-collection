@@ -9,4 +9,5 @@ public class GameCollection
 
     public List<Game> Games { get; set; } = [];
     public List<GameConsole> Consoles { get; set; } = [];
+    public List<Accessory> Accessories { get; set; } = [];
 }

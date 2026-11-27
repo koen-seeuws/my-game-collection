@@ -14,7 +14,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
     }
 
     protected override IQueryable<DataModel.GameCollection> Query() =>
-        DbSet.Include(c => c.Games).ThenInclude(g => g.AddOns).Include(c => c.Consoles).AsSplitQuery();
+        DbSet.Include(c => c.Games).ThenInclude(g => g.AddOns).Include(c => c.Consoles).Include(c => c.Accessories).AsSplitQuery();
 
     protected override Expression<Func<DataModel.GameCollection, bool>> HasKey(string key) =>
         c => c.Owner.ToUpper() == key.ToUpper();
@@ -23,7 +23,8 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
     {
         AggregateKey = key.ToUpper(),
         Games = [],
-        Consoles = []
+        Consoles = [],
+        Accessories = []
     };
 
     protected override DataModel.GameCollection CreateEntity(Domain.GameCollection aggregate) => new()
@@ -106,6 +107,29 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 ThumbnailUrl = c.ThumbnailUrl,
                 CatalogId = c.CatalogId
             })
+            .ToImmutableList(),
+        Accessories = entity.Accessories
+            .OrderBy(a => a.Position)
+            .Select(a => new Domain.Accessory
+            {
+                Key = a.Key,
+                Name = a.Name,
+                Type = a.Type,
+                Platform = a.Platform,
+                Manufacturer = a.Manufacturer,
+                Model = a.Model,
+                Colour = a.Colour,
+                Quantity = a.Quantity,
+                Region = a.Region,
+                Condition = a.Condition,
+                Completeness = a.Completeness,
+                Status = a.Status,
+                PurchaseDate = a.PurchaseDate,
+                PurchasePrice = a.PurchasePrice,
+                PurchaseOrigin = a.PurchaseOrigin,
+                Notes = a.Notes,
+                ThumbnailUrl = a.ThumbnailUrl
+            })
             .ToImmutableList()
     };
 
@@ -158,6 +182,23 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.Region = c.Region;
                 ApplyCommon(row, c.Condition, c.Completeness, c.Status, c.ReleaseDate, c.PurchaseDate,
                     c.PurchasePrice, c.PurchaseOrigin, c.Notes, c.ThumbnailUrl);
+            });
+
+        Synchronise(entity.Accessories, aggregate.Accessories, a => a.Key,
+            create: a => new DataModel.Accessory { Key = a.Key, Name = a.Name },
+            apply: (a, row) =>
+            {
+                row.Name = a.Name;
+                row.Type = a.Type;
+                row.Platform = a.Platform;
+                row.Manufacturer = a.Manufacturer;
+                row.Model = a.Model;
+                row.Colour = a.Colour;
+                row.Quantity = a.Quantity;
+                row.Region = a.Region;
+                // Accessories have no release date or catalog id: the catalog does not know them.
+                ApplyCommon(row, a.Condition, a.Completeness, a.Status, releaseDate: null, a.PurchaseDate,
+                    a.PurchasePrice, a.PurchaseOrigin, a.Notes, a.ThumbnailUrl);
             });
     }
 

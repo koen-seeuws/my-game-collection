@@ -13,6 +13,10 @@ public record CollectionSummaryDto
     public required int OwnedAddOns { get; init; }
     public required int WishlistAddOns { get; init; }
 
+    /// <summary>How many accessories are owned (counting each one of a quantity), and how many entries are wished for.</summary>
+    public required int OwnedAccessories { get; init; }
+    public required int WishlistAccessories { get; init; }
+
     /// <summary>The sum of the purchase prices of everything owned.</summary>
     public required decimal TotalSpent { get; init; }
 

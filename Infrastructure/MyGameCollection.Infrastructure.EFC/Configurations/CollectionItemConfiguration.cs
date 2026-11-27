@@ -3,7 +3,7 @@ using MyGameCollection.Infrastructure.EFC.DataModel;
 
 namespace MyGameCollection.Infrastructure.EFC.Configurations;
 
-/// <summary>Maps the columns shared by games, consoles and add-ons (each still gets its own table).</summary>
+/// <summary>Maps the columns shared by games, consoles, accessories and add-ons (each still gets its own table).</summary>
 internal static class CollectionItemConfiguration
 {
     public static void ConfigureCollectionItem<TItem>(this EntityTypeBuilder<TItem> builder) where TItem : CollectionItem

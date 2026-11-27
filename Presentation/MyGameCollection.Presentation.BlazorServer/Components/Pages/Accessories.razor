@@ -1,0 +1,106 @@
+@page "/accessories"
+
+<PageTitle>Accessories · My Game Collection</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Accessories</MudText>
+
+@if (!CurrentUser.IsSignedIn)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudPaper Elevation="1" Class="pa-3 mb-4 item-toolbar">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="3">
+            <MudTextField @bind-Value="_search" Placeholder="Search name, system, maker or model" Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Clearable="true"
+                          Style="min-width: 240px; max-width: 360px" />
+            <MudToggleGroup T="CollectionStatus?" @bind-Value="_statusFilter" Size="Size.Small" Color="Color.Primary"
+                            CheckMark="true">
+                <MudToggleItem T="CollectionStatus?" Value="null" Text="All" />
+                <MudToggleItem T="CollectionStatus?" Value="CollectionStatus.Owned" Text="Owned" />
+                <MudToggleItem T="CollectionStatus?" Value="CollectionStatus.Wishlist" Text="Wishlist" />
+            </MudToggleGroup>
+            <MudSelect T="AccessoryType?" @bind-Value="_typeFilter" Label="Type" Dense="true" Margin="Margin.Dense"
+                       Variant="Variant.Outlined" Style="max-width: 200px"
+                       ToStringFunc="@(t => t is { } type ? type.ToDisplayName() : "All types")">
+                <MudSelectItem T="AccessoryType?" Value="null">All types</MudSelectItem>
+                @foreach (var type in Enum.GetValues<AccessoryType>())
+                {
+                    <MudSelectItem T="AccessoryType?" Value="type">@type.ToDisplayName()</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="string" @bind-Value="_platformFilter" Label="Works with" Dense="true" Margin="Margin.Dense"
+                       Variant="Variant.Outlined" Style="max-width: 220px"
+                       ToStringFunc="@(p => p switch { null => "All systems", AnySystem => "Any system", _ => p })">
+                <MudSelectItem T="string" Value="null">All systems</MudSelectItem>
+                @foreach (var platform in Platforms)
+                {
+                    <MudSelectItem T="string" Value="platform">@platform</MudSelectItem>
+                }
+                @if (_accessories.Any(a => a.Platform is null))
+                {
+                    <MudSelectItem T="string" Value="AnySystem">Any system</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="AccessorySort" @bind-Value="_sort" Label="Sort by" Dense="true" Margin="Margin.Dense"
+                       Variant="Variant.Outlined" Style="max-width: 200px">
+                <MudSelectItem Value="AccessorySort.Platform">System</MudSelectItem>
+                <MudSelectItem Value="AccessorySort.Type">Type</MudSelectItem>
+                <MudSelectItem Value="AccessorySort.Name">Name</MudSelectItem>
+                <MudSelectItem Value="AccessorySort.RecentlyBought">Recently bought</MudSelectItem>
+            </MudSelect>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="() => AddAccessoryAsync()">
+                Add accessory
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+    }
+
+    var accessories = VisibleAccessories.ToList();
+
+    @if (accessories.Count == 0 && !_loading)
+    {
+        <MudPaper Elevation="0" Outlined="true" Class="pa-8 d-flex flex-column align-center">
+            <MudIcon Icon="@Icons.Material.Outlined.Gamepad" Size="Size.Large" Color="Color.Secondary" />
+            <MudText Class="mt-2">
+                @(_accessories.Count == 0 ? "No accessories yet. Grab a controller!" : "No accessories match your filters.")
+            </MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <div class="item-grid wide">
+            @foreach (var accessory in accessories)
+            {
+                <ItemCard @key="accessory.Key" Title="@accessory.Name" Subtitle="@Subtitle(accessory)" ThumbnailUrl="@accessory.ThumbnailUrl"
+                          Icon="@accessory.Type.ToIcon()" Logo="true" Status="accessory.Status" Notes="@accessory.Notes"
+                          PurchasePrice="accessory.PurchasePrice" PurchaseDate="accessory.PurchaseDate"
+                          OnOpen="() => OpenAccessoryAsync(accessory)" OnDelete="() => DeleteAccessoryAsync(accessory)"
+                          OnAcquire="() => AcquireAccessoryAsync(accessory)">
+                    <Badge>
+                        @if (accessory.Quantity > 1)
+                        {
+                            <MudTooltip Text="@($"You have {accessory.Quantity} of these")">
+                                <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">
+                                    ×@accessory.Quantity
+                                </MudChip>
+                            </MudTooltip>
+                        }
+                    </Badge>
+                    <ChildContent>
+                        <ItemTags AccessoryType="accessory.Type" Region="accessory.Region" Completeness="accessory.Completeness"
+                                  Condition="@(accessory.Status == CollectionStatus.Owned ? accessory.Condition : null)"
+                                  Origin="accessory.PurchaseOrigin" />
+                    </ChildContent>
+                </ItemCard>
+            }
+        </div>
+    }
+}

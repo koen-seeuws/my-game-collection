@@ -30,17 +30,25 @@ public partial class Dashboard : IDisposable
         ChartPalette = ["#22D3EE", "#F472D0", "#A78BFA", "#2EF2A2", "#FFC94D", "#38BDF8", "#FF7A59", "#5B6B8C"]
     };
 
-    private bool IsEmpty => _summary is { OwnedGames: 0, WishlistGames: 0, OwnedConsoles: 0, WishlistConsoles: 0 };
+    private bool IsEmpty => _summary is
+    {
+        OwnedGames: 0, WishlistGames: 0, OwnedConsoles: 0, WishlistConsoles: 0, OwnedAccessories: 0, WishlistAccessories: 0
+    };
 
     /// <summary>"on 3 platforms · 4 add-ons".</summary>
     private string GamesDetail =>
         $"on {_summary!.Platforms.Count(p => p.OwnedGames > 0)} platforms"
         + (_summary.OwnedAddOns > 0 ? $" · {DisplayNames.AddOns(_summary.OwnedAddOns)}" : "");
 
-    /// <summary>"2 games, 1 console" plus the add-ons, when there are any.</summary>
+    /// <summary>"+ 7 accessories", when there are any.</summary>
+    private string? ConsolesDetail =>
+        _summary!.OwnedAccessories > 0 ? $"+ {DisplayNames.Accessories(_summary.OwnedAccessories)}" : null;
+
+    /// <summary>"2 games, 1 console" plus the add-ons and accessories, when there are any.</summary>
     private string WishlistDetail =>
         $"{_summary!.WishlistGames} games, {_summary.WishlistConsoles} consoles"
-        + (_summary.WishlistAddOns > 0 ? $", {DisplayNames.AddOns(_summary.WishlistAddOns)}" : "");
+        + (_summary.WishlistAddOns > 0 ? $", {DisplayNames.AddOns(_summary.WishlistAddOns)}" : "")
+        + (_summary.WishlistAccessories > 0 ? $", {DisplayNames.Accessories(_summary.WishlistAccessories)}" : "");
 
     /// <summary>The owned games that have a play status; the others are not tracked.</summary>
     private int TrackedGames => _summary!.OwnedGamesByPlayStatus.Values.Sum();

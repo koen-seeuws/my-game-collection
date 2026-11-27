@@ -13,6 +13,9 @@ internal static class GameCollectionBuilder
 
     public static GameCollection WithConsoles(params GameConsole[] consoles) => new() { AggregateKey = Owner, Consoles = [..consoles] };
 
+    public static GameCollection WithAccessories(params Accessory[] accessories) =>
+        new() { AggregateKey = Owner, Accessories = [..accessories] };
+
     public static Game Game(string title = "Super Mario World", CollectionStatus status = CollectionStatus.Owned) => new()
     {
         Key = Guid.NewGuid(),
@@ -26,6 +29,14 @@ internal static class GameCollectionBuilder
         Key = Guid.NewGuid(),
         Name = name,
         Manufacturer = "Nintendo",
+        Status = status
+    };
+
+    public static Accessory Accessory(string name = "DualShock 2", CollectionStatus status = CollectionStatus.Owned) => new()
+    {
+        Key = Guid.NewGuid(),
+        Name = name,
+        Platform = "PlayStation 2",
         Status = status
     };
 }

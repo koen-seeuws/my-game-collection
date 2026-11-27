@@ -1,12 +1,15 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using MyGameCollection.Application.Abstractions;
+using MyGameCollection.Application.Abstractions.Commands.AcquireAccessory;
 using MyGameCollection.Application.Abstractions.Commands.AcquireAddOn;
 using MyGameCollection.Application.Abstractions.Commands.AcquireConsole;
 using MyGameCollection.Application.Abstractions.Commands.AcquireGame;
+using MyGameCollection.Application.Abstractions.Commands.DeleteAccessory;
 using MyGameCollection.Application.Abstractions.Commands.DeleteAddOn;
 using MyGameCollection.Application.Abstractions.Commands.DeleteConsole;
 using MyGameCollection.Application.Abstractions.Commands.DeleteGame;
+using MyGameCollection.Application.Abstractions.Queries.GetMyAccessories;
 using MyGameCollection.Application.Abstractions.Queries.GetMyConsoles;
 using MyGameCollection.Application.Abstractions.Queries.GetMyGames;
 using MyGameCollection.Core.Domain.Abstractions;
@@ -25,6 +28,7 @@ public partial class Wishlist : IDisposable
 
     private IReadOnlyList<GameDto> _games = [];
     private IReadOnlyList<ConsoleDto> _consoles = [];
+    private IReadOnlyList<AccessoryDto> _accessories = [];
     private bool _loading;
 
     protected override async Task OnInitializedAsync()
@@ -39,6 +43,7 @@ public partial class Wishlist : IDisposable
         {
             _games = [];
             _consoles = [];
+            _accessories = [];
             return;
         }
 
@@ -47,6 +52,7 @@ public partial class Wishlist : IDisposable
         {
             _games = (await Dispatcher.QueryAsync(new GetMyGamesQuery())).ToList();
             _consoles = (await Dispatcher.QueryAsync(new GetMyConsolesQuery())).ToList();
+            _accessories = (await Dispatcher.QueryAsync(new GetMyAccessoriesQuery())).ToList();
         }
         catch (Exception ex)
         {
@@ -58,10 +64,11 @@ public partial class Wishlist : IDisposable
         }
     }
 
-    /// <summary>Platform names already in use, suggested first when entering a game or console.</summary>
+    /// <summary>Platform names already in use, suggested first when entering a game, console or accessory.</summary>
     private List<string> PlatformsInUse() =>
         _consoles.Select(c => c.Name)
             .Concat(_games.Select(g => g.Platform))
+            .Concat(_accessories.Select(a => a.Platform).OfType<string>())
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
@@ -182,6 +189,47 @@ public partial class Wishlist : IDisposable
         }, $"'{console.Name}' is now part of your collection!");
     }
 
+    // ---- Accessories ----
+
+    private async Task WishForAccessoryAsync()
+    {
+        var model = await ShowFormDialogAsync<AccessoryDialog, AccessoryFormModel>("Add accessory to wishlist",
+            new AccessoryFormModel { Status = CollectionStatus.Wishlist });
+        if (model is null)
+            return;
+
+        await ExecuteAsync(model.ToAddCommand(), $"'{model.Name}' added.");
+    }
+
+    private async Task OpenAccessoryAsync(AccessoryDto accessory)
+    {
+        if (await ShowFormDialogAsync<AccessoryDialog, AccessoryFormModel>(accessory.Name, AccessoryFormModel.From(accessory),
+                readOnly: true) is not { } model)
+            return;
+
+        await ExecuteAsync(model.ToUpdateCommand(accessory.Key), $"'{model.Name}' updated.");
+    }
+
+    private async Task DeleteAccessoryAsync(AccessoryDto accessory)
+    {
+        if (await ConfirmDeleteAsync(accessory.Name))
+            await ExecuteAsync(new DeleteAccessoryCommand { Key = accessory.Key }, $"'{accessory.Name}' deleted.");
+    }
+
+    private async Task AcquireAccessoryAsync(AccessoryDto accessory)
+    {
+        if (await ShowAcquireDialogAsync(accessory.Name) is not { } model)
+            return;
+
+        await ExecuteAsync(new AcquireAccessoryCommand
+        {
+            Key = accessory.Key,
+            PurchaseDate = DateOnly.FromDateTime(model.PurchaseDate ?? DateTime.Today),
+            PurchasePrice = model.PurchasePrice,
+            PurchaseOrigin = model.PurchaseOrigin
+        }, $"'{accessory.Name}' is now part of your collection!");
+    }
+
     // ---- Helpers ----
 
     private async Task<TModel?> ShowFormDialogAsync<TDialog, TModel>(string title, TModel model, bool readOnly = false,
@@ -265,6 +313,10 @@ public partial class Wishlist : IDisposable
 
     private IEnumerable<ConsoleDto> WishedConsoles =>
         _consoles.Where(c => c.Status == CollectionStatus.Wishlist).OrderBy(c => c.Name);
+
+    private IEnumerable<AccessoryDto> WishedAccessories =>
+        _accessories.Where(a => a.Status == CollectionStatus.Wishlist)
+            .OrderBy(a => a.Platform is null).ThenBy(a => a.Platform).ThenBy(a => a.Name);
 
     private void OnUserChanged() => InvokeAsync(async () =>
     {

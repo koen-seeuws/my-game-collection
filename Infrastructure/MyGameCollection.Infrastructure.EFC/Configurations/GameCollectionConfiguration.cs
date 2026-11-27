@@ -26,5 +26,11 @@ public class GameCollectionConfiguration : IEntityTypeConfiguration<GameCollecti
             .HasForeignKey(g => g.GameCollectionId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(c => c.Accessories)
+            .WithOne(a => a.GameCollection)
+            .HasForeignKey(a => a.GameCollectionId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

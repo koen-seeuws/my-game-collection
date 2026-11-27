@@ -1,7 +1,7 @@
 namespace MyGameCollection.Core.Domain.Abstractions;
 
 /// <summary>
-/// The bounds of a game's or console's details. The domain enforces them; the application validates incoming
+/// The bounds of a game's, console's or accessory's details. The domain enforces them; the application validates incoming
 /// commands against the same values so they fail early with a friendly message.
 /// </summary>
 public static class CollectionItemLimits
@@ -22,4 +22,7 @@ public static class CollectionItemLimits
 
     /// <summary>Generous enough for MMOs and battle royales.</summary>
     public const int MaxPlayers = 10_000;
+
+    /// <summary>The most identical accessories (e.g. four of the same controller) one entry can count.</summary>
+    public const int MaxAccessoryQuantity = 99;
 }

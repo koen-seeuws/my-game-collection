@@ -2,7 +2,7 @@ using MyGameCollection.Core.Domain.Abstractions;
 
 namespace MyGameCollection.Infrastructure.EFC.DataModel;
 
-/// <summary>The columns of everything that is owned or wished for: games, consoles and add-ons.</summary>
+/// <summary>The columns of everything that is owned or wished for: games, consoles, accessories and add-ons.</summary>
 public abstract class ItemRow
 {
     public int Id { get; set; }

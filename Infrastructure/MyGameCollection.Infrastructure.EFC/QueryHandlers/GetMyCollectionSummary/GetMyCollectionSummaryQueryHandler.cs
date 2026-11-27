@@ -37,9 +37,15 @@ public record GetMyCollectionSummaryQueryHandler : IQueryHandler<GetMyCollection
             .Select(a => new { a.Status, a.PurchasePrice })
             .ToListAsync(ct);
 
+        var accessories = await _dbContext.Accessories
+            .Where(a => a.GameCollection.Owner.ToUpper() == owner.ToUpper())
+            .Select(a => new { a.Status, a.Quantity, a.PurchasePrice })
+            .ToListAsync(ct);
+
         var ownedGames = games.Where(g => g.Status == CollectionStatus.Owned).ToList();
         var ownedConsoles = consoles.Where(c => c.Status == CollectionStatus.Owned).ToList();
         var ownedAddOns = addOns.Where(a => a.Status == CollectionStatus.Owned).ToList();
+        var ownedAccessories = accessories.Where(a => a.Status == CollectionStatus.Owned).ToList();
         var ownedConsoleNames = ownedConsoles.Select(c => c.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var platforms = games
@@ -66,8 +72,10 @@ public record GetMyCollectionSummaryQueryHandler : IQueryHandler<GetMyCollection
             WishlistConsoles = consoles.Count - ownedConsoles.Count,
             OwnedAddOns = ownedAddOns.Count,
             WishlistAddOns = addOns.Count - ownedAddOns.Count,
+            OwnedAccessories = ownedAccessories.Sum(a => a.Quantity),
+            WishlistAccessories = accessories.Count - ownedAccessories.Count,
             TotalSpent = ownedGames.Sum(g => g.PurchasePrice ?? 0) + ownedConsoles.Sum(c => c.PurchasePrice ?? 0)
-                         + ownedAddOns.Sum(a => a.PurchasePrice ?? 0),
+                         + ownedAddOns.Sum(a => a.PurchasePrice ?? 0) + ownedAccessories.Sum(a => a.PurchasePrice ?? 0),
             Platforms = platforms,
             OwnedGamesByFormat = Enum.GetValues<GameFormat>()
                 .ToDictionary(f => f, f => ownedGames.Count(g => g.Format == f)),
