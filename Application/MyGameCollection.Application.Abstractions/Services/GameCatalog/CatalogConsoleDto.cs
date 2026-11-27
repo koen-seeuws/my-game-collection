@@ -14,4 +14,7 @@ public record CatalogConsoleDto
 
     /// <summary>A larger logo, stored as the console's thumbnail.</summary>
     public string? ThumbnailUrl { get; init; }
+
+    /// <summary>The console's models / revisions, oldest first. Each can have its own picture.</summary>
+    public IReadOnlyList<CatalogConsoleVersionDto> Versions { get; init; } = [];
 }

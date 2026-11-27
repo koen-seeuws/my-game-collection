@@ -27,6 +27,37 @@
                 </MudStack>
             </ItemTemplate>
         </CatalogLookup>
+        @if (_catalogConsole is { Versions.Count: > 1 } catalogConsole)
+        {
+            <div class="mb-4">
+                <MudText Typo="Typo.subtitle2">Which model is it?</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    IGDB knows @catalogConsole.Versions.Count models of the @catalogConsole.Name. Pick yours to use its picture.
+                </MudText>
+                <div class="version-picker mt-2">
+                    @foreach (var version in catalogConsole.Versions)
+                    {
+                        var selected = version.Id == _catalogVersion?.Id;
+                        <button type="button" class="@($"version-option{(selected ? " selected" : "")}")"
+                                aria-pressed="@(selected ? "true" : "false")" @onclick="() => ApplyCatalogVersion(version)">
+                            @if (version.LogoUrl is not null)
+                            {
+                                <img src="@version.LogoUrl" alt="" loading="lazy" />
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@Icons.Material.Outlined.SportsEsports" Class="version-option-placeholder" />
+                            }
+                            <span class="version-option-name">@version.Name</span>
+                            @if (version.ReleaseYear is { } year)
+                            {
+                                <span class="version-option-year">@year</span>
+                            }
+                        </button>
+                    }
+                </div>
+            </div>
+        }
         <EditForm id="@_formId" Model="Model" OnValidSubmit="Submit">
             <DataAnnotationsValidator />
             <MudGrid Spacing="2">
@@ -114,12 +145,61 @@
     private Task<IReadOnlyList<CatalogConsoleDto>> SearchCatalogAsync(string search, CancellationToken ct) =>
         GameCatalog.SearchConsolesAsync(search, ct);
 
+    /// <summary>The console last picked from IGDB, whose models are offered in the model picker.</summary>
+    private CatalogConsoleDto? _catalogConsole;
+
+    private CatalogConsoleVersionDto? _catalogVersion;
+
     private void ApplyCatalogConsole(CatalogConsoleDto console)
     {
+        _catalogConsole = console;
+        _catalogVersion = null;
+
         Model.Name = KnownPlatforms.Match(Platforms, console.Name, console.Abbreviation, console.AlternativeName);
         Model.Manufacturer = KnownPlatforms.ManufacturerOf(Model.Name) ?? console.Manufacturer ?? Model.Manufacturer;
         Model.ReleaseYear = console.ReleaseYear ?? Model.ReleaseYear;
         Model.ThumbnailUrl = console.ThumbnailUrl ?? Model.ThumbnailUrl;
+
+        // With a single model there is nothing to choose: use it right away.
+        if (console.Versions is [var only])
+            ApplyCatalogVersion(only);
+    }
+
+    private void ApplyCatalogVersion(CatalogConsoleVersionDto version)
+    {
+        // Text the previously picked model filled in is replaced; text the user typed is kept.
+        var previousFill = _catalogVersion is { } previous ? ModelName(previous.Name) : null;
+        var modelIsOurs = previousFill is not null && string.Equals(Model.Model, previousFill, StringComparison.Ordinal);
+
+        _catalogVersion = version;
+
+        Model.Model = ModelName(version.Name) ?? (modelIsOurs ? null : Model.Model);
+        Model.ReleaseYear = version.ReleaseYear ?? Model.ReleaseYear;
+        Model.ThumbnailUrl = version.ThumbnailUrl ?? _catalogConsole?.ThumbnailUrl ?? Model.ThumbnailUrl;
+    }
+
+    /// <summary>
+    /// The model / revision text for an IGDB version name: "PlayStation 5 Pro" becomes "Pro",
+    /// and IGDB's generic "Initial version" leaves the field as it is.
+    /// </summary>
+    private string? ModelName(string versionName)
+    {
+        if (versionName.Equals("Initial version", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        foreach (var prefix in new[] { Model.Name, _catalogConsole?.Name })
+        {
+            if (!string.IsNullOrWhiteSpace(prefix)
+                && versionName.Length > prefix.Length
+                && versionName.StartsWith(prefix + " ", StringComparison.OrdinalIgnoreCase))
+            {
+                // "Super Nintendo (original European version)" becomes "original European version".
+                var rest = versionName[(prefix.Length + 1)..].Trim();
+                return rest is ['(', .., ')'] ? rest[1..^1].Trim() : rest;
+            }
+        }
+
+        return versionName;
     }
 
     private Task<IEnumerable<string>> SearchNamesAsync(string? search, CancellationToken _) =>

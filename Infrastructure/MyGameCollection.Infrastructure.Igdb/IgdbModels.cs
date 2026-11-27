@@ -28,6 +28,9 @@ internal sealed record IgdbPlatform(
     [property: JsonPropertyName("versions")] IReadOnlyList<IgdbPlatformVersion>? Versions);
 
 internal sealed record IgdbPlatformVersion(
+    [property: JsonPropertyName("id")] long Id,
+    [property: JsonPropertyName("name")] string? Name,
+    [property: JsonPropertyName("platform_logo")] IgdbImage? PlatformLogo,
     [property: JsonPropertyName("companies")] IReadOnlyList<IgdbPlatformVersionCompany>? Companies,
     [property: JsonPropertyName("platform_version_release_dates")] IReadOnlyList<IgdbReleaseDate>? ReleaseDates);
 
