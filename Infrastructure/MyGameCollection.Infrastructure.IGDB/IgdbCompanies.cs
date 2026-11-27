@@ -1,6 +1,6 @@
 using MyGameCollection.Core.Domain.Abstractions;
 
-namespace MyGameCollection.Infrastructure.Igdb;
+namespace MyGameCollection.Infrastructure.IGDB;
 
 /// <summary>Who developed and who published a game, from IGDB's involved companies.</summary>
 internal static class IgdbCompanies

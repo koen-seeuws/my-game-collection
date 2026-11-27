@@ -23,7 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Core\MyGameCollection.Core.Domain\MyGameCollection.Core.Domain.csproj" />
     <ProjectReference Include="..\..\Infrastructure\MyGameCollection.Infrastructure.Identity\MyGameCollection.Infrastructure.Identity.csproj" />
-    <ProjectReference Include="..\..\Infrastructure\MyGameCollection.Infrastructure.Igdb\MyGameCollection.Infrastructure.Igdb.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\MyGameCollection.Infrastructure.IGDB\MyGameCollection.Infrastructure.IGDB.csproj" />
     <ProjectReference Include="..\..\Presentation\MyGameCollection.Presentation.BlazorServer\MyGameCollection.Presentation.BlazorServer.csproj" />
   </ItemGroup>
 
