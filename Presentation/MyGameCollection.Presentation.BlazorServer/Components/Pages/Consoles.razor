@@ -1,6 +1,4 @@
 @page "/consoles"
-@inherits CollectionPageBase
-@using MyGameCollection.Application.Abstractions.Queries.GetMyConsoles
 
 <PageTitle>Consoles · My Game Collection</PageTitle>
 
@@ -38,19 +36,19 @@ else
         </MudStack>
     </MudPaper>
 
-    @if (Loading)
+    @if (_loading)
     {
         <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
     }
 
     var consoles = VisibleConsoles.ToList();
 
-    @if (consoles.Count == 0 && !Loading)
+    @if (consoles.Count == 0 && !_loading)
     {
         <MudPaper Elevation="0" Outlined="true" Class="pa-8 d-flex flex-column align-center">
             <MudIcon Icon="@Icons.Material.Outlined.SportsEsports" Size="Size.Large" Color="Color.Secondary" />
             <MudText Class="mt-2">
-                @(Consoles.Count == 0 ? "No consoles yet. Plug one in!" : "No consoles match your filters.")
+                @(_consoles.Count == 0 ? "No consoles yet. Plug one in!" : "No consoles match your filters.")
             </MudText>
         </MudPaper>
     }
@@ -84,46 +82,4 @@ else
             }
         </div>
     }
-}
-
-@code {
-    private enum ConsoleSort { Manufacturer, Name, ReleaseYear, GameCount }
-
-    private string? _search;
-    private CollectionStatus? _statusFilter;
-    private ConsoleSort _sort = ConsoleSort.Manufacturer;
-
-    private IEnumerable<ConsoleDto> VisibleConsoles
-    {
-        get
-        {
-            var consoles = Consoles.Where(MatchesSearch);
-            if (_statusFilter is { } status)
-                consoles = consoles.Where(c => c.Status == status);
-
-            return _sort switch
-            {
-                ConsoleSort.Name => consoles.OrderBy(c => c.Name),
-                ConsoleSort.ReleaseYear => consoles.OrderBy(c => c.ReleaseYear ?? int.MaxValue).ThenBy(c => c.Name),
-                ConsoleSort.GameCount => consoles.OrderByDescending(GameCount).ThenBy(c => c.Name),
-                _ => consoles.OrderBy(c => c.Manufacturer).ThenBy(c => c.ReleaseYear ?? int.MaxValue).ThenBy(c => c.Name)
-            };
-        }
-    }
-
-    private static string Subtitle(ConsoleDto console) =>
-        string.Join(" · ", new[] { console.Manufacturer, console.Model, console.ReleaseYear?.ToString() }
-            .Where(part => !string.IsNullOrWhiteSpace(part)));
-
-    /// <summary>The number of owned games for this system (matched on platform name).</summary>
-    private int GameCount(ConsoleDto console) =>
-        Games.Count(g => g.Status == CollectionStatus.Owned
-                         && string.Equals(g.Platform, console.Name, StringComparison.OrdinalIgnoreCase));
-
-    private bool MatchesSearch(ConsoleDto console) =>
-        string.IsNullOrWhiteSpace(_search)
-        || console.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)
-        || console.Manufacturer.Contains(_search, StringComparison.OrdinalIgnoreCase)
-        || (console.Model?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
-        || (console.Notes?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false);
 }

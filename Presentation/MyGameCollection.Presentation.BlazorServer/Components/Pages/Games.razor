@@ -1,6 +1,4 @@
 @page "/games"
-@inherits CollectionPageBase
-@using MyGameCollection.Application.Abstractions.Queries.GetMyGames
 
 <PageTitle>Games · My Game Collection</PageTitle>
 
@@ -39,19 +37,19 @@ else
         </MudStack>
     </MudPaper>
 
-    @if (Loading)
+    @if (_loading)
     {
         <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
     }
 
     var games = VisibleGames.ToList();
 
-    @if (games.Count == 0 && !Loading)
+    @if (games.Count == 0 && !_loading)
     {
         <MudPaper Elevation="0" Outlined="true" Class="pa-8 d-flex flex-column align-center">
             <MudIcon Icon="@Icons.Material.Outlined.VideogameAsset" Size="Size.Large" Color="Color.Secondary" />
             <MudText Class="mt-2">
-                @(Games.Count == 0 ? "No games here yet. Blow on that cartridge and add your first one!" : "No games match your filters.")
+                @(_games.Count == 0 ? "No games here yet. Blow on that cartridge and add your first one!" : "No games match your filters.")
             </MudText>
         </MudPaper>
     }
@@ -60,64 +58,11 @@ else
         @foreach (var group in games.GroupBy(g => g.Platform, StringComparer.OrdinalIgnoreCase).OrderBy(g => g.Key))
         {
             <MudText Typo="Typo.h6" Class="item-group-title">@group.Key <span class="item-group-count">@group.Count()</span></MudText>
-            @GameCards(group)
+            <GameCardGrid Games="group" OnEdit="EditGameAsync" OnDelete="DeleteGameAsync" OnAcquire="AcquireGameAsync" />
         }
     }
     else
     {
-        @GameCards(games)
+        <GameCardGrid Games="games" OnEdit="EditGameAsync" OnDelete="DeleteGameAsync" OnAcquire="AcquireGameAsync" />
     }
-}
-
-@code {
-    private enum GameSort { Title, ReleaseYear, RecentlyPurchased, Price }
-
-    private string? _search;
-    private CollectionStatus? _statusFilter;
-    private GameSort _sort = GameSort.Title;
-    private bool _groupByPlatform;
-
-    private RenderFragment GameCards(IEnumerable<GameDto> games) => __builder =>
-    {
-        <div class="item-grid">
-            @foreach (var game in games)
-            {
-                <ItemCard @key="game.Key" Title="@game.Title" Subtitle="@Subtitle(game)" ThumbnailUrl="@game.ThumbnailUrl"
-                          Icon="@Icons.Material.Outlined.VideogameAsset" Status="game.Status" Notes="@game.Notes"
-                          PurchasePrice="game.PurchasePrice" PurchaseDate="game.PurchaseDate"
-                          OnEdit="() => EditGameAsync(game)" OnDelete="() => DeleteGameAsync(game)"
-                          OnAcquire="() => AcquireGameAsync(game)">
-                    <ItemTags Region="game.Region" Completeness="game.Completeness"
-                              Condition="@(game.Status == CollectionStatus.Owned ? game.Condition : null)" />
-                </ItemCard>
-            }
-        </div>
-    };
-
-    private static string Subtitle(GameDto game) =>
-        game.ReleaseYear is { } year ? $"{game.Platform} · {year}" : game.Platform;
-
-    private IEnumerable<GameDto> VisibleGames
-    {
-        get
-        {
-            var games = Games.Where(MatchesSearch);
-            if (_statusFilter is { } status)
-                games = games.Where(g => g.Status == status);
-
-            return _sort switch
-            {
-                GameSort.ReleaseYear => games.OrderBy(g => g.ReleaseYear ?? int.MaxValue).ThenBy(g => g.Title),
-                GameSort.RecentlyPurchased => games.OrderByDescending(g => g.PurchaseDate ?? DateOnly.MinValue).ThenBy(g => g.Title),
-                GameSort.Price => games.OrderByDescending(g => g.PurchasePrice ?? -1).ThenBy(g => g.Title),
-                _ => games.OrderBy(g => g.Title, StringComparer.CurrentCultureIgnoreCase)
-            };
-        }
-    }
-
-    private bool MatchesSearch(GameDto game) =>
-        string.IsNullOrWhiteSpace(_search)
-        || game.Title.Contains(_search, StringComparison.OrdinalIgnoreCase)
-        || game.Platform.Contains(_search, StringComparison.OrdinalIgnoreCase)
-        || (game.Notes?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false);
 }
