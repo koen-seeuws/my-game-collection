@@ -50,12 +50,17 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
         ThumbnailUrl = IgdbClient.ImageUrl(game.Cover?.ImageId, "t_cover_big"),
         Platforms = (game.Platforms ?? [])
             .Where(p => !string.IsNullOrWhiteSpace(p.Name))
-            .Select(p => new CatalogPlatformDto
+            .Select(p =>
             {
-                Name = p.Name!,
-                Abbreviation = p.Abbreviation,
-                Players = IgdbPlayerModes.ForPlatform(game, p.Id),
-                Releases = Releases(game, p.Id)
+                var players = IgdbPlayerModes.ForPlatform(game, p.Id);
+                return new CatalogPlatformDto
+                {
+                    Name = p.Name!,
+                    Abbreviation = p.Abbreviation,
+                    Players = players.Players,
+                    PlayerCountsFromOtherPlatforms = players.CountsFromOtherPlatforms,
+                    Releases = Releases(game, p.Id)
+                };
             })
             .ToList(),
         Players = IgdbPlayerModes.ForGame(game),

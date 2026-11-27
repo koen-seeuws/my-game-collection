@@ -96,12 +96,44 @@ public class PlayerModesTests
             new IgdbMultiplayerMode(Platform: 130, OfflineMax: 4, OfflineCoop: true),
             new IgdbMultiplayerMode(Platform: 6, OnlineMax: 8));
 
-        IgdbPlayerModes.ForPlatform(game, 6).Should().Be(new PlayerModes
+        IgdbPlayerModes.ForPlatform(game, 6).Should().Be(new IgdbPlatformPlayers(new PlayerModes
         {
             SinglePlayer = true, Multiplayer = true, MaxOnlinePlayers = 8
-        });
+        }, CountsFromOtherPlatforms: false));
         // Nothing known of this platform: the whole game's details are the best guess.
-        IgdbPlayerModes.ForPlatform(game, 48)!.MaxLocalPlayers.Should().Be(4);
+        var unknown = IgdbPlayerModes.ForPlatform(game, 48);
+        unknown.Players!.MaxLocalPlayers.Should().Be(4);
+        unknown.CountsFromOtherPlatforms.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Igdb_FillsInAPlayerCountThePlatformLeavesOutFromItsOtherPlatforms()
+    {
+        // Far Cry 4: IGDB knows online co-op works on PS4 (48), but only how many can play on PS3 (9).
+        var game = IgdbGame(gameModes: [1, 3],
+            new IgdbMultiplayerMode(Platform: 9, OnlineCoopMax: 2, OnlineCoop: true),
+            new IgdbMultiplayerMode(Platform: 48, OnlineCoop: true));
+
+        IgdbPlayerModes.ForPlatform(game, 48).Should().Be(new IgdbPlatformPlayers(new PlayerModes
+        {
+            SinglePlayer = true, Multiplayer = true, MaxOnlinePlayers = 2, OnlineCoop = true
+        }, CountsFromOtherPlatforms: true));
+        IgdbPlayerModes.ForPlatform(game, 9).CountsFromOtherPlatforms.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Igdb_DoesNotFillInACountForAWayOfPlayingThePlatformDoesNotHave()
+    {
+        // Couch co-op for four on Switch (130) says nothing of how many can play on one PS4 (48).
+        var game = IgdbGame(gameModes: [1, 3],
+            new IgdbMultiplayerMode(Platform: 130, OfflineCoopMax: 4, OfflineCoop: true),
+            new IgdbMultiplayerMode(Platform: 48, OnlineCoop: true));
+
+        var players = IgdbPlayerModes.ForPlatform(game, 48);
+
+        players.Players!.MaxLocalPlayers.Should().BeNull();
+        players.Players.MaxOnlinePlayers.Should().BeNull();
+        players.CountsFromOtherPlatforms.Should().BeFalse();
     }
 
     [Fact]

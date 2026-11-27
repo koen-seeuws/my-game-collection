@@ -506,6 +506,8 @@
 
         Model.Players = players;
         _playersSource = players is null ? "IGDB does not know how many can play this game."
+            : platform is { Players: not null, PlayerCountsFromOtherPlatforms: true }
+                ? $"Filled in from IGDB for {Model.Platform}. The number of players comes from its other platforms, so check it."
             : platform?.Players is not null ? $"Filled in from IGDB for {Model.Platform}."
             : "Filled in from IGDB.";
     }
