@@ -1,8 +1,21 @@
-using MyGameCollection.Application.Abstractions.Contracts;
+using MyGameCollection.Core.Domain.Abstractions;
 
 namespace MyGameCollection.Application.Abstractions.Commands.AddConsole;
 
 public record AddConsoleCommand : ICommand
 {
-    public required ConsoleData Data { get; init; }
+    public required string Name { get; init; }
+    public required string Manufacturer { get; init; }
+    public string? Model { get; init; }
+    public Region Region { get; init; }
+    public ItemCondition Condition { get; init; }
+    public Completeness Completeness { get; init; }
+    public CollectionStatus Status { get; init; }
+    public int? ReleaseYear { get; init; }
+    public DateOnly? PurchaseDate { get; init; }
+    public decimal? PurchasePrice { get; init; }
+    public string? Notes { get; init; }
+
+    /// <summary>Absolute http(s) URL of a cover art or picture shown on the item's card.</summary>
+    public string? ThumbnailUrl { get; init; }
 }

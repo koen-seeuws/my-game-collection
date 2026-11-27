@@ -1,7 +1,6 @@
 using MyGameCollection.Application.Abstractions;
 using MyGameCollection.Application.Abstractions.Commands.AddConsole;
 using MyGameCollection.Application.Abstractions.Persistence;
-using MyGameCollection.Application.Business.Mapping;
 using MyGameCollection.Core.Domain;
 
 namespace MyGameCollection.Application.Business.CommandHandlers.AddConsole;
@@ -23,7 +22,22 @@ public class AddConsoleCommandHandler : ICommandHandler<AddConsoleCommand>
         var collection = await _repository.GetAsync(owner, cancellationToken)
             ?? throw new InvalidOperationException($"No game collection could be loaded for owner '{owner}'.");
 
-        collection.AddConsole(command.Data.ToDomain());
+        var details = new ConsoleDetails
+        {
+            Name = command.Name,
+            Manufacturer = command.Manufacturer,
+            Model = command.Model,
+            Region = command.Region,
+            Condition = command.Condition,
+            Completeness = command.Completeness,
+            Status = command.Status,
+            ReleaseYear = command.ReleaseYear,
+            PurchaseDate = command.PurchaseDate,
+            PurchasePrice = command.PurchasePrice,
+            Notes = command.Notes,
+            ThumbnailUrl = command.ThumbnailUrl
+        };
+        collection.AddConsole(details);
 
         await _repository.SaveAsync(collection, cancellationToken);
     }

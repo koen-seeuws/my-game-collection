@@ -1,7 +1,6 @@
 using MyGameCollection.Application.Abstractions;
 using MyGameCollection.Application.Abstractions.Commands.AddGame;
 using MyGameCollection.Application.Abstractions.Persistence;
-using MyGameCollection.Application.Business.Mapping;
 using MyGameCollection.Core.Domain;
 
 namespace MyGameCollection.Application.Business.CommandHandlers.AddGame;
@@ -23,7 +22,21 @@ public class AddGameCommandHandler : ICommandHandler<AddGameCommand>
         var collection = await _repository.GetAsync(owner, cancellationToken)
             ?? throw new InvalidOperationException($"No game collection could be loaded for owner '{owner}'.");
 
-        collection.AddGame(command.Data.ToDomain());
+        var details = new GameDetails
+        {
+            Title = command.Title,
+            Platform = command.Platform,
+            Region = command.Region,
+            Condition = command.Condition,
+            Completeness = command.Completeness,
+            Status = command.Status,
+            ReleaseYear = command.ReleaseYear,
+            PurchaseDate = command.PurchaseDate,
+            PurchasePrice = command.PurchasePrice,
+            Notes = command.Notes,
+            ThumbnailUrl = command.ThumbnailUrl
+        };
+        collection.AddGame(details);
 
         await _repository.SaveAsync(collection, cancellationToken);
     }

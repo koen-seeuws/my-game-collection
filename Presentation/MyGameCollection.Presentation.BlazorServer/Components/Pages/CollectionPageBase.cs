@@ -3,12 +3,8 @@ using MudBlazor;
 using MyGameCollection.Application.Abstractions;
 using MyGameCollection.Application.Abstractions.Commands.AcquireConsole;
 using MyGameCollection.Application.Abstractions.Commands.AcquireGame;
-using MyGameCollection.Application.Abstractions.Commands.AddConsole;
-using MyGameCollection.Application.Abstractions.Commands.AddGame;
 using MyGameCollection.Application.Abstractions.Commands.DeleteConsole;
 using MyGameCollection.Application.Abstractions.Commands.DeleteGame;
-using MyGameCollection.Application.Abstractions.Commands.UpdateConsole;
-using MyGameCollection.Application.Abstractions.Commands.UpdateGame;
 using MyGameCollection.Application.Abstractions.Queries.GetMyConsoles;
 using MyGameCollection.Application.Abstractions.Queries.GetMyGames;
 using MyGameCollection.Core.Domain.Abstractions;
@@ -89,7 +85,7 @@ public abstract class CollectionPageBase : ComponentBase, IDisposable
         if (await ShowDialogAsync<GameDialog, GameFormModel>(title, new GameFormModel { Status = status }) is not { } model)
             return;
 
-        await ExecuteAsync(new AddGameCommand { Data = model.ToData() }, $"'{model.Title}' added.");
+        await ExecuteAsync(model.ToAddCommand(), $"'{model.Title}' added.");
     }
 
     protected async Task EditGameAsync(GameDto game)
@@ -97,7 +93,7 @@ public abstract class CollectionPageBase : ComponentBase, IDisposable
         if (await ShowDialogAsync<GameDialog, GameFormModel>("Edit game", GameFormModel.From(game)) is not { } model)
             return;
 
-        await ExecuteAsync(new UpdateGameCommand { Key = game.Key, Data = model.ToData() }, $"'{model.Title}' updated.");
+        await ExecuteAsync(model.ToUpdateCommand(game.Key), $"'{model.Title}' updated.");
     }
 
     protected async Task DeleteGameAsync(GameDto game)
@@ -128,7 +124,7 @@ public abstract class CollectionPageBase : ComponentBase, IDisposable
         if (await ShowDialogAsync<ConsoleDialog, ConsoleFormModel>(title, new ConsoleFormModel { Status = status }) is not { } model)
             return;
 
-        await ExecuteAsync(new AddConsoleCommand { Data = model.ToData() }, $"'{model.Name}' added.");
+        await ExecuteAsync(model.ToAddCommand(), $"'{model.Name}' added.");
     }
 
     protected async Task EditConsoleAsync(ConsoleDto console)
@@ -136,7 +132,7 @@ public abstract class CollectionPageBase : ComponentBase, IDisposable
         if (await ShowDialogAsync<ConsoleDialog, ConsoleFormModel>("Edit console", ConsoleFormModel.From(console)) is not { } model)
             return;
 
-        await ExecuteAsync(new UpdateConsoleCommand { Key = console.Key, Data = model.ToData() }, $"'{model.Name}' updated.");
+        await ExecuteAsync(model.ToUpdateCommand(console.Key), $"'{model.Name}' updated.");
     }
 
     protected async Task DeleteConsoleAsync(ConsoleDto console)
