@@ -241,6 +241,28 @@
                             </MudItem>
                         }
                     }
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="PlayStatus?" @bind-Value="Model.PlayStatus" Label="Play status" Variant="Variant.Outlined"
+                                   Clearable="true" ToStringFunc="@(status => status is { } s ? s.ToDisplayName() : string.Empty)"
+                                   HelperText="Leave empty if you don't track it">
+                            @foreach (var status in Enum.GetValues<PlayStatus>())
+                            {
+                                <MudSelectItem T="PlayStatus?" Value="status">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                        <MudIcon Icon="@status.ToIcon()" Size="Size.Small" />
+                                        <span>@status.ToDisplayName()</span>
+                                    </MudStack>
+                                </MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    @if (Model.PlayStatus.IsFinished())
+                    {
+                        <MudItem xs="12" sm="6">
+                            <MudDatePicker @bind-Date="Model.CompletedOn" Label="Completed on" Variant="Variant.Outlined"
+                                           Clearable="true" MaxDate="DateTime.Today" />
+                        </MudItem>
+                    }
                     <MudItem xs="12">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                             <ItemThumbnail Url="@Model.ThumbnailUrl" Icon="@Icons.Material.Outlined.VideogameAsset" Class="thumbnail-preview" />

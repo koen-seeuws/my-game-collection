@@ -1,5 +1,12 @@
-@* Format, region, completeness, condition and purchase origin of an item, as compact tags. *@
+@* Play status, format, region, completeness, condition and purchase origin of an item, as compact tags. *@
 <div class="item-tags">
+    @if (PlayStatus is { } playStatus)
+    {
+        <span class="@($"item-tag play-status {playStatus.ToString().ToLowerInvariant()}")">
+            <MudIcon Icon="@playStatus.ToIcon()" Class="item-tag-icon" />
+            @playStatus.ToDisplayName()
+        </span>
+    }
     @if (Format is { } format)
     {
         <span class="@($"item-tag format {format.ToString().ToLowerInvariant()}")">@format.ToDisplayName()</span>
@@ -33,4 +40,7 @@
 
     /// <summary>New or secondhand; left out when unknown.</summary>
     [Parameter] public PurchaseOrigin? Origin { get; set; }
+
+    /// <summary>How far the game was played; only games have one, and it is left out when not tracked.</summary>
+    [Parameter] public PlayStatus? PlayStatus { get; set; }
 }

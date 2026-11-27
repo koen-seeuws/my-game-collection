@@ -11,7 +11,8 @@
         <ItemTags Format="Model.Format" Region="Model.Region"
                   Completeness="@(Model.IsPhysical ? Model.Completeness : null)"
                   Condition="@(Owned && Model.IsPhysical ? Model.Condition : null)"
-                  Origin="@(Owned && Model.IsPhysical ? Model.PurchaseOrigin : null)" />
+                  Origin="@(Owned && Model.IsPhysical ? Model.PurchaseOrigin : null)"
+                  PlayStatus="Model.PlayStatus" />
         <PlayerTags Players="Model.Players" />
 
         <MudGrid Spacing="2" Class="mt-2">
@@ -52,6 +53,10 @@
             @if (Owned && Model.Format != GameFormat.Subscription && Model.PurchasePrice is not null)
             {
                 <DetailField Label="Price paid">@DisplayNames.Money(Model.PurchasePrice)</DetailField>
+            }
+            @if (Model.PlayStatus.IsFinished() && Model.CompletedOn is { } completed)
+            {
+                <DetailField Label="Completed on">@DisplayNames.Date(DateOnly.FromDateTime(completed))</DetailField>
             }
             @if (!string.IsNullOrWhiteSpace(Model.Notes))
             {

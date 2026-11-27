@@ -592,6 +592,40 @@ body::after {
     color: var(--mud-palette-warning);
 }
 
+/* Play status: muted while unplayed or set aside, coloured while playing and once finished. */
+.item-tag.play-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-weight: 600;
+}
+
+.item-tag.play-status.notstarted,
+.item-tag.play-status.onhold {
+    color: var(--mud-palette-text-secondary);
+}
+
+.item-tag.play-status.dropped {
+    color: var(--mud-palette-text-disabled);
+    border-style: dashed;
+}
+
+.item-tag.play-status.playing {
+    border-color: var(--mud-palette-info);
+    color: var(--mud-palette-info);
+}
+
+.item-tag.play-status.completed {
+    border-color: var(--mud-palette-success);
+    color: var(--mud-palette-success);
+}
+
+.item-tag.play-status.hundredpercent {
+    border-color: var(--mud-palette-warning);
+    color: var(--mud-palette-warning);
+    background: rgba(250, 204, 21, 0.1);
+}
+
 .item-tag.players {
     display: inline-flex;
     align-items: center;

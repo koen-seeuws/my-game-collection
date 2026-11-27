@@ -48,12 +48,21 @@ else
                     <MudSelectItem T="PlayerFilter?" Value="filter">@PlayerFilterLabel(filter)</MudSelectItem>
                 }
             </MudSelect>
+            <MudSelect T="PlayFilter?" @bind-Value="_playFilter" Label="Play status" Dense="true" Margin="Margin.Dense"
+                       Variant="Variant.Outlined" Style="max-width: 220px" ToStringFunc="PlayFilterLabel">
+                <MudSelectItem T="PlayFilter?" Value="null">@PlayFilterLabel(null)</MudSelectItem>
+                @foreach (var filter in Enum.GetValues<PlayFilter>())
+                {
+                    <MudSelectItem T="PlayFilter?" Value="filter">@PlayFilterLabel(filter)</MudSelectItem>
+                }
+            </MudSelect>
             <MudSelect T="GameSort" @bind-Value="_sort" Label="Sort by" Dense="true" Margin="Margin.Dense"
                        Variant="Variant.Outlined" Style="max-width: 200px">
                 <MudSelectItem Value="GameSort.Title">Title</MudSelectItem>
                 <MudSelectItem Value="GameSort.ReleaseDate">Release date</MudSelectItem>
                 <MudSelectItem Value="GameSort.RecentlyPurchased">Recently purchased</MudSelectItem>
                 <MudSelectItem Value="GameSort.Price">Price paid</MudSelectItem>
+                <MudSelectItem Value="GameSort.RecentlyCompleted">Recently completed</MudSelectItem>
             </MudSelect>
             <MudSwitch T="bool" @bind-Value="_groupByPlatform" Color="Color.Primary" Label="Group by platform" />
             <MudSpacer />

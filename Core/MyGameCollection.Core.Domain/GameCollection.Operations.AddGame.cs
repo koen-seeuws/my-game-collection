@@ -26,6 +26,8 @@ public static partial class GameCollectionOperations
         DateOnly? purchaseDate = null,
         decimal? purchasePrice = null,
         PurchaseOrigin? purchaseOrigin = null,
+        PlayStatus? playStatus = null,
+        DateOnly? completedOn = null,
         string? notes = null,
         string? thumbnailUrl = null,
         long? catalogId = null)
@@ -52,6 +54,8 @@ public static partial class GameCollectionOperations
             PurchaseDate = purchaseDate,
             PurchasePrice = purchasePrice,
             PurchaseOrigin = purchaseOrigin,
+            PlayStatus = playStatus,
+            CompletedOn = completedOn,
             Notes = notes,
             ThumbnailUrl = thumbnailUrl,
             CatalogId = catalogId

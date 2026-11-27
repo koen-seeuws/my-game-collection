@@ -21,6 +21,9 @@ public class Game : CollectionItem
 
     public GameFormat Format { get; set; }
 
+    public PlayStatus? PlayStatus { get; set; }
+    public DateOnly? CompletedOn { get; set; }
+
     // Player modes (see Domain.Abstractions.PlayerModes); all false / empty when unknown.
     public bool SinglePlayer { get; set; }
     public bool Multiplayer { get; set; }

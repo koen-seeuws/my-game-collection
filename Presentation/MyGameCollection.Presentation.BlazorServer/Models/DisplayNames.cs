@@ -54,6 +54,31 @@ public static class DisplayNames
         _ => "Secondhand"
     };
 
+    public static string ToDisplayName(this PlayStatus status) => status switch
+    {
+        PlayStatus.NotStarted => "Not started",
+        PlayStatus.Playing => "Playing",
+        PlayStatus.OnHold => "On hold",
+        PlayStatus.Dropped => "Dropped",
+        PlayStatus.Completed => "Completed",
+        _ => "100%"
+    };
+
+    /// <summary>An icon for each play status, for tags and filters.</summary>
+    public static string ToIcon(this PlayStatus status) => status switch
+    {
+        PlayStatus.NotStarted => MudBlazor.Icons.Material.Outlined.HourglassEmpty,
+        PlayStatus.Playing => MudBlazor.Icons.Material.Filled.PlayArrow,
+        PlayStatus.OnHold => MudBlazor.Icons.Material.Filled.Pause,
+        PlayStatus.Dropped => MudBlazor.Icons.Material.Filled.Block,
+        PlayStatus.Completed => MudBlazor.Icons.Material.Filled.Flag,
+        _ => MudBlazor.Icons.Material.Filled.EmojiEvents
+    };
+
+    /// <summary>Whether the game was played to the end (and so can have a completion date).</summary>
+    public static bool IsFinished(this PlayStatus? status) =>
+        status is PlayStatus.Completed or PlayStatus.HundredPercent;
+
     public static string ToDisplayName(this CollectionStatus status) => status switch
     {
         CollectionStatus.Owned => "Owned",
@@ -117,6 +142,7 @@ public static class DisplayNames
         CollectionStatus s => s.ToDisplayName(),
         GameFormat f => f.ToDisplayName(),
         PurchaseOrigin o => o.ToDisplayName(),
+        PlayStatus p => p.ToDisplayName(),
         GameType t => t.ToDisplayName(),
         AddOnType t => t.ToDisplayName(),
         _ => value.ToString()
