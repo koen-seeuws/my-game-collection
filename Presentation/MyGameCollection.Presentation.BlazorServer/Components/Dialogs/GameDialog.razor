@@ -95,6 +95,14 @@
                         }
                     </MudSelect>
                 </MudItem>
+                <MudItem xs="12" sm="6">
+                    <NameListField Label="Developers" @bind-Values="Model.Developers" Suggestions="Companies"
+                                   MaxCount="CollectionItemLimits.MaxCompanies" HelperText="Filled in from IGDB when available" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <NameListField Label="Publishers" @bind-Values="Model.Publishers" Suggestions="Companies"
+                                   MaxCount="CollectionItemLimits.MaxCompanies" HelperText="Filled in from IGDB when available" />
+                </MudItem>
                 @if (_catalogPlatforms.Count > 1)
                 {
                     <MudItem xs="12">
@@ -223,6 +231,10 @@
     [Parameter]
     public IEnumerable<string> Platforms { get; set; } = [];
 
+    /// <summary>Developers and publishers already used in the collection, suggested while typing one.</summary>
+    [Parameter]
+    public IEnumerable<string> Companies { get; set; } = [];
+
 
     private readonly string _formId = $"game-form-{Guid.NewGuid():N}";
 
@@ -259,6 +271,11 @@
         Model.ReleaseDate = game.ReleaseDate ?? Model.ReleaseDate;
         if (game.Genres.Count > 0)
             Model.Genres = game.Genres.ToList();
+        if (game.Developers.Count > 0 || game.Publishers.Count > 0)
+        {
+            Model.Developers = game.Developers.ToList();
+            Model.Publishers = game.Publishers.ToList();
+        }
         Model.ThumbnailUrl = game.ThumbnailUrl ?? Model.ThumbnailUrl;
 
         _catalogPlatforms = game.Platforms

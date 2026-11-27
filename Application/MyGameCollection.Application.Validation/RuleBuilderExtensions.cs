@@ -26,11 +26,21 @@ public static class RuleBuilderExtensions
 
     /// <summary>At most <see cref="CollectionItemLimits.MaxGenres"/> genres, none of them too long.</summary>
     public static IRuleBuilderOptions<T, IReadOnlyList<string>> Genres<T>(this IRuleBuilder<T, IReadOnlyList<string>> ruleBuilder) =>
+        ruleBuilder.Names(CollectionItemLimits.MaxGenres, "genre", "genres");
+
+    /// <summary>At most <see cref="CollectionItemLimits.MaxCompanies"/> developers or publishers, none of them too long.</summary>
+    public static IRuleBuilderOptions<T, IReadOnlyList<string>> Companies<T>(this IRuleBuilder<T, IReadOnlyList<string>> ruleBuilder,
+        string singular, string plural) =>
+        ruleBuilder.Names(CollectionItemLimits.MaxCompanies, singular, plural);
+
+    /// <summary>At most <paramref name="maxCount"/> names (blanks aside), none of them too long.</summary>
+    private static IRuleBuilderOptions<T, IReadOnlyList<string>> Names<T>(this IRuleBuilder<T, IReadOnlyList<string>> ruleBuilder,
+        int maxCount, string singular, string plural) =>
         ruleBuilder
-            .Must(genres => genres is null || genres.Count(g => !string.IsNullOrWhiteSpace(g)) <= CollectionItemLimits.MaxGenres)
-            .WithMessage($"A game cannot have more than {CollectionItemLimits.MaxGenres} genres.")
-            .Must(genres => genres is null || genres.All(g => g is null || g.Trim().Length <= CollectionItemLimits.MaxShortTextLength))
-            .WithMessage($"A genre cannot be longer than {CollectionItemLimits.MaxShortTextLength} characters.");
+            .Must(names => names is null || names.Count(n => !string.IsNullOrWhiteSpace(n)) <= maxCount)
+            .WithMessage($"A game cannot have more than {maxCount} {plural}.")
+            .Must(names => names is null || names.All(n => n is null || n.Trim().Length <= CollectionItemLimits.MaxShortTextLength))
+            .WithMessage($"A {singular} cannot be longer than {CollectionItemLimits.MaxShortTextLength} characters.");
 
     /// <summary>Empty, or a year, month or day that exists (see <see cref="Core.Domain.Abstractions.ReleaseDate.Problem"/>).</summary>
     public static IRuleBuilderOptions<T, ReleaseDate?> ReleaseDate<T>(this IRuleBuilder<T, ReleaseDate?> ruleBuilder) =>

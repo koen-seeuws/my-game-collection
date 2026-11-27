@@ -112,7 +112,8 @@ public partial class Games : IDisposable
         var parameters = new DialogParameters
         {
             { "Model", model },
-            { "Platforms", _platformsInUse }
+            { "Platforms", _platformsInUse },
+            { "Companies", _games.SelectMany(g => g.Developers.Concat(g.Publishers)).ToList() }
         };
         var dialog = await DialogService.ShowAsync<GameDialog>(title, parameters,
             new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true });
@@ -219,6 +220,7 @@ public partial class Games : IDisposable
         || game.Platform.Contains(_search, StringComparison.OrdinalIgnoreCase)
         || (game.Edition?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
         || game.Genres.Any(genre => genre.Contains(_search, StringComparison.OrdinalIgnoreCase))
+        || game.Developers.Concat(game.Publishers).Any(company => company.Contains(_search, StringComparison.OrdinalIgnoreCase))
         || (game.Notes?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false);
 
     private void OnUserChanged() => InvokeAsync(async () =>

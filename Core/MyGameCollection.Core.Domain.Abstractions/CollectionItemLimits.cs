@@ -11,6 +11,9 @@ public static class CollectionItemLimits
     public const int MaxNotesLength = 2000;
     public const int MaxUrlLength = 500;
     public const int MaxGenres = 10;
+
+    /// <summary>The most developers, and the most publishers, a game can have.</summary>
+    public const int MaxCompanies = 10;
     public const int MinReleaseYear = 1950;
     public const int MaxReleaseYear = 2100;
 

@@ -20,6 +20,12 @@ public record CatalogGameDto
     /// <summary>The game's genres, in the catalog's naming, e.g. "Role-playing (RPG)".</summary>
     public IReadOnlyList<string> Genres { get; init; } = [];
 
+    /// <summary>The studios that made the game, in the catalog's naming.</summary>
+    public IReadOnlyList<string> Developers { get; init; } = [];
+
+    /// <summary>The companies that published the game, in the catalog's naming.</summary>
+    public IReadOnlyList<string> Publishers { get; init; } = [];
+
     /// <summary>How the game can be played, on any of its platforms. Empty when the catalog does not know.</summary>
     public PlayerModes? Players { get; init; }
 }

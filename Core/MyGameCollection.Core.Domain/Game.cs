@@ -16,6 +16,12 @@ public record Game
     /// <summary>The game's genres, e.g. "Platform" or "Role-playing (RPG)". Empty when unknown.</summary>
     public IReadOnlyList<string> Genres { get; init; } = [];
 
+    /// <summary>The studios that made the game, e.g. "Nintendo EPD". Empty when unknown.</summary>
+    public IReadOnlyList<string> Developers { get; init; } = [];
+
+    /// <summary>The companies that brought the game out, e.g. "Nintendo". Empty when unknown.</summary>
+    public IReadOnlyList<string> Publishers { get; init; } = [];
+
     /// <summary>Physical copy, bought download or subscription (e.g. PS Plus).</summary>
     public GameFormat Format { get; init; } = GameFormat.Physical;
 

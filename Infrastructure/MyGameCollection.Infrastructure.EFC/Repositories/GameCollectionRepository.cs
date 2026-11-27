@@ -43,6 +43,8 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 Platform = g.Platform,
                 Edition = g.Edition,
                 Genres = g.Genres.ToList(),
+                Developers = g.Developers.ToList(),
+                Publishers = g.Publishers.ToList(),
                 Format = g.Format,
                 Players = ToPlayerModes(g),
                 Region = g.Region,
@@ -90,6 +92,8 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.Platform = g.Platform;
                 row.Edition = g.Edition;
                 row.Genres = g.Genres.ToList();
+                row.Developers = g.Developers.ToList();
+                row.Publishers = g.Publishers.ToList();
                 row.Format = g.Format;
                 ApplyPlayerModes(row, g.Players);
                 ApplyCommon(row, g.Region, g.Condition, g.Completeness, g.Status, g.ReleaseDate, g.PurchaseDate,

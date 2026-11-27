@@ -28,6 +28,8 @@ public class UpdateGameCommandHandler : ICommandHandler<UpdateGameCommand>
             platform: command.Platform,
             edition: command.Edition,
             genres: command.Genres,
+            developers: command.Developers,
+            publishers: command.Publishers,
             format: command.Format,
             players: command.Players,
             region: command.Region,

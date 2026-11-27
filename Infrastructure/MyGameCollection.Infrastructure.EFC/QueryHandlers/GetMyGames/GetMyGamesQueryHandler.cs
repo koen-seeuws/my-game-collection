@@ -30,6 +30,8 @@ public record GetMyGamesQueryHandler : IQueryHandler<GetMyGamesQuery, IEnumerabl
                 Platform = game.Platform,
                 Edition = game.Edition,
                 Genres = game.Genres,
+                Developers = game.Developers,
+                Publishers = game.Publishers,
                 Format = game.Format,
                 Region = game.Region,
                 Condition = game.Condition,

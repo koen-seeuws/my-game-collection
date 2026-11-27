@@ -527,7 +527,8 @@ body::after {
     text-overflow: ellipsis;
 }
 
-.item-card-genres {
+.item-card-genres,
+.item-card-companies {
     display: block;
     margin-top: 6px;
     color: var(--mud-palette-text-secondary);

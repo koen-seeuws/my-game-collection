@@ -1,0 +1,86 @@
+@* A list of names (e.g. a game's developers) as removable chips, with a field to type more. *@
+@using MudBlazor.Services
+@inject IKeyInterceptorService KeyInterceptor
+@implements IAsyncDisposable
+<div id="@_id" class="name-list-field">
+    <MudAutocomplete @ref="_input" T="string" Label="@Label" Variant="Variant.Outlined" HelperText="@HelperText"
+                     SearchFunc="SearchAsync" ValueChanged="AddAsync" TextChanged="text => _text = text"
+                     OnKeyDown="OnKeyDownAsync" OnBlur="AddTypedAsync" CoerceText="false" CoerceValue="false"
+                     MaxItems="8" ShowProgressIndicator="false" Clearable="false"
+                     Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Add" AdornmentAriaLabel="@($"Add {Label?.ToLowerInvariant()}")"
+                     OnAdornmentClick="AddTypedAsync" Disabled="@(Values.Count >= MaxCount)" />
+    @if (Values.Count > 0)
+    {
+        <MudChipSet T="string" AllClosable="true" OnClose="chip => RemoveAsync(chip.Value)" Size="Size.Small" Class="mt-1">
+            @foreach (var value in Values)
+            {
+                <MudChip T="string" Value="value" Text="@value" Color="Color.Primary" Variant="Variant.Outlined" />
+            }
+        </MudChipSet>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? HelperText { get; set; }
+
+    [Parameter] public List<string> Values { get; set; } = [];
+    [Parameter] public EventCallback<List<string>> ValuesChanged { get; set; }
+
+    /// <summary>Names suggested while typing, e.g. the ones already used in the collection.</summary>
+    [Parameter] public IEnumerable<string> Suggestions { get; set; } = [];
+
+    [Parameter] public int MaxCount { get; set; } = int.MaxValue;
+
+    private readonly string _id = $"name-list-{Guid.NewGuid():N}";
+    private MudAutocomplete<string> _input = default!;
+    private string? _text;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Enter adds the typed name; without this it would also submit (and close) the surrounding form.
+        if (firstRender)
+            await KeyInterceptor.SubscribeAsync(_id,
+                new KeyInterceptorOptions("mud-input-slot",
+                    new KeyOptions { Key = "Enter", PreventDown = "key+none" },
+                    new KeyOptions { Key = "NumpadEnter", PreventDown = "key+none" }),
+                keyDown: _ => { }, keyUp: _ => { });
+    }
+
+    public async ValueTask DisposeAsync() => await KeyInterceptor.UnsubscribeAsync(_id);
+
+    private Task<IEnumerable<string>> SearchAsync(string? search, CancellationToken _) =>
+        Task.FromResult<IEnumerable<string>>(string.IsNullOrWhiteSpace(search)
+            ? []
+            : Suggestions
+                .Where(s => s.Contains(search.Trim(), StringComparison.OrdinalIgnoreCase)
+                            && !Values.Contains(s, StringComparer.OrdinalIgnoreCase))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Order(StringComparer.CurrentCultureIgnoreCase)
+                .ToList());
+
+    private async Task OnKeyDownAsync(KeyboardEventArgs e)
+    {
+        // With a suggestion highlighted, Enter picks it (see AddAsync); otherwise it adds what was typed.
+        if (e.Key is "Enter" or "NumpadEnter" && !_input.Open)
+            await AddTypedAsync();
+    }
+
+    private Task AddTypedAsync() => AddAsync(_text);
+
+    private async Task AddAsync(string? value)
+    {
+        var name = value?.Trim();
+        if (string.IsNullOrEmpty(name))
+            return;
+
+        if (!Values.Contains(name, StringComparer.OrdinalIgnoreCase) && Values.Count < MaxCount)
+            await ValuesChanged.InvokeAsync([.. Values, name]);
+
+        _text = null;
+        await _input.ClearAsync();
+    }
+
+    private Task RemoveAsync(string? value) =>
+        ValuesChanged.InvokeAsync(Values.Where(v => !string.Equals(v, value, StringComparison.Ordinal)).ToList());
+}
