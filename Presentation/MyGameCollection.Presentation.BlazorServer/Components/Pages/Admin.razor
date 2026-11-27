@@ -23,7 +23,7 @@
                 it works once, to create one account.
             </MudText>
             <MudTextField @bind-Value="_note" Label="Who is it for? (optional)" Variant="Variant.Outlined"
-                          MaxLength="Core.Domain.Invite.MaxNoteLength" Immediate="true" Class="mb-3" />
+                          MaxLength="CreateInviteCommand.MaxNoteLength" Immediate="true" Class="mb-3" />
             <MudSelect T="int" @bind-Value="_validDays" Label="Valid for" Variant="Variant.Outlined" Class="mb-3">
                 <MudSelectItem Value="1">1 day</MudSelectItem>
                 <MudSelectItem Value="7">7 days</MudSelectItem>
@@ -203,10 +203,10 @@
 
         try
         {
-            await Dispatcher.SendAsync(new RevokeInviteCommand { Key = invite.Key });
+            await Dispatcher.SendAsync(new RevokeInviteCommand { Id = invite.Id });
             Snackbar.Add("Invite revoked.", Severity.Success);
         }
-        catch (Exception ex) when (ex is InvalidOperationException or KeyNotFoundException or UnauthorizedAccessException)
+        catch (Exception ex) when (ex is InvalidOperationException or UnauthorizedAccessException)
         {
             Snackbar.Add(ex.Message, Severity.Warning);
         }

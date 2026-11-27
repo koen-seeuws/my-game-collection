@@ -1,33 +1,27 @@
 using MyGameCollection.Application.Abstractions;
 using MyGameCollection.Application.Abstractions.Commands.RevokeInvite;
-using MyGameCollection.Application.Abstractions.Persistence;
+using MyGameCollection.Application.Abstractions.Services.Accounts;
 using MyGameCollection.Application.Business.Decorators;
-using MyGameCollection.Core.Domain;
 
 namespace MyGameCollection.Application.Business.CommandHandlers.RevokeInvite;
 
-[UnitOfWork(typeof(IAccountsUnitOfWork))]
+[NonTransactional]
 public class RevokeInviteCommandHandler : ICommandHandler<RevokeInviteCommand>
 {
-    private readonly IRepository<Invite, Guid> _invites;
+    private readonly IAccountService _accounts;
     private readonly IUserContext _userContext;
-    private readonly TimeProvider _time;
 
-    public RevokeInviteCommandHandler(IRepository<Invite, Guid> invites, IUserContext userContext, TimeProvider time)
+    public RevokeInviteCommandHandler(IAccountService accounts, IUserContext userContext)
     {
-        _invites = invites;
+        _accounts = accounts;
         _userContext = userContext;
-        _time = time;
     }
 
     public async Task HandleAsync(RevokeInviteCommand command, CancellationToken cancellationToken)
     {
         _userContext.EnsureAdmin();
 
-        var invite = await _invites.GetAsync(command.Key, cancellationToken)
-            ?? throw new KeyNotFoundException($"There is no invite '{command.Key}'.");
-
-        invite.Revoke(_time.GetUtcNow().UtcDateTime);
-        await _invites.SaveAsync(invite, cancellationToken);
+        if (!await _accounts.RevokeInviteAsync(command.Id, cancellationToken))
+            throw new InvalidOperationException("That invite has already been used or revoked.");
     }
 }

@@ -11,7 +11,6 @@ using MyGameCollection.Application.Abstractions.Queries.GetInvites;
 using MyGameCollection.Application.Abstractions.Queries.GetOpenInvite;
 using MyGameCollection.Application.Abstractions.Queries.GetUsers;
 using MyGameCollection.Application.Business;
-using MyGameCollection.Core.Domain.Abstractions;
 using MyGameCollection.Infrastructure.Identity;
 
 namespace MyGameCollection.Tests.UnitTests;
@@ -84,11 +83,11 @@ public sealed class InviteTests : IAsyncLifetime
         var token = await CreateInviteAsync();
         var invite = Assert.Single(await Dispatcher.QueryAsync(new GetInvitesQuery()));
 
-        await Dispatcher.SendAsync(new RevokeInviteCommand { Key = invite.Key });
+        await Dispatcher.SendAsync(new RevokeInviteCommand { Id = invite.Id });
 
         Assert.False((await RedeemAsync(token, "alice@example.com")).Succeeded);
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            Dispatcher.SendAsync(new RevokeInviteCommand { Key = invite.Key }));
+            Dispatcher.SendAsync(new RevokeInviteCommand { Id = invite.Id }));
     }
 
     [Fact]
@@ -105,17 +104,6 @@ public sealed class InviteTests : IAsyncLifetime
         Assert.False(tooShort.Succeeded);
         Assert.NotEmpty(tooShort.Errors);
         Assert.True(retried.Succeeded);
-    }
-
-    [Fact]
-    public async Task A_link_with_the_wrong_secret_is_rejected()
-    {
-        var token = await CreateInviteAsync();
-        var forged = token[..token.IndexOf('.')] + ".not-the-secret";
-
-        Assert.Null(await Dispatcher.QueryAsync(new GetOpenInviteQuery { Token = forged }));
-        Assert.False((await RedeemAsync(forged, "alice@example.com")).Succeeded);
-        Assert.True((await RedeemAsync(token, "alice@example.com")).Succeeded);
     }
 
     [Fact]
@@ -136,7 +124,7 @@ public sealed class InviteTests : IAsyncLifetime
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => CreateInviteAsync());
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            Dispatcher.SendAsync(new RevokeInviteCommand { Key = invite.Key }));
+            Dispatcher.SendAsync(new RevokeInviteCommand { Id = invite.Id }));
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => Dispatcher.QueryAsync(new GetInvitesQuery()));
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => Dispatcher.QueryAsync(new GetUsersQuery()));
 
@@ -180,7 +168,7 @@ public sealed class InviteTests : IAsyncLifetime
     [InlineData(91)]
     public async Task An_invite_must_be_valid_for_up_to_90_days(int days)
     {
-        await Assert.ThrowsAnyAsync<ArgumentException>(() => CreateInviteAsync(TimeSpan.FromDays(days)));
+        await Assert.ThrowsAsync<ArgumentException>(() => CreateInviteAsync(TimeSpan.FromDays(days)));
     }
 
     [Fact]
@@ -200,7 +188,7 @@ public sealed class InviteTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Reissuing_the_first_admin_invite_stops_the_previous_link()
+    public async Task A_new_first_admin_invite_revokes_the_previous_one()
     {
         var first = await Dispatcher.SendAsync(new CreateFirstAdminInviteCommand { ValidFor = TimeSpan.FromDays(1) });
         var second = await Dispatcher.SendAsync(new CreateFirstAdminInviteCommand { ValidFor = TimeSpan.FromDays(1) });

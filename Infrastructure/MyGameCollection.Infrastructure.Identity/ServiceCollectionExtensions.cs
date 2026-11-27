@@ -8,10 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using MyGameCollection.Application.Abstractions;
-using MyGameCollection.Application.Abstractions.Persistence;
 using MyGameCollection.Application.Abstractions.Services.Accounts;
-using MyGameCollection.Core.Domain;
-using MyGameCollection.Infrastructure.Identity.Repositories;
 
 namespace MyGameCollection.Infrastructure.Identity;
 
@@ -71,9 +68,6 @@ public static class ServiceCollectionExtensions
 
         services.TryAddSingleton(TimeProvider.System);
         services.AddScoped<IAccountService, AccountService>();
-        services.AddScoped<IAccountsUnitOfWork, AccountsUnitOfWork>();
-        services.AddScoped<InviteRepository>();
-        services.AddScoped<IRepository<Invite, Guid>>(sp => sp.GetRequiredService<InviteRepository>());
         services.AddQueryHandlers();
 
         return services;
