@@ -152,6 +152,30 @@ public partial class Games : IDisposable
     private GameFormat? _formatFilter;
 
     private static string FormatLabel(GameFormat? format) => format?.ToDisplayName() ?? "All formats";
+
+    /// <summary>Ways to narrow the games down to how many can play, e.g. for a night on the couch.</summary>
+    private enum PlayerFilter { Couch, CouchCoop, Online, OnlineCoop, SinglePlayer }
+
+    private PlayerFilter? _playerFilter;
+
+    private static string PlayerFilterLabel(PlayerFilter? filter) => filter switch
+    {
+        PlayerFilter.Couch => "Couch multiplayer",
+        PlayerFilter.CouchCoop => "Couch co-op",
+        PlayerFilter.Online => "Online multiplayer",
+        PlayerFilter.OnlineCoop => "Online co-op",
+        PlayerFilter.SinglePlayer => "Single-player",
+        _ => "Any players"
+    };
+
+    private static bool MatchesPlayers(GameDto game, PlayerFilter filter) => game.Players is { } players && filter switch
+    {
+        PlayerFilter.Couch => players.HasLocalMultiplayer,
+        PlayerFilter.CouchCoop => players.CouchCoop,
+        PlayerFilter.Online => players.HasOnlineMultiplayer,
+        PlayerFilter.OnlineCoop => players.OnlineCoop,
+        _ => players.SinglePlayer
+    };
     private GameSort _sort = GameSort.Title;
     private bool _groupByPlatform;
 
@@ -164,6 +188,8 @@ public partial class Games : IDisposable
                 games = games.Where(g => g.Status == status);
             if (_formatFilter is { } format)
                 games = games.Where(g => g.Format == format);
+            if (_playerFilter is { } playerFilter)
+                games = games.Where(g => MatchesPlayers(g, playerFilter));
 
             return _sort switch
             {

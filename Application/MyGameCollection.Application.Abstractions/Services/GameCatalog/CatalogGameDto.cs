@@ -16,10 +16,16 @@ public record CatalogGameDto
 
     /// <summary>The platforms the game was released on, in the catalog's naming.</summary>
     public IReadOnlyList<CatalogPlatformDto> Platforms { get; init; } = [];
+
+    /// <summary>How the game can be played, on any of its platforms. Empty when the catalog does not know.</summary>
+    public PlayerModes? Players { get; init; }
 }
 
 public record CatalogPlatformDto
 {
     public required string Name { get; init; }
     public string? Abbreviation { get; init; }
+
+    /// <summary>How the game can be played on this platform (versions often differ). Empty when unknown.</summary>
+    public PlayerModes? Players { get; init; }
 }

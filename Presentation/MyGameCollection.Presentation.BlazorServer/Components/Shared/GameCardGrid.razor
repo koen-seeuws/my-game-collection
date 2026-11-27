@@ -11,6 +11,7 @@
                       Completeness="@(game.Format == GameFormat.Physical ? game.Completeness : null)"
                       Condition="@(game.Status == CollectionStatus.Owned && game.Format == GameFormat.Physical ? game.Condition : null)"
                       Origin="game.PurchaseOrigin" />
+            <PlayerTags Players="game.Players" />
         </ItemCard>
     }
 </div>

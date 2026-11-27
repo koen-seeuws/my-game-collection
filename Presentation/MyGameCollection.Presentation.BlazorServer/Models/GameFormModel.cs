@@ -19,6 +19,49 @@ public sealed class GameFormModel : ReleaseDateFormModel
     public string? Edition { get; set; }
 
     public CollectionStatus Status { get; set; } = CollectionStatus.Owned;
+
+    // ---- Players ----
+
+    public bool SinglePlayer { get; set; }
+    public bool Multiplayer { get; set; }
+
+    [Range(CollectionItemLimits.MinMultiplayerPlayers, CollectionItemLimits.MaxPlayers,
+        ErrorMessage = "Enter between {1} and {2} players, or leave it empty.")]
+    public int? MaxLocalPlayers { get; set; }
+
+    [Range(CollectionItemLimits.MinMultiplayerPlayers, CollectionItemLimits.MaxPlayers,
+        ErrorMessage = "Enter between {1} and {2} players, or leave it empty.")]
+    public int? MaxOnlinePlayers { get; set; }
+
+    public bool CouchCoop { get; set; }
+    public bool OnlineCoop { get; set; }
+    public bool SplitScreen { get; set; }
+
+    /// <summary>The player fields as one value; the multiplayer details only count while multiplayer is ticked.</summary>
+    public PlayerModes? Players
+    {
+        get => new PlayerModes
+        {
+            SinglePlayer = SinglePlayer,
+            Multiplayer = Multiplayer,
+            MaxLocalPlayers = Multiplayer ? MaxLocalPlayers : null,
+            MaxOnlinePlayers = Multiplayer ? MaxOnlinePlayers : null,
+            CouchCoop = Multiplayer && CouchCoop,
+            OnlineCoop = Multiplayer && OnlineCoop,
+            SplitScreen = Multiplayer && SplitScreen
+        }.Normalised();
+        set
+        {
+            SinglePlayer = value?.SinglePlayer ?? false;
+            Multiplayer = value?.Multiplayer ?? false;
+            MaxLocalPlayers = value?.MaxLocalPlayers;
+            MaxOnlinePlayers = value?.MaxOnlinePlayers;
+            CouchCoop = value?.CouchCoop ?? false;
+            OnlineCoop = value?.OnlineCoop ?? false;
+            SplitScreen = value?.SplitScreen ?? false;
+        }
+    }
+
     public GameFormat Format { get; set; } = GameFormat.Physical;
     public Region Region { get; set; } = Region.Pal;
     public ItemCondition Condition { get; set; } = ItemCondition.Good;
@@ -45,6 +88,7 @@ public sealed class GameFormModel : ReleaseDateFormModel
         Edition = game.Edition,
         Status = game.Status,
         Format = game.Format,
+        Players = game.Players,
         Region = game.Region,
         Condition = game.Condition,
         Completeness = game.Completeness,
@@ -63,6 +107,7 @@ public sealed class GameFormModel : ReleaseDateFormModel
         Edition = Edition,
         Status = Status,
         Format = Format,
+        Players = Players,
         Region = Region,
         Condition = Condition,
         Completeness = Completeness,
@@ -82,6 +127,7 @@ public sealed class GameFormModel : ReleaseDateFormModel
         Edition = Edition,
         Status = Status,
         Format = Format,
+        Players = Players,
         Region = Region,
         Condition = Condition,
         Completeness = Completeness,

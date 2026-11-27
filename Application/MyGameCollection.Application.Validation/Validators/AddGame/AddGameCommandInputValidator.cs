@@ -12,6 +12,7 @@ public sealed class AddGameCommandInputValidator : CommandInputValidatorBase<Add
         RuleFor(c => c.Platform).RequiredText(CollectionItemLimits.MaxShortTextLength);
         RuleFor(c => c.Edition).OptionalText(CollectionItemLimits.MaxShortTextLength);
         RuleFor(c => c.Format).IsInEnum();
+        RuleFor(c => c.Players).PlayerModes();
         RuleFor(c => c.Region).IsInEnum();
         RuleFor(c => c.Condition).IsInEnum();
         RuleFor(c => c.Completeness).IsInEnum();

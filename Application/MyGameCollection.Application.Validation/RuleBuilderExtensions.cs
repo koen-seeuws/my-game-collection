@@ -30,6 +30,12 @@ public static class RuleBuilderExtensions
             .Must(value => value?.Problem is null)
             .WithMessage((_, value) => value?.Problem ?? string.Empty);
 
+    /// <summary>Empty, or player counts within bounds (see <see cref="Core.Domain.Abstractions.PlayerModes.Problem"/>).</summary>
+    public static IRuleBuilderOptions<T, PlayerModes?> PlayerModes<T>(this IRuleBuilder<T, PlayerModes?> ruleBuilder) =>
+        ruleBuilder
+            .Must(value => value?.Problem is null)
+            .WithMessage((_, value) => value?.Problem ?? string.Empty);
+
     public static IRuleBuilderOptions<T, decimal?> Price<T>(this IRuleBuilder<T, decimal?> ruleBuilder) =>
         ruleBuilder
             .GreaterThanOrEqualTo(0m)

@@ -77,7 +77,7 @@
                     <MudAutocomplete T="string" @bind-Value="Model.Platform" For="() => Model.Platform" Label="Platform"
                                      Variant="Variant.Outlined" SearchFunc="SearchPlatformsAsync" MaxItems="null"
                                      CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true"
-                                     HelperText="Use the same name as the console" />
+                                     HelperText="Use the same name as the console" @bind-Value:after="ApplyCatalogPlayers" />
                 </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="Model.Edition" For="() => Model.Edition" Label="Edition"
@@ -88,7 +88,7 @@
                 {
                     <MudItem xs="12">
                         <MudText Typo="Typo.caption" Color="Color.Secondary">Released on:</MudText>
-                        <MudChipSet T="string" SelectedValue="Model.Platform" SelectedValueChanged="p => Model.Platform = p ?? Model.Platform"
+                        <MudChipSet T="string" SelectedValue="Model.Platform" SelectedValueChanged="SelectPlatform"
                                     SelectionMode="SelectionMode.SingleSelection" Size="Size.Small" Color="Color.Primary">
                             @foreach (var platform in _catalogPlatforms)
                             {
@@ -108,6 +108,39 @@
                     </MudToggleGroup>
                     <MudText Typo="Typo.caption" Color="Color.Secondary">@Model.Format.ToDescription()</MudText>
                 </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Players</MudText>
+                    <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="0">
+                        <MudCheckBox T="bool" @bind-Value="Model.SinglePlayer" Label="Single-player" Color="Color.Primary" Dense="true" />
+                        <MudCheckBox T="bool" @bind-Value="Model.Multiplayer" Label="Multiplayer" Color="Color.Primary" Dense="true" />
+                    </MudStack>
+                    @if (_playersSource is not null)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@_playersSource</MudText>
+                    }
+                </MudItem>
+                @if (Model.Multiplayer)
+                {
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int?" @bind-Value="Model.MaxLocalPlayers" For="() => Model.MaxLocalPlayers"
+                                         Label="Players on one console" Variant="Variant.Outlined" Clearable="true"
+                                         Min="CollectionItemLimits.MinMultiplayerPlayers" Max="CollectionItemLimits.MaxPlayers"
+                                         Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Weekend"
+                                         HelperText="Couch or split screen; empty when unknown or none" />
+                        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="0">
+                            <MudCheckBox T="bool" @bind-Value="Model.CouchCoop" Label="Couch co-op" Color="Color.Primary" Dense="true" />
+                            <MudCheckBox T="bool" @bind-Value="Model.SplitScreen" Label="Split-screen" Color="Color.Primary" Dense="true" />
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField T="int?" @bind-Value="Model.MaxOnlinePlayers" For="() => Model.MaxOnlinePlayers"
+                                         Label="Players online" Variant="Variant.Outlined" Clearable="true"
+                                         Min="CollectionItemLimits.MinMultiplayerPlayers" Max="CollectionItemLimits.MaxPlayers"
+                                         Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Public"
+                                         HelperText="Empty when unknown or none" />
+                        <MudCheckBox T="bool" @bind-Value="Model.OnlineCoop" Label="Online co-op" Color="Color.Primary" Dense="true" />
+                    </MudItem>
+                }
                 <MudItem xs="12" sm="6">
                     <EnumSelect TEnum="CollectionStatus" @bind-Value="Model.Status" Label="Status" />
                 </MudItem>
@@ -220,7 +253,43 @@
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
+        _catalogPlatformDetails = game.Platforms
+            .GroupBy(p => KnownPlatforms.Match(Platforms, p.Name, p.Abbreviation), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
         Model.Platform = ChoosePlatform() ?? Model.Platform;
+        ApplyCatalogPlayers();
+    }
+
+    /// <summary>The picked catalog game's platforms by their name in this collection, for their player modes.</summary>
+    private IReadOnlyDictionary<string, CatalogPlatformDto> _catalogPlatformDetails =
+        new Dictionary<string, CatalogPlatformDto>();
+
+    /// <summary>Where the player details came from, shown under them.</summary>
+    private string? _playersSource;
+
+    private void SelectPlatform(string? platform)
+    {
+        Model.Platform = platform ?? Model.Platform;
+        ApplyCatalogPlayers();
+    }
+
+    /// <summary>
+    /// Fills in who can play the picked catalog game, preferring what IGDB knows of the chosen platform's version
+    /// (e.g. more players on one console on Switch).
+    /// </summary>
+    private void ApplyCatalogPlayers()
+    {
+        if (_catalogGame is not { } game)
+            return;
+
+        var platform = _catalogPlatformDetails.GetValueOrDefault(Model.Platform ?? string.Empty);
+        var players = platform?.Players ?? game.Players;
+
+        Model.Players = players;
+        _playersSource = players is null ? "IGDB does not know how many can play this game."
+            : platform?.Players is not null ? $"Filled in from IGDB for {Model.Platform}."
+            : "Filled in from IGDB.";
     }
 
     private async Task LoadEditionsAsync(CatalogGameDto game)

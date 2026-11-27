@@ -11,7 +11,20 @@ internal sealed record IgdbGame(
     [property: JsonPropertyName("first_release_date")] long? FirstReleaseDate,
     [property: JsonPropertyName("release_dates")] IReadOnlyList<IgdbReleaseDate>? ReleaseDates,
     [property: JsonPropertyName("cover")] IgdbImage? Cover,
-    [property: JsonPropertyName("platforms")] IReadOnlyList<IgdbPlatformRef>? Platforms);
+    [property: JsonPropertyName("platforms")] IReadOnlyList<IgdbPlatformRef>? Platforms,
+    [property: JsonPropertyName("game_modes")] IReadOnlyList<long>? GameModes = null,
+    [property: JsonPropertyName("multiplayer_modes")] IReadOnlyList<IgdbMultiplayerMode>? MultiplayerModes = null);
+
+/// <summary>How a game can be played with others on one platform (or on all, without <see cref="Platform"/>).</summary>
+internal sealed record IgdbMultiplayerMode(
+    [property: JsonPropertyName("platform")] long? Platform = null,
+    [property: JsonPropertyName("offlinemax")] int? OfflineMax = null,
+    [property: JsonPropertyName("offlinecoopmax")] int? OfflineCoopMax = null,
+    [property: JsonPropertyName("offlinecoop")] bool? OfflineCoop = null,
+    [property: JsonPropertyName("onlinemax")] int? OnlineMax = null,
+    [property: JsonPropertyName("onlinecoopmax")] int? OnlineCoopMax = null,
+    [property: JsonPropertyName("onlinecoop")] bool? OnlineCoop = null,
+    [property: JsonPropertyName("splitscreen")] bool? SplitScreen = null);
 
 internal sealed record IgdbPlatformRef(
     [property: JsonPropertyName("id")] long Id,

@@ -12,4 +12,10 @@ public static class CollectionItemLimits
     public const int MaxUrlLength = 500;
     public const int MinReleaseYear = 1950;
     public const int MaxReleaseYear = 2100;
+
+    /// <summary>Fewer than two players is no multiplayer.</summary>
+    public const int MinMultiplayerPlayers = 2;
+
+    /// <summary>Generous enough for MMOs and battle royales.</summary>
+    public const int MaxPlayers = 10_000;
 }

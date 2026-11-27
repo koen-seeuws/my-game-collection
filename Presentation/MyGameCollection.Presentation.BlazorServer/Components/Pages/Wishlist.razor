@@ -47,6 +47,7 @@ else
                           OnAcquire="() => AcquireGameAsync(game)">
                     <ItemTags Format="game.Format" Region="game.Region"
                               Completeness="@(game.Format == GameFormat.Physical ? game.Completeness : null)" />
+                    <PlayerTags Players="game.Players" />
                 </ItemCard>
             }
         </div>

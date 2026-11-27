@@ -15,6 +15,7 @@ internal static class GameCollectionValidation
             Edition = Optional(game.Edition, "edition", MaxShortTextLength),
             Notes = Optional(game.Notes, "notes", MaxNotesLength),
             ThumbnailUrl = OptionalUrl(game.ThumbnailUrl, "thumbnailUrl"),
+            Players = game.Players?.Normalised(),
             // A download is always new, and an item on the wishlist has not been bought yet.
             PurchaseOrigin = game.Status == CollectionStatus.Owned && game.Format == GameFormat.Physical
                 ? game.PurchaseOrigin
@@ -22,6 +23,9 @@ internal static class GameCollectionValidation
         };
 
         EnsureValid(normalised.ReleaseDate, normalised.PurchasePrice);
+        if (normalised.Players?.Problem is { } problem)
+            throw new ArgumentOutOfRangeException("players", normalised.Players, problem);
+
         return normalised;
     }
 

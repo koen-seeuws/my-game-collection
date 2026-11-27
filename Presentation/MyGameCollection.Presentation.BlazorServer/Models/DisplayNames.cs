@@ -60,6 +60,30 @@ public static class DisplayNames
         _ => "Wishlist"
     };
 
+    /// <summary>"Couch co-op · 4P": playing together on one console, for a game card.</summary>
+    public static string LocalPlayersLabel(PlayerModes players) =>
+        (players.CouchCoop ? "Couch co-op" : "Couch") + PlayerCount(players.MaxLocalPlayers);
+
+    /// <summary>"Online · 8P": playing together online, for a game card.</summary>
+    public static string OnlinePlayersLabel(PlayerModes players) =>
+        (players.OnlineCoop ? "Online co-op" : "Online") + PlayerCount(players.MaxOnlinePlayers);
+
+    /// <summary>"Up to 4 players on one console, co-op, split screen".</summary>
+    public static string LocalPlayersDescription(PlayerModes players) =>
+        string.Join(", ", new[]
+        {
+            players.MaxLocalPlayers is { } max ? $"Up to {max} players on one console" : "Multiplayer on one console",
+            players.CouchCoop ? "co-op" : null,
+            players.SplitScreen ? "split screen" : null
+        }.Where(part => part is not null));
+
+    /// <summary>"Up to 8 players online, co-op".</summary>
+    public static string OnlinePlayersDescription(PlayerModes players) =>
+        (players.MaxOnlinePlayers is { } max ? $"Up to {max} players online" : "Multiplayer online")
+        + (players.OnlineCoop ? ", co-op" : "");
+
+    private static string PlayerCount(int? max) => max is { } count ? $" · {count}P" : "";
+
     /// <summary>Label for any of the enums above (used by the generic <c>EnumSelect</c>).</summary>
     public static string Of<TEnum>(TEnum value) where TEnum : struct, Enum => value switch
     {
