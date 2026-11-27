@@ -17,8 +17,10 @@ public class UpdateAndDeleteGameTests
         collection.UpdateGame(middle.Key, "Changed", "Game Boy", completeness: Completeness.Sealed);
 
         collection.Games[0].Should().BeSameAs(first);
+        // By members: the genres list is a new (equal) instance after validation.
         collection.Games[1].Should()
-            .Be(middle with { Title = "Changed", Platform = "Game Boy", Completeness = Completeness.Sealed });
+            .BeEquivalentTo(middle with { Title = "Changed", Platform = "Game Boy", Completeness = Completeness.Sealed },
+                options => options.ComparingRecordsByMembers());
         collection.Games[2].Should().BeSameAs(last);
     }
 

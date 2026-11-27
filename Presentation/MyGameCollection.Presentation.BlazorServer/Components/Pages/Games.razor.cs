@@ -150,6 +150,16 @@ public partial class Games : IDisposable
     private string? _search;
     private CollectionStatus? _statusFilter;
     private GameFormat? _formatFilter;
+    private string? _genreFilter;
+
+    private static string GenreLabel(string? genre) => genre ?? "All genres";
+
+    /// <summary>The genres of the games in the collection, to filter on.</summary>
+    private IReadOnlyList<string> GenresInUse =>
+        _games.SelectMany(g => g.Genres)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Order(StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
 
     private static string FormatLabel(GameFormat? format) => format?.ToDisplayName() ?? "All formats";
     private GameSort _sort = GameSort.Title;
@@ -164,6 +174,8 @@ public partial class Games : IDisposable
                 games = games.Where(g => g.Status == status);
             if (_formatFilter is { } format)
                 games = games.Where(g => g.Format == format);
+            if (_genreFilter is { } genre)
+                games = games.Where(g => g.Genres.Contains(genre, StringComparer.OrdinalIgnoreCase));
 
             return _sort switch
             {
@@ -180,6 +192,7 @@ public partial class Games : IDisposable
         || game.Title.Contains(_search, StringComparison.OrdinalIgnoreCase)
         || game.Platform.Contains(_search, StringComparison.OrdinalIgnoreCase)
         || (game.Edition?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
+        || game.Genres.Any(genre => genre.Contains(_search, StringComparison.OrdinalIgnoreCase))
         || (game.Notes?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false);
 
     private void OnUserChanged() => InvokeAsync(async () =>
