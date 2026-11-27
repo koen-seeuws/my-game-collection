@@ -1,7 +1,6 @@
 @inherits LayoutComponentBase
 @implements IDisposable
 @inject CurrentUser CurrentUser
-@inject IDialogService DialogService
 
 <MudThemeProvider @ref="_themeProvider" Theme="_theme" @bind-IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
@@ -19,17 +18,16 @@
                        Color="Color.Inherit" OnClick="() => _isDarkMode = !_isDarkMode" aria-label="Toggle dark mode" />
         @if (CurrentUser.IsSignedIn)
         {
-            <MudChip T="string" Icon="@Icons.Material.Filled.Person" Color="Color.Secondary" Class="ml-2"
-                     OnClick="SignInAsync" OnClose="_ => CurrentUser.SignOut()">
-                @CurrentUser.UserName
+            <MudChip T="string" Icon="@Icons.Material.Filled.Person" Color="Color.Secondary" Class="ml-2">
+                @CurrentUser.DisplayName
             </MudChip>
-        }
-        else
-        {
-            <MudButton Variant="Variant.Outlined" Color="Color.Inherit" Class="ml-2"
-                       StartIcon="@Icons.Material.Filled.Login" OnClick="SignInAsync">
-                Sign in
-            </MudButton>
+            <form action="account/logout" method="post" class="d-inline-flex">
+                <AntiforgeryToken />
+                <MudTooltip Text="Sign out">
+                    <MudIconButton ButtonType="ButtonType.Submit" Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit"
+                                   aria-label="Sign out" />
+                </MudTooltip>
+            </form>
         }
     </MudAppBar>
 
@@ -39,6 +37,10 @@
             <MudNavLink Href="games" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.SportsEsports">Games</MudNavLink>
             <MudNavLink Href="consoles" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.VideogameAsset">Consoles</MudNavLink>
             <MudNavLink Href="wishlist" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Favorite">Wishlist</MudNavLink>
+            @if (CurrentUser.IsAdmin)
+            {
+                <MudNavLink Href="admin" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudNavLink>
+            }
         </MudNavMenu>
     </MudDrawer>
 
@@ -90,16 +92,6 @@
             _isDarkMode = await _themeProvider.GetSystemDarkModeAsync();
             StateHasChanged();
         }
-    }
-
-    private async Task SignInAsync()
-    {
-        var parameters = new DialogParameters<SignInDialog> { { d => d.UserName, CurrentUser.UserName ?? string.Empty } };
-        var dialog = await DialogService.ShowAsync<SignInDialog>("Sign in", parameters,
-            new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true });
-
-        if (await dialog.Result is { Canceled: false, Data: string userName })
-            CurrentUser.SignIn(userName);
     }
 
     private void OnUserChanged() => InvokeAsync(StateHasChanged);

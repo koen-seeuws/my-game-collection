@@ -1,0 +1,224 @@
+@page "/admin"
+@attribute [Authorize(Roles = AccountRoles.Admin)]
+@using MyGameCollection.Application.Abstractions.Commands.CreateInvite
+@using MyGameCollection.Application.Abstractions.Commands.RevokeInvite
+@using MyGameCollection.Application.Abstractions.Queries.GetInvites
+@using MyGameCollection.Application.Abstractions.Queries.GetUsers
+@inject IUseCaseDispatcher Dispatcher
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject IJSRuntime JS
+
+<PageTitle>Admin · My Game Collection</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Admin</MudText>
+
+<MudGrid>
+    <MudItem xs="12" md="5">
+        <MudPaper Elevation="1" Class="pa-4" Style="height: 100%">
+            <MudText Typo="Typo.h6" GutterBottom="true">Invite someone</MudText>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                Nobody can sign up on their own. Create a link and send it to the person you want to invite:
+                it works once, to create one account.
+            </MudText>
+            <MudTextField @bind-Value="_note" Label="Who is it for? (optional)" Variant="Variant.Outlined"
+                          MaxLength="CreateInviteCommand.MaxNoteLength" Immediate="true" Class="mb-3" />
+            <MudSelect T="int" @bind-Value="_validDays" Label="Valid for" Variant="Variant.Outlined" Class="mb-3">
+                <MudSelectItem Value="1">1 day</MudSelectItem>
+                <MudSelectItem Value="7">7 days</MudSelectItem>
+                <MudSelectItem Value="30">30 days</MudSelectItem>
+            </MudSelect>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Link"
+                       OnClick="CreateInviteAsync" Disabled="_busy">
+                Create invite link
+            </MudButton>
+
+            @if (_createdLink is not null)
+            {
+                <MudAlert Severity="Severity.Success" Variant="Variant.Outlined" Class="mt-4">
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        Copy this link now: it is shown only once.
+                    </MudText>
+                    <div class="invite-link mb-2">@_createdLink</div>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.ContentCopy" OnClick="CopyLinkAsync">
+                        Copy link
+                    </MudButton>
+                </MudAlert>
+            }
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" md="7">
+        <MudPaper Elevation="1" Class="pa-4" Style="height: 100%">
+            <MudText Typo="Typo.h6" GutterBottom="true">Users</MudText>
+            <MudSimpleTable Dense="true" Hover="true" Elevation="0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Member since</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in _users)
+                    {
+                        <tr>
+                            <td>@user.FirstName @user.LastName</td>
+                            <td>@user.Email</td>
+                            <td>@(user.IsAdmin ? "Administrator" : "User")</td>
+                            <td>@user.CreatedAt.ToLocalTime().ToString("d")</td>
+                        </tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudPaper Elevation="1" Class="pa-4">
+            <MudText Typo="Typo.h6" GutterBottom="true">Invites</MudText>
+            @if (_invites.Count == 0)
+            {
+                <MudText Typo="Typo.body2">No invites yet.</MudText>
+            }
+            else
+            {
+                <MudSimpleTable Dense="true" Hover="true" Elevation="0">
+                    <thead>
+                        <tr>
+                            <th>For</th>
+                            <th>Created</th>
+                            <th>Expires</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var invite in _invites)
+                        {
+                            var status = invite.Status;
+                            <tr>
+                                <td>@(invite.Note ?? "—")</td>
+                                <td>@invite.CreatedAt.ToLocalTime().ToString("g")</td>
+                                <td>@invite.ExpiresAt.ToLocalTime().ToString("g")</td>
+                                <td>
+                                    <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="StatusColor(status)">
+                                        @(status == InviteStatus.Used ? $"Used by {invite.RedeemedBy}" : status.ToString())
+                                    </MudChip>
+                                </td>
+                                <td style="text-align: right">
+                                    @if (status == InviteStatus.Open)
+                                    {
+                                        <MudTooltip Text="Revoke">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Block" Size="Size.Small" Color="Color.Error"
+                                                           OnClick="() => RevokeAsync(invite)" aria-label="Revoke invite" />
+                                        </MudTooltip>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </MudSimpleTable>
+            }
+        </MudPaper>
+    </MudItem>
+
+</MudGrid>
+
+@code {
+    private IReadOnlyList<InviteDto> _invites = [];
+    private IReadOnlyList<UserDto> _users = [];
+    private string? _note;
+    private int _validDays = 7;
+    private string? _createdLink;
+    private bool _busy;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _invites = await Dispatcher.QueryAsync(new GetInvitesQuery());
+            _users = await Dispatcher.QueryAsync(new GetUsersQuery());
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Could not load invites and users: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task CreateInviteAsync()
+    {
+        _busy = true;
+        try
+        {
+            var invite = await Dispatcher.SendAsync(new CreateInviteCommand
+            {
+                Note = _note,
+                ValidFor = TimeSpan.FromDays(_validDays)
+            });
+
+            _createdLink = Navigation.ToAbsoluteUri($"account/register/{invite.Token}").ToString();
+            _note = null;
+            await LoadAsync();
+        }
+        catch (Exception ex) when (ex is ArgumentException or UnauthorizedAccessException)
+        {
+            Snackbar.Add(ex.Message, Severity.Warning);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Could not create the invite: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task CopyLinkAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", _createdLink);
+            Snackbar.Add("Invite link copied.", Severity.Success);
+        }
+        catch (JSException)
+        {
+            Snackbar.Add("Could not copy automatically; select the link and copy it.", Severity.Warning);
+        }
+    }
+
+    private async Task RevokeAsync(InviteDto invite)
+    {
+        var confirmed = await DialogService.ShowMessageBoxAsync("Revoke invite",
+            $"Revoke the invite{(invite.Note is null ? "" : $" for '{invite.Note}'")}? Its link will stop working.",
+            yesText: "Revoke", cancelText: "Cancel");
+        if (confirmed != true)
+            return;
+
+        try
+        {
+            await Dispatcher.SendAsync(new RevokeInviteCommand { Id = invite.Id });
+            Snackbar.Add("Invite revoked.", Severity.Success);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or UnauthorizedAccessException)
+        {
+            Snackbar.Add(ex.Message, Severity.Warning);
+        }
+
+        await LoadAsync();
+    }
+
+    private static Color StatusColor(InviteStatus status) => status switch
+    {
+        InviteStatus.Open => Color.Info,
+        InviteStatus.Used => Color.Success,
+        InviteStatus.Revoked => Color.Error,
+        _ => Color.Default
+    };
+}

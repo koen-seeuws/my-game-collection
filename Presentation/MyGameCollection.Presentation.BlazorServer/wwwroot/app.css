@@ -255,3 +255,158 @@ h1:focus {
     object-fit: contain;
     padding: 4px;
 }
+
+/* ---- Sign-in and registration (statically rendered, no MudBlazor) ---- */
+
+.account-page {
+    --account-bg: #F3F0F9;
+    --account-surface: #FFFFFF;
+    --account-text: #1F1A2B;
+    --account-muted: #5B5470;
+    --account-border: #CFC7E0;
+    --account-primary: #6D28D9;
+    --account-primary-text: #FFFFFF;
+    --account-error-bg: #FDECEC;
+    --account-error-text: #9B1C1C;
+
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    box-sizing: border-box;
+    background: var(--account-bg);
+    color: var(--account-text);
+    font-family: 'Roboto', sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+    .account-page {
+        --account-bg: #14101C;
+        --account-surface: #1F1A2B;
+        --account-text: #ECE8F5;
+        --account-muted: #A9A1BD;
+        --account-border: #3A3150;
+        --account-primary: #A78BFA;
+        --account-primary-text: #14101C;
+        --account-error-bg: #3B1520;
+        --account-error-text: #FCA5A5;
+    }
+}
+
+.account-card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--account-surface);
+    border: 1px solid var(--account-border);
+    border-radius: 8px;
+    padding: 32px 28px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.account-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--account-primary);
+    margin-bottom: 24px;
+}
+
+.account-card h1 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 0 0 16px;
+}
+
+.account-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.account-form label {
+    font-size: 0.875rem;
+    color: var(--account-muted);
+    margin: 12px 0 4px;
+}
+
+.account-form input[type="text"],
+.account-form input[type="email"],
+.account-form input[type="password"],
+.account-form input:not([type]) {
+    font: inherit;
+    color: var(--account-text);
+    background: transparent;
+    border: 1px solid var(--account-border);
+    border-radius: 4px;
+    padding: 10px 12px;
+}
+
+.account-form input:focus-visible {
+    outline: 2px solid var(--account-primary);
+    outline-offset: 1px;
+}
+
+.account-form input.invalid {
+    border-color: var(--account-error-text);
+}
+
+.account-form .account-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--account-text);
+    margin-top: 16px;
+}
+
+.account-label-hint {
+    font-size: 0.75rem;
+}
+
+.account-form .validation-message {
+    color: var(--account-error-text);
+    font-size: 0.8rem;
+    margin-top: 4px;
+}
+
+.account-button {
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    font: inherit;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 24px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background: var(--account-primary);
+    color: var(--account-primary-text);
+}
+
+.account-button:hover {
+    filter: brightness(1.1);
+}
+
+.account-error {
+    background: var(--account-error-bg);
+    color: var(--account-error-text);
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: 0.875rem;
+}
+
+.account-hint {
+    color: var(--account-muted);
+    font-size: 0.875rem;
+    margin: 16px 0 0;
+}
+
+.invite-link {
+    font-family: monospace;
+    font-size: 0.8rem;
+    word-break: break-all;
+    user-select: all;
+}

@@ -29,6 +29,12 @@ public static class ServiceCollectionExtensions
 
         foreach (var (service, implementation) in registrations)
         {
+            if (implementation.IsDefined(typeof(NonTransactionalAttribute), inherit: false))
+            {
+                services.AddScoped(service, implementation);
+                continue;
+            }
+
             // The real handler, resolvable only by its concrete type...
             services.AddScoped(implementation);
 
