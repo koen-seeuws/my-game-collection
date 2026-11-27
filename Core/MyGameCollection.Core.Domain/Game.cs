@@ -10,6 +10,9 @@ public record Game
     /// <summary>The system the game runs on, e.g. "Super Nintendo".</summary>
     public required string Platform { get; init; }
 
+    /// <summary>The edition, e.g. "Game of the Year Edition" or "Pre-Udder Edition". Empty for the standard release.</summary>
+    public string? Edition { get; init; }
+
     public Region Region { get; init; } = Region.Pal;
     public ItemCondition Condition { get; init; } = ItemCondition.Good;
     public Completeness Completeness { get; init; } = Completeness.Loose;

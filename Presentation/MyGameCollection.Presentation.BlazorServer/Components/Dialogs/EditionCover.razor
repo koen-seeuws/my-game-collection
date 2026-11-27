@@ -1,0 +1,13 @@
+@* A cover in the edition picker, or a placeholder icon when IGDB has none. *@
+@if (Url is not null)
+{
+    <img src="@Url" alt="" loading="lazy" />
+}
+else
+{
+    <MudIcon Icon="@Icons.Material.Outlined.VideogameAsset" Class="version-option-placeholder" />
+}
+
+@code {
+    [Parameter] public string? Url { get; set; }
+}

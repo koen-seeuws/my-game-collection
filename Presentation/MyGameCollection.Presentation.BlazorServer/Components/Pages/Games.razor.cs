@@ -169,6 +169,7 @@ public partial class Games : IDisposable
         string.IsNullOrWhiteSpace(_search)
         || game.Title.Contains(_search, StringComparison.OrdinalIgnoreCase)
         || game.Platform.Contains(_search, StringComparison.OrdinalIgnoreCase)
+        || (game.Edition?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
         || (game.Notes?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false);
 
     private void OnUserChanged() => InvokeAsync(async () =>

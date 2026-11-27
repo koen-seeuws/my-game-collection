@@ -11,6 +11,7 @@ public sealed class UpdateGameCommandInputValidator : CommandInputValidatorBase<
         RuleFor(c => c.Key).ItemKey();
         RuleFor(c => c.Title).RequiredText(CollectionItemLimits.MaxNameLength);
         RuleFor(c => c.Platform).RequiredText(CollectionItemLimits.MaxShortTextLength);
+        RuleFor(c => c.Edition).OptionalText(CollectionItemLimits.MaxShortTextLength);
         RuleFor(c => c.Region).IsInEnum();
         RuleFor(c => c.Condition).IsInEnum();
         RuleFor(c => c.Completeness).IsInEnum();

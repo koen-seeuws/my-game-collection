@@ -40,7 +40,7 @@ else
         <div class="item-grid mb-6">
             @foreach (var game in games)
             {
-                <ItemCard @key="game.Key" Title="@game.Title" Subtitle="@(game.ReleaseYear is { } year ? $"{game.Platform} · {year}" : game.Platform)"
+                <ItemCard @key="game.Key" Title="@game.Title" Subtitle="@GameCardGrid.Subtitle(game)"
                           ThumbnailUrl="@game.ThumbnailUrl" Icon="@Icons.Material.Outlined.VideogameAsset" Status="game.Status"
                           ShowStatus="false" Notes="@game.Notes"
                           OnEdit="() => EditGameAsync(game)" OnDelete="() => DeleteGameAsync(game)"

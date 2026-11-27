@@ -7,6 +7,10 @@ public record UpdateGameCommand : ICommand
     public required Guid Key { get; init; }
     public required string Title { get; init; }
     public required string Platform { get; init; }
+
+    /// <summary>The edition, e.g. "Game of the Year Edition". Empty for the standard release.</summary>
+    public string? Edition { get; init; }
+
     public Region Region { get; init; }
     public ItemCondition Condition { get; init; }
     public Completeness Completeness { get; init; }

@@ -301,6 +301,15 @@ h1:focus {
     object-fit: contain;
 }
 
+/* Game editions show portrait box art instead of wide console pictures. */
+.version-picker.covers .version-option img,
+.version-picker.covers .version-option .version-option-placeholder {
+    width: 60px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
 .version-option-name {
     font-size: 0.8125rem;
     line-height: 1.25;

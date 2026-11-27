@@ -11,6 +11,7 @@ internal static class GameCollectionValidation
         {
             Title = Required(game.Title, "title", MaxNameLength),
             Platform = Required(game.Platform, "platform", MaxShortTextLength),
+            Edition = Optional(game.Edition, "edition", MaxShortTextLength),
             Notes = Optional(game.Notes, "notes", MaxNotesLength),
             ThumbnailUrl = OptionalUrl(game.ThumbnailUrl, "thumbnailUrl")
         };

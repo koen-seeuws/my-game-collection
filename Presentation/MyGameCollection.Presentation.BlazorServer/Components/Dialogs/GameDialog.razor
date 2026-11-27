@@ -1,6 +1,8 @@
 @using System.Globalization
 @using MyGameCollection.Application.Abstractions.Services.GameCatalog
+@using MyGameCollection.Application.Abstractions.Services
 @inject IGameCatalogService GameCatalog
+@implements IDisposable
 
 <MudDialog>
     <DialogContent>
@@ -27,6 +29,43 @@
                 </MudStack>
             </ItemTemplate>
         </CatalogLookup>
+        @if (_editionsLoading)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+        }
+        else if (_catalogGame is { } catalogGame && _catalogEditions.Count > 0)
+        {
+            <div class="mb-4">
+                <MudText Typo="Typo.subtitle2">Which edition is it?</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    IGDB knows @(_catalogEditions.Count + 1) editions of @catalogGame.Name. Pick yours to use its cover.
+                </MudText>
+                <div class="version-picker covers mt-2">
+                    <button type="button" class="@($"version-option{(_catalogEdition is null ? " selected" : "")}")"
+                            aria-pressed="@(_catalogEdition is null ? "true" : "false")" @onclick="ApplyStandardEdition">
+                        <EditionCover Url="@catalogGame.CoverUrl" />
+                        <span class="version-option-name">Standard edition</span>
+                        @if (catalogGame.ReleaseYear is { } gameYear)
+                        {
+                            <span class="version-option-year">@gameYear</span>
+                        }
+                    </button>
+                    @foreach (var edition in _catalogEditions)
+                    {
+                        var selected = edition.Id == _catalogEdition?.Id;
+                        <button type="button" class="@($"version-option{(selected ? " selected" : "")}")"
+                                aria-pressed="@(selected ? "true" : "false")" @onclick="() => ApplyCatalogEdition(edition)">
+                            <EditionCover Url="@edition.CoverUrl" />
+                            <span class="version-option-name">@edition.Edition</span>
+                            @if (edition.ReleaseYear is { } year)
+                            {
+                                <span class="version-option-year">@year</span>
+                            }
+                        </button>
+                    }
+                </div>
+            </div>
+        }
         <EditForm id="@_formId" Model="Model" OnValidSubmit="Submit">
             <DataAnnotationsValidator />
             <MudGrid Spacing="2">
@@ -39,6 +78,11 @@
                                      Variant="Variant.Outlined" SearchFunc="SearchPlatformsAsync" MaxItems="null"
                                      CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true"
                                      HelperText="Use the same name as the console" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="Model.Edition" For="() => Model.Edition" Label="Edition"
+                                  Variant="Variant.Outlined" MaxLength="100" Clearable="true"
+                                  Placeholder="e.g. Game of the Year Edition" HelperText="Leave empty for the standard edition" />
                 </MudItem>
                 @if (_catalogPlatforms.Count > 1)
                 {
@@ -125,9 +169,28 @@
     private Task<IReadOnlyList<CatalogGameDto>> SearchCatalogAsync(string search, CancellationToken ct) =>
         GameCatalog.SearchGamesAsync(search, ct);
 
-    private void ApplyCatalogGame(CatalogGameDto game)
+    /// <summary>The game last picked from IGDB, whose editions are offered in the edition picker.</summary>
+    private CatalogGameDto? _catalogGame;
+
+    private IReadOnlyList<CatalogGameEditionDto> _catalogEditions = [];
+    private CatalogGameEditionDto? _catalogEdition;
+    private bool _editionsLoading;
+    private CancellationTokenSource? _editionsCts;
+
+    private async Task ApplyCatalogGame(CatalogGameDto game)
     {
+        ApplyCatalogGameDetails(game);
+        await LoadEditionsAsync(game);
+    }
+
+    private void ApplyCatalogGameDetails(CatalogGameDto game)
+    {
+        _catalogGame = game;
+        _catalogEditions = [];
+        _catalogEdition = null;
+
         Model.Title = game.Name;
+        Model.Edition = null;
         Model.ReleaseYear = game.ReleaseYear ?? Model.ReleaseYear;
         Model.ThumbnailUrl = game.ThumbnailUrl ?? Model.ThumbnailUrl;
 
@@ -137,6 +200,54 @@
             .ToList();
 
         Model.Platform = ChoosePlatform() ?? Model.Platform;
+    }
+
+    private async Task LoadEditionsAsync(CatalogGameDto game)
+    {
+        _editionsCts?.Cancel();
+        _editionsCts?.Dispose();
+        var cts = _editionsCts = new CancellationTokenSource();
+
+        _editionsLoading = true;
+        try
+        {
+            var editions = await GameCatalog.GetGameEditionsAsync(game.Id, cts.Token);
+            if (!cts.IsCancellationRequested)
+                _catalogEditions = editions;
+        }
+        catch (OperationCanceledException)
+        {
+            // Another game was picked meanwhile.
+        }
+        catch (CatalogUnavailableException)
+        {
+            // Editions are a nice-to-have: the game itself is already filled in.
+        }
+        finally
+        {
+            if (ReferenceEquals(_editionsCts, cts))
+                _editionsLoading = false;
+        }
+    }
+
+    private void ApplyCatalogEdition(CatalogGameEditionDto edition)
+    {
+        _catalogEdition = edition;
+        Model.Edition = edition.Edition;
+        Model.ThumbnailUrl = edition.ThumbnailUrl ?? _catalogGame?.ThumbnailUrl ?? Model.ThumbnailUrl;
+    }
+
+    private void ApplyStandardEdition()
+    {
+        _catalogEdition = null;
+        Model.Edition = null;
+        Model.ThumbnailUrl = _catalogGame?.ThumbnailUrl ?? Model.ThumbnailUrl;
+    }
+
+    public void Dispose()
+    {
+        _editionsCts?.Cancel();
+        _editionsCts?.Dispose();
     }
 
     /// <summary>

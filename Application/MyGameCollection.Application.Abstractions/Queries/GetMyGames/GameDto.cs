@@ -7,6 +7,10 @@ public record GameDto
     public required Guid Key { get; init; }
     public required string Title { get; init; }
     public required string Platform { get; init; }
+
+    /// <summary>The edition, e.g. "Game of the Year Edition". Empty for the standard release.</summary>
+    public string? Edition { get; init; }
+
     public required Region Region { get; init; }
     public required ItemCondition Condition { get; init; }
     public required Completeness Completeness { get; init; }
