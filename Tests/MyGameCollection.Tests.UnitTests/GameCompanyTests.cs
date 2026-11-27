@@ -3,7 +3,7 @@ using MyGameCollection.Application.Abstractions.Queries.GetMyGames;
 using MyGameCollection.Application.Validation.Validators.AddGame;
 using MyGameCollection.Core.Domain;
 using MyGameCollection.Core.Domain.Abstractions;
-using MyGameCollection.Infrastructure.Igdb;
+using MyGameCollection.Infrastructure.IGDB;
 using MyGameCollection.Presentation.BlazorServer.Components.Shared;
 using static MyGameCollection.Tests.UnitTests.GameCollectionBuilder;
 

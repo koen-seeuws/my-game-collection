@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MyGameCollection.Application.Abstractions.Services.GameCatalog;
 
-namespace MyGameCollection.Infrastructure.Igdb;
+namespace MyGameCollection.Infrastructure.IGDB;
 
 public static class ServiceCollectionExtensions
 {

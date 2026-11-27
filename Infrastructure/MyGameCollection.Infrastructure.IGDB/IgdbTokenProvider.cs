@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using MyGameCollection.Application.Abstractions.Services;
 
-namespace MyGameCollection.Infrastructure.Igdb;
+namespace MyGameCollection.Infrastructure.IGDB;
 
 /// <summary>
 /// Fetches and caches the app access token IGDB requires (Twitch client-credentials flow).

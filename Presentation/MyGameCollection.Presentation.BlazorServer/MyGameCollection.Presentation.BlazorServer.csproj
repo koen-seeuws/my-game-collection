@@ -16,7 +16,7 @@
     <ProjectReference Include="..\..\Application\MyGameCollection.Application.Business\MyGameCollection.Application.Business.csproj" />
     <ProjectReference Include="..\..\Infrastructure\MyGameCollection.Infrastructure.EFC\MyGameCollection.Infrastructure.EFC.csproj" />
     <ProjectReference Include="..\..\Infrastructure\MyGameCollection.Infrastructure.Identity\MyGameCollection.Infrastructure.Identity.csproj" />
-    <ProjectReference Include="..\..\Infrastructure\MyGameCollection.Infrastructure.Igdb\MyGameCollection.Infrastructure.Igdb.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\MyGameCollection.Infrastructure.IGDB\MyGameCollection.Infrastructure.IGDB.csproj" />
   </ItemGroup>
 
 </Project>

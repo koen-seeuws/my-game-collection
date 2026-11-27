@@ -11,7 +11,7 @@
   <Folder Name="/3. Infrastructure/">
     <Project Path="Infrastructure/MyGameCollection.Infrastructure.EFC/MyGameCollection.Infrastructure.EFC.csproj" />
     <Project Path="Infrastructure/MyGameCollection.Infrastructure.Identity/MyGameCollection.Infrastructure.Identity.csproj" />
-    <Project Path="Infrastructure/MyGameCollection.Infrastructure.Igdb/MyGameCollection.Infrastructure.Igdb.csproj" />
+    <Project Path="Infrastructure/MyGameCollection.Infrastructure.IGDB/MyGameCollection.Infrastructure.IGDB.csproj" />
   </Folder>
   <Folder Name="/4. Presentation/">
     <Project Path="Presentation/MyGameCollection.Presentation.BlazorServer/MyGameCollection.Presentation.BlazorServer.csproj" />

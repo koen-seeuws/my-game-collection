@@ -9,7 +9,7 @@ using MyGameCollection.Application.Abstractions.Commands.CreateFirstAdminInvite;
 using MyGameCollection.Application.Business;
 using MyGameCollection.Infrastructure.EFC;
 using MyGameCollection.Infrastructure.Identity;
-using MyGameCollection.Infrastructure.Igdb;
+using MyGameCollection.Infrastructure.IGDB;
 using MyGameCollection.Presentation.BlazorServer.Components;
 using MyGameCollection.Presentation.BlazorServer.Security;
 

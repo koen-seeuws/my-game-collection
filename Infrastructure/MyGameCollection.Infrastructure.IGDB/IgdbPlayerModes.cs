@@ -1,7 +1,7 @@
 using MyGameCollection.Core.Domain.Abstractions;
 using static MyGameCollection.Core.Domain.Abstractions.CollectionItemLimits;
 
-namespace MyGameCollection.Infrastructure.Igdb;
+namespace MyGameCollection.Infrastructure.IGDB;
 
 /// <summary>
 /// Turns IGDB's game modes (single player, multiplayer, co-op...) and multiplayer modes (per platform: how many

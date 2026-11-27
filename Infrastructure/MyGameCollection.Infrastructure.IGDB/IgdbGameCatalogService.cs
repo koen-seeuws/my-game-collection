@@ -2,7 +2,7 @@ using Microsoft.Extensions.Options;
 using MyGameCollection.Application.Abstractions.Services.GameCatalog;
 using MyGameCollection.Core.Domain.Abstractions;
 
-namespace MyGameCollection.Infrastructure.Igdb;
+namespace MyGameCollection.Infrastructure.IGDB;
 
 /// <summary>Searches games and consoles on IGDB.</summary>
 internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptions> options) : IGameCatalogService
