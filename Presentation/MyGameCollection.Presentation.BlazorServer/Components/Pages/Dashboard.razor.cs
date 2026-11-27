@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using MyGameCollection.Application.Abstractions;
+using MyGameCollection.Application.Abstractions.Queries.GetMyCollectionSummary;
 using MyGameCollection.Core.Domain.Abstractions;
 using MyGameCollection.Presentation.BlazorServer.Components.Dialogs;
 using MyGameCollection.Presentation.BlazorServer.Models;
@@ -14,6 +15,16 @@ public partial class Dashboard : IDisposable
     [Inject] private CurrentUser CurrentUser { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
+
+    // The chart shows the biggest platforms; the rest are added up as "Other".
+    private const int MaxChartSlices = 7;
+
+    private CollectionSummaryDto? _summary;
+    private string[] _chartLabels = [];
+    private double[] _chartValues = [];
+    private List<ChartSeries<double>> _chartSeries = [];
+
+    private bool IsEmpty => _summary is { OwnedGames: 0, WishlistGames: 0, OwnedConsoles: 0, WishlistConsoles: 0 };
 
     protected override async Task OnInitializedAsync()
     {
@@ -37,6 +48,21 @@ public partial class Dashboard : IDisposable
         {
             Snackbar.Add($"Could not load your collection: {ex.Message}", Severity.Error);
         }
+    }
+
+    private async Task LoadSummaryAsync()
+    {
+        _summary = await Dispatcher.QueryAsync(new GetMyCollectionSummaryQuery());
+
+        var withGames = _summary.Platforms.Where(p => p.OwnedGames > 0).ToList();
+        var slices = withGames.Take(MaxChartSlices).Select(p => (p.Platform, Count: p.OwnedGames)).ToList();
+        var other = withGames.Skip(MaxChartSlices).Sum(p => p.OwnedGames);
+        if (other > 0)
+            slices.Add(("Other", other));
+
+        _chartLabels = slices.Select(s => s.Platform).ToArray();
+        _chartValues = slices.Select(s => (double)s.Count).ToArray();
+        _chartSeries = _chartValues.AsChartDataSet();
     }
 
     private async Task AddGameAsync()

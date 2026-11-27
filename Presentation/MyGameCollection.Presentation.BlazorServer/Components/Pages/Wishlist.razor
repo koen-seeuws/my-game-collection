@@ -1,6 +1,4 @@
 @page "/wishlist"
-@using MyGameCollection.Application.Abstractions.Queries.GetMyConsoles
-@using MyGameCollection.Application.Abstractions.Queries.GetMyGames
 
 <PageTitle>Wishlist · My Game Collection</PageTitle>
 
@@ -80,12 +78,4 @@ else
             }
         </div>
     }
-}
-
-@code {
-    private IEnumerable<GameDto> WishedGames =>
-        _games.Where(g => g.Status == CollectionStatus.Wishlist).OrderBy(g => g.Title);
-
-    private IEnumerable<ConsoleDto> WishedConsoles =>
-        _consoles.Where(c => c.Status == CollectionStatus.Wishlist).OrderBy(c => c.Name);
 }

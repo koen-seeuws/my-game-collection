@@ -138,6 +138,39 @@ public partial class Games : IDisposable
         await LoadAsync();
     }
 
+    // ---- Filtering and sorting ----
+
+    private enum GameSort { Title, ReleaseYear, RecentlyPurchased, Price }
+
+    private string? _search;
+    private CollectionStatus? _statusFilter;
+    private GameSort _sort = GameSort.Title;
+    private bool _groupByPlatform;
+
+    private IEnumerable<GameDto> VisibleGames
+    {
+        get
+        {
+            var games = _games.Where(MatchesSearch);
+            if (_statusFilter is { } status)
+                games = games.Where(g => g.Status == status);
+
+            return _sort switch
+            {
+                GameSort.ReleaseYear => games.OrderBy(g => g.ReleaseYear ?? int.MaxValue).ThenBy(g => g.Title),
+                GameSort.RecentlyPurchased => games.OrderByDescending(g => g.PurchaseDate ?? DateOnly.MinValue).ThenBy(g => g.Title),
+                GameSort.Price => games.OrderByDescending(g => g.PurchasePrice ?? -1).ThenBy(g => g.Title),
+                _ => games.OrderBy(g => g.Title, StringComparer.CurrentCultureIgnoreCase)
+            };
+        }
+    }
+
+    private bool MatchesSearch(GameDto game) =>
+        string.IsNullOrWhiteSpace(_search)
+        || game.Title.Contains(_search, StringComparison.OrdinalIgnoreCase)
+        || game.Platform.Contains(_search, StringComparison.OrdinalIgnoreCase)
+        || (game.Notes?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false);
+
     private void OnUserChanged() => InvokeAsync(async () =>
     {
         await LoadAsync();

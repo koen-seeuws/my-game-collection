@@ -193,6 +193,12 @@ public partial class Wishlist : IDisposable
         await LoadAsync();
     }
 
+    private IEnumerable<GameDto> WishedGames =>
+        _games.Where(g => g.Status == CollectionStatus.Wishlist).OrderBy(g => g.Title);
+
+    private IEnumerable<ConsoleDto> WishedConsoles =>
+        _consoles.Where(c => c.Status == CollectionStatus.Wishlist).OrderBy(c => c.Name);
+
     private void OnUserChanged() => InvokeAsync(async () =>
     {
         await LoadAsync();

@@ -1,5 +1,4 @@
 @page "/consoles"
-@using MyGameCollection.Application.Abstractions.Queries.GetMyConsoles
 
 <PageTitle>Consoles · My Game Collection</PageTitle>
 
@@ -83,46 +82,4 @@ else
             }
         </div>
     }
-}
-
-@code {
-    private enum ConsoleSort { Manufacturer, Name, ReleaseYear, GameCount }
-
-    private string? _search;
-    private CollectionStatus? _statusFilter;
-    private ConsoleSort _sort = ConsoleSort.Manufacturer;
-
-    private IEnumerable<ConsoleDto> VisibleConsoles
-    {
-        get
-        {
-            var consoles = _consoles.Where(MatchesSearch);
-            if (_statusFilter is { } status)
-                consoles = consoles.Where(c => c.Status == status);
-
-            return _sort switch
-            {
-                ConsoleSort.Name => consoles.OrderBy(c => c.Name),
-                ConsoleSort.ReleaseYear => consoles.OrderBy(c => c.ReleaseYear ?? int.MaxValue).ThenBy(c => c.Name),
-                ConsoleSort.GameCount => consoles.OrderByDescending(GameCount).ThenBy(c => c.Name),
-                _ => consoles.OrderBy(c => c.Manufacturer).ThenBy(c => c.ReleaseYear ?? int.MaxValue).ThenBy(c => c.Name)
-            };
-        }
-    }
-
-    private static string Subtitle(ConsoleDto console) =>
-        string.Join(" · ", new[] { console.Manufacturer, console.Model, console.ReleaseYear?.ToString() }
-            .Where(part => !string.IsNullOrWhiteSpace(part)));
-
-    /// <summary>The number of owned games for this system (matched on platform name).</summary>
-    private int GameCount(ConsoleDto console) =>
-        _games.Count(g => g.Status == CollectionStatus.Owned
-                         && string.Equals(g.Platform, console.Name, StringComparison.OrdinalIgnoreCase));
-
-    private bool MatchesSearch(ConsoleDto console) =>
-        string.IsNullOrWhiteSpace(_search)
-        || console.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)
-        || console.Manufacturer.Contains(_search, StringComparison.OrdinalIgnoreCase)
-        || (console.Model?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
-        || (console.Notes?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false);
 }
