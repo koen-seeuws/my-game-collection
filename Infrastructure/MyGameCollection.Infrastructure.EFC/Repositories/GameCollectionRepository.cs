@@ -14,7 +14,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
     }
 
     protected override IQueryable<DataModel.GameCollection> Query() =>
-        DbSet.Include(c => c.Games).Include(c => c.Consoles).AsSplitQuery();
+        DbSet.Include(c => c.Games).ThenInclude(g => g.AddOns).Include(c => c.Consoles).AsSplitQuery();
 
     protected override Expression<Func<DataModel.GameCollection, bool>> HasKey(string key) =>
         c => c.Owner.ToUpper() == key.ToUpper();
@@ -60,7 +60,27 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 PurchaseOrigin = g.PurchaseOrigin,
                 Notes = g.Notes,
                 ThumbnailUrl = g.ThumbnailUrl,
-                CatalogId = g.CatalogId
+                CatalogId = g.CatalogId,
+                AddOns = g.AddOns
+                    .OrderBy(a => a.Position)
+                    .Select(a => new Domain.AddOn
+                    {
+                        Key = a.Key,
+                        Title = a.Title,
+                        Type = a.Type,
+                        Format = a.Format,
+                        Condition = a.Condition,
+                        Completeness = a.Completeness,
+                        Status = a.Status,
+                        ReleaseDate = ToReleaseDate(a),
+                        PurchaseDate = a.PurchaseDate,
+                        PurchasePrice = a.PurchasePrice,
+                        PurchaseOrigin = a.PurchaseOrigin,
+                        Notes = a.Notes,
+                        ThumbnailUrl = a.ThumbnailUrl,
+                        CatalogId = a.CatalogId
+                    })
+                    .ToImmutableList()
             })
             .ToImmutableList(),
         Consoles = entity.Consoles
@@ -105,8 +125,21 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.CatalogId = g.CatalogId;
                 row.Format = g.Format;
                 ApplyPlayerModes(row, g.Players);
-                ApplyCommon(row, g.Region, g.Condition, g.Completeness, g.Status, g.ReleaseDate, g.PurchaseDate,
+                row.Region = g.Region;
+                ApplyCommon(row, g.Condition, g.Completeness, g.Status, g.ReleaseDate, g.PurchaseDate,
                     g.PurchasePrice, g.PurchaseOrigin, g.Notes, g.ThumbnailUrl);
+
+                Synchronise(row.AddOns, g.AddOns, a => a.Key,
+                    create: a => new DataModel.AddOn { Key = a.Key, Title = a.Title },
+                    apply: (a, addOnRow) =>
+                    {
+                        addOnRow.Title = a.Title;
+                        addOnRow.Type = a.Type;
+                        addOnRow.Format = a.Format;
+                        addOnRow.CatalogId = a.CatalogId;
+                        ApplyCommon(addOnRow, a.Condition, a.Completeness, a.Status, a.ReleaseDate, a.PurchaseDate,
+                            a.PurchasePrice, a.PurchaseOrigin, a.Notes, a.ThumbnailUrl);
+                    });
             });
 
         Synchronise(entity.Consoles, aggregate.Consoles, c => c.Key,
@@ -118,7 +151,8 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.Model = c.Model;
                 row.Colour = c.Colour;
                 row.CatalogId = c.CatalogId;
-                ApplyCommon(row, c.Region, c.Condition, c.Completeness, c.Status, c.ReleaseDate, c.PurchaseDate,
+                row.Region = c.Region;
+                ApplyCommon(row, c.Condition, c.Completeness, c.Status, c.ReleaseDate, c.PurchaseDate,
                     c.PurchasePrice, c.PurchaseOrigin, c.Notes, c.ThumbnailUrl);
             });
     }
@@ -129,7 +163,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
     /// </summary>
     private static void Synchronise<TItem, TRow>(List<TRow> rows, IReadOnlyList<TItem> items, Func<TItem, Guid> keyOf,
         Func<TItem, TRow> create, Action<TItem, TRow> apply)
-        where TRow : CollectionItem
+        where TRow : ItemRow
     {
         var existing = rows.ToDictionary(r => r.Key);
         var keysInAggregate = items.Select(keyOf).ToHashSet();
@@ -153,12 +187,11 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
         }
     }
 
-    private static void ApplyCommon(CollectionItem row, Region region,
+    private static void ApplyCommon(ItemRow row,
         ItemCondition condition, Completeness completeness,
         CollectionStatus status, ReleaseDate? releaseDate, DateOnly? purchaseDate,
         decimal? purchasePrice, PurchaseOrigin? purchaseOrigin, string? notes, string? thumbnailUrl)
     {
-        row.Region = region;
         row.Condition = condition;
         row.Completeness = completeness;
         row.Status = status;
@@ -194,6 +227,6 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
         SplitScreen = row.SplitScreen
     }.Normalised();
 
-    private static ReleaseDate? ToReleaseDate(CollectionItem row) =>
+    private static ReleaseDate? ToReleaseDate(ItemRow row) =>
         row.ReleaseYear is { } year ? new ReleaseDate(year, row.ReleaseMonth, row.ReleaseDay) : null;
 }

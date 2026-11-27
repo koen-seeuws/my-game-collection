@@ -12,6 +12,7 @@ public class GameCollectionDbContext : DbContext
     public DbSet<GameCollection> GameCollections => Set<GameCollection>();
     public DbSet<Game> Games => Set<Game>();
     public DbSet<GameConsole> Consoles => Set<GameConsole>();
+    public DbSet<AddOn> AddOns => Set<AddOn>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

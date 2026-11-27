@@ -22,6 +22,7 @@ else
 
     var games = WishedGames.ToList();
     var consoles = WishedConsoles.ToList();
+    var addOns = WishedAddOns.ToList();
 
     <MudStack Row="true" AlignItems="AlignItems.Center" Class="item-group-title">
         <MudText Typo="Typo.h6">Games <span class="item-group-count">@games.Count</span></MudText>
@@ -48,6 +49,26 @@ else
                     <ItemTags Format="game.Format" Region="game.Region"
                               Completeness="@(game.Format == GameFormat.Physical ? game.Completeness : null)" />
                     <PlayerTags Players="game.Players" />
+                </ItemCard>
+            }
+        </div>
+    }
+
+    @if (addOns.Count > 0)
+    {
+        <MudText Typo="Typo.h6" Class="item-group-title">DLC and expansions <span class="item-group-count">@addOns.Count</span></MudText>
+        <div class="item-grid mb-6">
+            @foreach (var (game, addOn) in addOns)
+            {
+                <ItemCard @key="addOn.Key" Title="@addOn.Title" Subtitle="@($"For {game.Title} · {game.Platform}")"
+                          ThumbnailUrl="@addOn.ThumbnailUrl" Icon="@Icons.Material.Outlined.Extension" Status="addOn.Status"
+                          ShowStatus="false" Notes="@addOn.Notes"
+                          OnOpen="() => OpenAddOnAsync(game, addOn)" OnDelete="() => DeleteAddOnAsync(addOn)"
+                          OnAcquire="() => AcquireAddOnAsync(addOn)">
+                    <div class="item-tags">
+                        <span class="item-tag">@addOn.Type.ToDisplayName()</span>
+                        <span class="@($"item-tag format {addOn.Format.ToString().ToLowerInvariant()}")">@addOn.Format.ToDisplayName()</span>
+                    </div>
                 </ItemCard>
             }
         </div>

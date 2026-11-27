@@ -8,7 +8,7 @@
     <DialogContent>
         @if (!_editing)
         {
-            <GameDetails Model="Model" />
+            <GameDetails Model="Model" GameKey="GameKey" AddOns="AddOns" OnAddOnsChanged="OnAddOnsChanged" />
         }
         else
         {
@@ -287,6 +287,17 @@
     /// <summary>Opens an existing game read-only; its form only shows after pressing Edit.</summary>
     [Parameter]
     public bool ReadOnly { get; set; }
+
+    /// <summary>The key of an existing game, to manage its add-ons while it is shown read-only.</summary>
+    [Parameter]
+    public Guid? GameKey { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<MyGameCollection.Application.Abstractions.Queries.GetMyGames.AddOnDto> AddOns { get; set; } = [];
+
+    /// <summary>Raised after an add-on was added, changed or deleted, so the page behind can reload.</summary>
+    [Parameter]
+    public EventCallback OnAddOnsChanged { get; set; }
 
     private bool _editing;
 

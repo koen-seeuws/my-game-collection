@@ -20,7 +20,8 @@ internal sealed record IgdbGame(
     [property: JsonPropertyName("collections")] IReadOnlyList<IgdbNamed>? Collections = null,
     [property: JsonPropertyName("franchise")] IgdbNamed? Franchise = null,
     [property: JsonPropertyName("franchises")] IReadOnlyList<IgdbNamed>? Franchises = null,
-    [property: JsonPropertyName("age_ratings")] IReadOnlyList<IgdbAgeRating>? AgeRatings = null);
+    [property: JsonPropertyName("age_ratings")] IReadOnlyList<IgdbAgeRating>? AgeRatings = null,
+    [property: JsonPropertyName("parent_game")] IgdbNamed? ParentGame = null);
 
 /// <summary>Anything IGDB only names here, like a collection (series) or franchise.</summary>
 internal sealed record IgdbNamed(

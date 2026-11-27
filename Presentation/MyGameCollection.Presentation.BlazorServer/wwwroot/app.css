@@ -987,3 +987,81 @@ body::after {
     border-color: var(--neon-cyan);
     box-shadow: 0 0 8px var(--neon-cyan-glow);
 }
+
+/* ---- Add-ons of a game (DLC, expansions...) ---- */
+
+.game-add-ons {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--mud-palette-lines-default);
+}
+
+.add-on-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.add-on-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 6px;
+    padding: 4px 4px 4px 6px;
+}
+
+.add-on-open {
+    all: unset;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.add-on-open:focus-visible {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.add-on-thumbnail {
+    width: 36px;
+    aspect-ratio: 3 / 4;
+    flex-shrink: 0;
+    border-radius: 4px;
+    border: 1px solid var(--neon-line);
+}
+
+.add-on-thumbnail img {
+    object-fit: cover;
+}
+
+.add-on-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.add-on-title {
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-tag.wishlist {
+    border-color: var(--mud-palette-warning);
+    color: var(--mud-palette-warning);
+}
+
+.item-tag.add-ons {
+    border-color: var(--mud-palette-secondary);
+    color: var(--mud-palette-secondary);
+}

@@ -37,6 +37,27 @@ internal static class GameCollectionValidation
         return normalised;
     }
 
+    public static AddOn Validated(AddOn addOn)
+    {
+        var normalised = addOn with
+        {
+            Title = Required(addOn.Title, "title", MaxNameLength),
+            Notes = Optional(addOn.Notes, "notes", MaxNotesLength),
+            ThumbnailUrl = OptionalUrl(addOn.ThumbnailUrl, "thumbnailUrl"),
+            // A download is always new, and an item on the wishlist has not been bought yet.
+            PurchaseOrigin = addOn.Status == CollectionStatus.Owned && addOn.Format == GameFormat.Physical
+                ? addOn.PurchaseOrigin
+                : null
+        };
+
+        EnsureValid(normalised.ReleaseDate, normalised.PurchasePrice);
+        EnsureValidCatalogId(normalised.CatalogId);
+        if (!Enum.IsDefined(normalised.Type))
+            throw new ArgumentOutOfRangeException("type", normalised.Type, "Unknown add-on type.");
+
+        return normalised;
+    }
+
     public static GameConsole Validated(GameConsole console)
     {
         var normalised = console with

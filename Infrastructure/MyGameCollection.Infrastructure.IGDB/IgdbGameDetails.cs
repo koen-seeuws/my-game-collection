@@ -21,19 +21,48 @@ internal static class IgdbGameDetails
             .Select(name => name?.Trim())
             .FirstOrDefault(name => !string.IsNullOrEmpty(name));
 
-    /// <summary>IGDB's game type ids (see its game_types endpoint), grouped into the ones a collection tells apart.</summary>
+    /// <summary>IGDB's game type ids of add-ons, which need their game to play: DLC, Expansion and Pack / Addon.</summary>
+    public const string AddOnTypeIds = "(1,2,13)";
+
+    /// <summary>
+    /// IGDB's game type ids (see its game_types endpoint), grouped into the ones a collection tells apart. Empty for
+    /// add-ons, which are no games of their own (see <see cref="AddOnType"/>).
+    /// </summary>
     public static GameType? Type(IgdbGame game) => game.GameType switch
     {
-        null => null,
+        null or 1 or 2 or 13 => null,
         0 => GameType.MainGame,
-        1 or 13 => GameType.Dlc, // DLC, Pack / Addon
-        2 or 4 => GameType.Expansion, // Expansion, Standalone Expansion
+        4 => GameType.Expansion, // Standalone Expansion
         3 => GameType.Bundle,
         8 => GameType.Remake,
         9 => GameType.Remaster,
         10 => GameType.ExpandedGame,
         11 => GameType.Port,
         _ => GameType.Other // Mod, Episode, Season, Fork, Update
+    };
+
+    /// <summary>
+    /// An add-on's own name, without its game's name in front: "Kraken Ship Pack" rather than
+    /// "Assassin's Creed IV Black Flag: Kraken Ship Pack", since it is always shown with its game.
+    /// </summary>
+    public static string AddOnName(IgdbGame addOn)
+    {
+        var name = addOn.Name?.Trim() ?? string.Empty;
+        var gameName = addOn.ParentGame?.Name?.Trim();
+        if (string.IsNullOrEmpty(gameName) || !name.StartsWith(gameName, StringComparison.OrdinalIgnoreCase))
+            return name;
+
+        var rest = name[gameName.Length..].TrimStart(' ', ':', '-', '–', '—');
+        return rest.Length > 0 && rest.Length < name.Length - gameName.Length ? rest : name;
+    }
+
+    /// <summary>What kind of add-on an IGDB add-on (see <see cref="AddOnTypeIds"/>) is.</summary>
+    public static AddOnType AddOnType(IgdbGame game) => game.GameType switch
+    {
+        1 => Core.Domain.Abstractions.AddOnType.Dlc,
+        2 => Core.Domain.Abstractions.AddOnType.Expansion,
+        13 => Core.Domain.Abstractions.AddOnType.Pack,
+        _ => Core.Domain.Abstractions.AddOnType.Other
     };
 
     public static IReadOnlyList<CatalogAgeRatingDto> AgeRatings(IgdbGame game) =>

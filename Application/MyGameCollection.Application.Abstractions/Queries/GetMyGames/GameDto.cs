@@ -23,7 +23,7 @@ public record GameDto
     /// <summary>The series or franchise the game belongs to, e.g. "Super Mario". Empty when unknown.</summary>
     public string? Series { get; init; }
 
-    /// <summary>A game of its own, a remake, a DLC... Empty when unknown.</summary>
+    /// <summary>A game of its own, a remake, a bundle... Empty when unknown.</summary>
     public GameType? Type { get; init; }
 
     /// <summary>The age rating on the box for the game's region, e.g. "PEGI 7". Empty when unknown.</summary>
@@ -52,4 +52,7 @@ public record GameDto
 
     /// <summary>The item's id in the external catalog (IGDB). Empty when not picked from the catalog.</summary>
     public long? CatalogId { get; init; }
+
+    /// <summary>The DLC, expansions... owned or wished for this game, in the order they were added.</summary>
+    public IReadOnlyList<AddOnDto> AddOns { get; init; } = [];
 }

@@ -22,7 +22,7 @@ public record AddGameCommand : ICommand
     /// <summary>The series or franchise the game belongs to, e.g. "Super Mario". Empty when unknown.</summary>
     public string? Series { get; init; }
 
-    /// <summary>A game of its own, a remake, a DLC... Empty when unknown.</summary>
+    /// <summary>A game of its own, a remake, a bundle... Empty when unknown.</summary>
     public GameType? Type { get; init; }
 
     /// <summary>The age rating on the box for the game's region, e.g. "PEGI 7". Empty when unknown.</summary>

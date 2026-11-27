@@ -56,8 +56,29 @@ public record GetMyGamesQueryHandler : IQueryHandler<GetMyGamesQuery, IEnumerabl
                     CouchCoop = game.CouchCoop,
                     OnlineCoop = game.OnlineCoop,
                     SplitScreen = game.SplitScreen
-                }
+                },
+                AddOns = game.AddOns
+                    .OrderBy(addOn => addOn.Position)
+                    .Select(addOn => new AddOnDto
+                    {
+                        Key = addOn.Key,
+                        Title = addOn.Title,
+                        Type = addOn.Type,
+                        Format = addOn.Format,
+                        Condition = addOn.Condition,
+                        Completeness = addOn.Completeness,
+                        Status = addOn.Status,
+                        ReleaseDate = addOn.ReleaseYear == null ? null : new ReleaseDate(addOn.ReleaseYear.Value, addOn.ReleaseMonth, addOn.ReleaseDay),
+                        PurchaseDate = addOn.PurchaseDate,
+                        PurchasePrice = addOn.PurchasePrice,
+                        PurchaseOrigin = addOn.PurchaseOrigin,
+                        Notes = addOn.Notes,
+                        ThumbnailUrl = addOn.ThumbnailUrl,
+                        CatalogId = addOn.CatalogId
+                    })
+                    .ToList()
             })
+            .AsSplitQuery()
             .ToListAsync(ct);
 
         // Rows without any player details mean "unknown", like a game the catalog knows nothing about.

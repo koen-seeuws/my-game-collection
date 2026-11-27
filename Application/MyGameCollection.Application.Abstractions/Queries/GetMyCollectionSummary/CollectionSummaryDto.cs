@@ -9,6 +9,10 @@ public record CollectionSummaryDto
     public required int OwnedConsoles { get; init; }
     public required int WishlistConsoles { get; init; }
 
+    /// <summary>How many add-ons (DLC, expansions...) of games are owned, and how many wished for.</summary>
+    public required int OwnedAddOns { get; init; }
+    public required int WishlistAddOns { get; init; }
+
     /// <summary>The sum of the purchase prices of everything owned.</summary>
     public required decimal TotalSpent { get; init; }
 

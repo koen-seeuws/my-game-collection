@@ -1,6 +1,9 @@
 namespace MyGameCollection.Core.Domain.Abstractions;
 
-/// <summary>What kind of release a game is: a game of its own, a remake or remaster of one, or an add-on or bundle.</summary>
+/// <summary>
+/// What kind of release a game is: a game of its own, a remake or remaster of one, or a bundle. Add-ons that need
+/// the game to play (DLC, expansions) are no games: see <see cref="AddOnType"/>.
+/// </summary>
 public enum GameType
 {
     MainGame,
@@ -13,15 +16,12 @@ public enum GameType
     /// <summary>The same game brought to another platform.</summary>
     Port,
 
-    /// <summary>A large add-on, including ones that play without the original game.</summary>
+    /// <summary>A standalone expansion: a large add-on that plays without the original game.</summary>
     Expansion,
-
-    /// <summary>Downloadable content or a pack of add-ons.</summary>
-    Dlc,
 
     /// <summary>Several games sold together, e.g. a compilation.</summary>
     Bundle,
 
-    /// <summary>Episodes, seasons, mods, updates...</summary>
+    /// <summary>Mods, forks...</summary>
     Other
 }

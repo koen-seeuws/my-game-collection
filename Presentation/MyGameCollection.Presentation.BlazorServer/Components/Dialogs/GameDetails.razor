@@ -1,3 +1,4 @@
+@using MyGameCollection.Application.Abstractions.Queries.GetMyGames
 @* A game's details, read-only, shown when opening it before choosing to edit. *@
 <div class="item-details">
     <ItemThumbnail Url="@Model.ThumbnailUrl" Icon="@Icons.Material.Outlined.VideogameAsset" Alt="@Model.Title"
@@ -57,12 +58,25 @@
                 <DetailField Label="Notes" Wide="true"><span class="detail-notes">@Model.Notes</span></DetailField>
             }
         </MudGrid>
+        @if (GameKey is { } gameKey)
+        {
+            <GameAddOns GameKey="gameKey" GameTitle="@Model.Title" GameCatalogId="Model.CatalogId" AddOns="AddOns"
+                        OnChanged="OnAddOnsChanged" />
+        }
         <GameCatalogDetails CatalogId="Model.CatalogId" />
     </div>
 </div>
 
 @code {
     [Parameter, EditorRequired] public GameFormModel Model { get; set; } = default!;
+
+    /// <summary>The game's key, to manage its add-ons. Empty for a game that is not saved yet.</summary>
+    [Parameter] public Guid? GameKey { get; set; }
+
+    [Parameter] public IReadOnlyList<AddOnDto> AddOns { get; set; } = [];
+
+    /// <summary>Raised after an add-on was added, changed or deleted.</summary>
+    [Parameter] public EventCallback OnAddOnsChanged { get; set; }
 
     private bool Owned => Model.Status == CollectionStatus.Owned;
 }

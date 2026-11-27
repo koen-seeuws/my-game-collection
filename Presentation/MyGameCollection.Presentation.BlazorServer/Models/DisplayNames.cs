@@ -67,11 +67,22 @@ public static class DisplayNames
         GameType.Remaster => "Remaster",
         GameType.ExpandedGame => "Expanded edition",
         GameType.Port => "Port",
-        GameType.Expansion => "Expansion",
-        GameType.Dlc => "DLC",
+        GameType.Expansion => "Standalone expansion",
         GameType.Bundle => "Bundle",
         _ => "Other"
     };
+
+    public static string ToDisplayName(this AddOnType type) => type switch
+    {
+        AddOnType.Dlc => "DLC",
+        AddOnType.Expansion => "Expansion",
+        AddOnType.Pack => "Pack",
+        AddOnType.SeasonPass => "Season pass",
+        _ => "Other"
+    };
+
+    /// <summary>"1 add-on", "3 add-ons".</summary>
+    public static string AddOns(int count) => count == 1 ? "1 add-on" : $"{count} add-ons";
 
     /// <summary>"Couch co-op · 4P": playing together on one console, for a game card.</summary>
     public static string LocalPlayersLabel(PlayerModes players) =>
@@ -107,6 +118,7 @@ public static class DisplayNames
         GameFormat f => f.ToDisplayName(),
         PurchaseOrigin o => o.ToDisplayName(),
         GameType t => t.ToDisplayName(),
+        AddOnType t => t.ToDisplayName(),
         _ => value.ToString()
     };
 

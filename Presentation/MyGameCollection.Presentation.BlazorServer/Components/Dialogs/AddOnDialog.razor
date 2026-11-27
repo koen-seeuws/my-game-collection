@@ -1,0 +1,222 @@
+@using System.Globalization
+@using MyGameCollection.Application.Abstractions.Services.GameCatalog
+@using MyGameCollection.Application.Abstractions.Services
+@inject IGameCatalogService GameCatalog
+@implements IDisposable
+
+@* Adds or edits an add-on (DLC, expansion...) of a game, prefilled from IGDB's add-ons of that game when it knows them. *@
+<MudDialog>
+    <DialogContent>
+        @if (_catalogLoading)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+        }
+        else if (_catalogAddOns.Count > 0)
+        {
+            <MudPaper Outlined="true" Class="pa-3 mb-4">
+                <MudAutocomplete T="CatalogAddOnDto" Value="_pickedAddOn" ValueChanged="ApplyCatalogAddOn"
+                                 SearchFunc="FilterCatalogAddOnsAsync" ToStringFunc="a => a?.Name" MaxItems="null"
+                                 Label="@($"Pick from IGDB ({DisplayNames.AddOns(_catalogAddOns.Count)} known)")"
+                                 Variant="Variant.Outlined" Margin="Margin.Dense" OpenOnFocus="true" Clearable="true"
+                                 AdornmentIcon="@Icons.Material.Filled.ManageSearch">
+                    <ItemTemplate Context="addOn">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            @if (addOn.CoverUrl is not null)
+                            {
+                                <img src="@addOn.CoverUrl" alt="" class="catalog-cover" loading="lazy" />
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@Icons.Material.Outlined.Extension" Class="catalog-cover" />
+                            }
+                            <div>
+                                <MudText Typo="Typo.body1">@addOn.Name</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @string.Join(" · ", new[] { addOn.Type.ToDisplayName(), addOn.ReleaseDate?.ToString() }.Where(p => p is not null))
+                                </MudText>
+                            </div>
+                        </MudStack>
+                    </ItemTemplate>
+                </MudAutocomplete>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Data by IGDB.com</MudText>
+            </MudPaper>
+        }
+        else
+        {
+            <CatalogLookup TItem="CatalogAddOnDto" Label="Find the add-on on IGDB" SearchFunc="SearchCatalogAsync"
+                           ItemName="a => a.Name" InitialSearch="@(string.IsNullOrEmpty(Model.Title) ? GameTitle : Model.Title)"
+                           AutoFocus="false" OnSelected="ApplyCatalogAddOn">
+                <ItemTemplate Context="addOn">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        @if (addOn.CoverUrl is not null)
+                        {
+                            <img src="@addOn.CoverUrl" alt="" class="catalog-cover" loading="lazy" />
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Outlined.Extension" Class="catalog-cover" />
+                        }
+                        <div>
+                            <MudText Typo="Typo.body1">@addOn.Name</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @string.Join(" · ", new[] { addOn.Type.ToDisplayName(), addOn.GameName, addOn.ReleaseDate?.ToString() }.Where(p => p is not null))
+                            </MudText>
+                        </div>
+                    </MudStack>
+                </ItemTemplate>
+            </CatalogLookup>
+        }
+
+        <EditForm id="@_formId" Model="Model" OnValidSubmit="Submit">
+            <DataAnnotationsValidator />
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="8">
+                    <MudTextField @bind-Value="Model.Title" For="() => Model.Title" Label="Title"
+                                  Variant="Variant.Outlined" MaxLength="200" Immediate="true" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <EnumSelect TEnum="AddOnType" @bind-Value="Model.Type" Label="Type" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Format</MudText>
+                    <MudToggleGroup T="GameFormat" @bind-Value="Model.Format" SelectionMode="SelectionMode.SingleSelection"
+                                    Color="Color.Primary" CheckMark="true" FixedContent="true" Size="Size.Small">
+                        @foreach (var format in Enum.GetValues<GameFormat>())
+                        {
+                            <MudToggleItem T="GameFormat" Value="format" Text="@format.ToDisplayName()" />
+                        }
+                    </MudToggleGroup>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <EnumSelect TEnum="CollectionStatus" @bind-Value="Model.Status" Label="Status" />
+                </MudItem>
+                @if (Model.IsPhysical)
+                {
+                    <MudItem xs="12" sm="6">
+                        <EnumSelect TEnum="Completeness" @bind-Value="Model.Completeness" Label="Completeness" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <EnumSelect TEnum="ItemCondition" @bind-Value="Model.Condition" Label="Condition" />
+                    </MudItem>
+                }
+                <ReleaseDateFields Model="Model" />
+                @if (Model.Status == CollectionStatus.Owned)
+                {
+                    <MudItem xs="12" sm="6">
+                        <MudDatePicker @bind-Date="Model.PurchaseDate"
+                                       Label="@(Model.Format == GameFormat.Subscription ? "Claimed on" : "Purchase date")"
+                                       Variant="Variant.Outlined" Clearable="true" MaxDate="DateTime.Today" />
+                    </MudItem>
+                    @if (Model.Format != GameFormat.Subscription)
+                    {
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField T="decimal?" @bind-Value="Model.PurchasePrice" For="() => Model.PurchasePrice"
+                                             Label="Price paid" Variant="Variant.Outlined" HideSpinButtons="true" Min="0"
+                                             Adornment="Adornment.Start" AdornmentText="@CurrencySymbol" />
+                        </MudItem>
+                    }
+                    @if (Model.IsPhysical)
+                    {
+                        <MudItem xs="12">
+                            <PurchaseOriginField @bind-Value="Model.PurchaseOrigin" />
+                        </MudItem>
+                    }
+                }
+                <MudItem xs="12">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <ItemThumbnail Url="@Model.ThumbnailUrl" Icon="@Icons.Material.Outlined.Extension" Class="thumbnail-preview" />
+                        <MudTextField @bind-Value="Model.ThumbnailUrl" For="() => Model.ThumbnailUrl" Label="Thumbnail URL"
+                                      Variant="Variant.Outlined" MaxLength="500" Immediate="true" Clearable="true"
+                                      Placeholder="https://..." HelperText="Filled in from IGDB when available"
+                                      Class="flex-grow-1" />
+                    </MudStack>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="Model.Notes" For="() => Model.Notes" Label="Notes" Variant="Variant.Outlined"
+                                  Lines="3" MaxLength="2000" />
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
+        <MudButton ButtonType="ButtonType.Submit" form="@_formId" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public AddOnFormModel Model { get; set; } = new();
+
+    /// <summary>The title of the game the add-on is for.</summary>
+    [Parameter, EditorRequired]
+    public string GameTitle { get; set; } = string.Empty;
+
+    /// <summary>The game's IGDB id, to offer the add-ons IGDB knows of it. Empty when it was not picked from IGDB.</summary>
+    [Parameter]
+    public long? GameCatalogId { get; set; }
+
+    private readonly string _formId = $"add-on-form-{Guid.NewGuid():N}";
+    private readonly CancellationTokenSource _cts = new();
+
+    private static string CurrencySymbol => CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol;
+
+    /// <summary>The add-ons IGDB knows of the game; empty when it knows none, or the game is not from IGDB.</summary>
+    private IReadOnlyList<CatalogAddOnDto> _catalogAddOns = [];
+
+    private CatalogAddOnDto? _pickedAddOn;
+    private bool _catalogLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (GameCatalogId is not { } gameId)
+            return;
+
+        _catalogLoading = true;
+        try
+        {
+            _catalogAddOns = await GameCatalog.GetGameAddOnsAsync(gameId, _cts.Token);
+            _pickedAddOn = _catalogAddOns.FirstOrDefault(a => a.Id == Model.CatalogId);
+        }
+        catch (Exception ex) when (ex is CatalogUnavailableException or OperationCanceledException)
+        {
+            // The add-on can still be searched for or filled in by hand.
+        }
+        finally
+        {
+            _catalogLoading = false;
+        }
+    }
+
+    private Task<IEnumerable<CatalogAddOnDto>> FilterCatalogAddOnsAsync(string? search, CancellationToken _) =>
+        Task.FromResult(string.IsNullOrWhiteSpace(search)
+            ? _catalogAddOns
+            : _catalogAddOns.Where(a => a.Name.Contains(search.Trim(), StringComparison.OrdinalIgnoreCase)));
+
+    private Task<IReadOnlyList<CatalogAddOnDto>> SearchCatalogAsync(string search, CancellationToken ct) =>
+        GameCatalog.SearchAddOnsAsync(search, ct);
+
+    private void ApplyCatalogAddOn(CatalogAddOnDto? addOn)
+    {
+        _pickedAddOn = addOn;
+        if (addOn is null)
+            return;
+
+        Model.CatalogId = addOn.Id;
+        Model.Title = addOn.Name;
+        Model.Type = addOn.Type;
+        Model.ReleaseDate = addOn.ReleaseDate ?? Model.ReleaseDate;
+        Model.ThumbnailUrl = addOn.ThumbnailUrl ?? Model.ThumbnailUrl;
+    }
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(Model));
+
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _cts.Dispose();
+    }
+}
