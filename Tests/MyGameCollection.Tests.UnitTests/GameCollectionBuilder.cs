@@ -13,31 +13,19 @@ internal static class GameCollectionBuilder
 
     public static GameCollection WithConsoles(params GameConsole[] consoles) => new() { AggregateKey = Owner, Consoles = [..consoles] };
 
-    public static GameDetails GameDetails(string title = "Super Mario World", string platform = "Super Nintendo",
-        CollectionStatus status = CollectionStatus.Owned) => new()
-    {
-        Title = title,
-        Platform = platform,
-        Status = status
-    };
-
     public static Game Game(string title = "Super Mario World", CollectionStatus status = CollectionStatus.Owned) => new()
     {
         Key = Guid.NewGuid(),
-        Details = GameDetails(title, status: status)
-    };
-
-    public static ConsoleDetails ConsoleDetails(string name = "Super Nintendo", string manufacturer = "Nintendo",
-        CollectionStatus status = CollectionStatus.Owned) => new()
-    {
-        Name = name,
-        Manufacturer = manufacturer,
+        Title = title,
+        Platform = "Super Nintendo",
         Status = status
     };
 
     public static GameConsole Console(string name = "Super Nintendo", CollectionStatus status = CollectionStatus.Owned) => new()
     {
         Key = Guid.NewGuid(),
-        Details = ConsoleDetails(name, status: status)
+        Name = name,
+        Manufacturer = "Nintendo",
+        Status = status
     };
 }

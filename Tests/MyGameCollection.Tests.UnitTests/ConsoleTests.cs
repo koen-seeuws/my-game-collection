@@ -10,13 +10,13 @@ public class ConsoleTests
     {
         var collection = Empty();
 
-        var key = collection.AddConsole(ConsoleDetails(" PlayStation ", " Sony ") with { Model = "  " });
+        var key = collection.AddConsole(" PlayStation ", " Sony ", model: "  ");
 
         var console = Assert.Single(collection.Consoles);
         Assert.Equal(key, console.Key);
-        Assert.Equal("PlayStation", console.Details.Name);
-        Assert.Equal("Sony", console.Details.Manufacturer);
-        Assert.Null(console.Details.Model);
+        Assert.Equal("PlayStation", console.Name);
+        Assert.Equal("Sony", console.Manufacturer);
+        Assert.Null(console.Model);
         Assert.Empty(collection.Games);
     }
 
@@ -27,7 +27,7 @@ public class ConsoleTests
     {
         var collection = Empty();
 
-        Assert.Throws<ArgumentException>(() => collection.AddConsole(ConsoleDetails(name, manufacturer)));
+        Assert.Throws<ArgumentException>(() => collection.AddConsole(name, manufacturer));
         Assert.Empty(collection.Consoles);
     }
 
@@ -37,10 +37,10 @@ public class ConsoleTests
         var console = Console("Mega Drive");
         var collection = WithConsoles(console);
 
-        collection.UpdateConsole(console.Key, ConsoleDetails("Mega Drive", "Sega") with { Model = "Model 2" });
+        collection.UpdateConsole(console.Key, "Mega Drive", "Sega", model: "Model 2");
 
         Assert.Equal(console.Key, collection.Consoles[0].Key);
-        Assert.Equal("Model 2", collection.Consoles[0].Details.Model);
+        Assert.Equal("Model 2", collection.Consoles[0].Model);
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class ConsoleTests
     {
         var collection = WithConsoles(Console());
 
-        Assert.Throws<KeyNotFoundException>(() => collection.UpdateConsole(Guid.NewGuid(), ConsoleDetails()));
+        Assert.Throws<KeyNotFoundException>(() => collection.UpdateConsole(Guid.NewGuid(), "Super Nintendo", "Nintendo"));
     }
 
     [Fact]

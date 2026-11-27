@@ -22,21 +22,19 @@ public class UpdateGameCommandHandler : ICommandHandler<UpdateGameCommand>
         var collection = await _repository.GetAsync(owner, cancellationToken)
             ?? throw new InvalidOperationException($"No game collection could be loaded for owner '{owner}'.");
 
-        var details = new GameDetails
-        {
-            Title = command.Title,
-            Platform = command.Platform,
-            Region = command.Region,
-            Condition = command.Condition,
-            Completeness = command.Completeness,
-            Status = command.Status,
-            ReleaseYear = command.ReleaseYear,
-            PurchaseDate = command.PurchaseDate,
-            PurchasePrice = command.PurchasePrice,
-            Notes = command.Notes,
-            ThumbnailUrl = command.ThumbnailUrl
-        };
-        collection.UpdateGame(command.Key, details);
+        collection.UpdateGame(
+            command.Key,
+            title: command.Title,
+            platform: command.Platform,
+            region: command.Region,
+            condition: command.Condition,
+            completeness: command.Completeness,
+            status: command.Status,
+            releaseYear: command.ReleaseYear,
+            purchaseDate: command.PurchaseDate,
+            purchasePrice: command.PurchasePrice,
+            notes: command.Notes,
+            thumbnailUrl: command.ThumbnailUrl);
 
         await _repository.SaveAsync(collection, cancellationToken);
     }
