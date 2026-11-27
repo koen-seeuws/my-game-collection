@@ -12,8 +12,13 @@ internal sealed record IgdbGame(
     [property: JsonPropertyName("release_dates")] IReadOnlyList<IgdbReleaseDate>? ReleaseDates,
     [property: JsonPropertyName("cover")] IgdbImage? Cover,
     [property: JsonPropertyName("platforms")] IReadOnlyList<IgdbPlatformRef>? Platforms,
+    [property: JsonPropertyName("genres")] IReadOnlyList<IgdbGenre>? Genres,
     [property: JsonPropertyName("game_modes")] IReadOnlyList<long>? GameModes = null,
     [property: JsonPropertyName("multiplayer_modes")] IReadOnlyList<IgdbMultiplayerMode>? MultiplayerModes = null);
+
+internal sealed record IgdbGenre(
+    [property: JsonPropertyName("id")] long Id,
+    [property: JsonPropertyName("name")] string? Name);
 
 /// <summary>How a game can be played with others on one platform (or on all, without <see cref="Platform"/>).</summary>
 internal sealed record IgdbMultiplayerMode(

@@ -10,6 +10,7 @@ public static class CollectionItemLimits
     public const int MaxShortTextLength = 100;
     public const int MaxNotesLength = 2000;
     public const int MaxUrlLength = 500;
+    public const int MaxGenres = 10;
     public const int MinReleaseYear = 1950;
     public const int MaxReleaseYear = 2100;
 

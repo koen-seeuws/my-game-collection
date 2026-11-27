@@ -13,6 +13,7 @@ internal static class GameCollectionValidation
             Title = Required(game.Title, "title", MaxNameLength),
             Platform = Required(game.Platform, "platform", MaxShortTextLength),
             Edition = Optional(game.Edition, "edition", MaxShortTextLength),
+            Genres = Genres(game.Genres),
             Notes = Optional(game.Notes, "notes", MaxNotesLength),
             ThumbnailUrl = OptionalUrl(game.ThumbnailUrl, "thumbnailUrl"),
             Players = game.Players?.Normalised(),
@@ -75,6 +76,21 @@ internal static class GameCollectionValidation
 
     private static string? Optional(string? value, string name, int maxLength) =>
         string.IsNullOrWhiteSpace(value) ? null : Required(value, name, maxLength);
+
+    /// <summary>The genres trimmed, without blanks or duplicates (ignoring case), in their original order.</summary>
+    private static IReadOnlyList<string> Genres(IReadOnlyList<string>? genres)
+    {
+        var normalised = (genres ?? [])
+            .Where(genre => !string.IsNullOrWhiteSpace(genre))
+            .Select(genre => Required(genre, "genres", MaxShortTextLength))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (normalised.Count > MaxGenres)
+            throw new ArgumentException($"A game cannot have more than {MaxGenres} genres.", "genres");
+
+        return normalised;
+    }
 
     /// <summary>An optional absolute http(s) URL, e.g. of a thumbnail image.</summary>
     private static string? OptionalUrl(string? value, string name)

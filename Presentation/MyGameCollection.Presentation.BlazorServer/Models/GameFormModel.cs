@@ -18,6 +18,9 @@ public sealed class GameFormModel : ReleaseDateFormModel
     [StringLength(100)]
     public string? Edition { get; set; }
 
+    /// <summary>The game's genres, filled in from IGDB or picked by hand.</summary>
+    public List<string> Genres { get; set; } = [];
+
     public CollectionStatus Status { get; set; } = CollectionStatus.Owned;
 
     // ---- Players ----
@@ -86,6 +89,7 @@ public sealed class GameFormModel : ReleaseDateFormModel
         Title = game.Title,
         Platform = game.Platform,
         Edition = game.Edition,
+        Genres = game.Genres.ToList(),
         Status = game.Status,
         Format = game.Format,
         Players = game.Players,
@@ -105,6 +109,7 @@ public sealed class GameFormModel : ReleaseDateFormModel
         Title = Title,
         Platform = Platform,
         Edition = Edition,
+        Genres = Genres,
         Status = Status,
         Format = Format,
         Players = Players,
@@ -125,6 +130,7 @@ public sealed class GameFormModel : ReleaseDateFormModel
         Title = Title,
         Platform = Platform,
         Edition = Edition,
+        Genres = Genres,
         Status = Status,
         Format = Format,
         Players = Players,

@@ -11,6 +11,11 @@
                       Completeness="@(game.Format == GameFormat.Physical ? game.Completeness : null)"
                       Condition="@(game.Status == CollectionStatus.Owned && game.Format == GameFormat.Physical ? game.Condition : null)"
                       Origin="game.PurchaseOrigin" />
+            @if (game.Genres.Count > 0)
+            {
+                var genres = string.Join(" · ", game.Genres);
+                <MudText Typo="Typo.caption" Class="item-card-genres" title="@genres">@genres</MudText>
+            }
             <PlayerTags Players="game.Players" />
         </ItemCard>
     }

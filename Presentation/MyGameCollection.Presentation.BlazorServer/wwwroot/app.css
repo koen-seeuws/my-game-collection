@@ -527,6 +527,15 @@ body::after {
     text-overflow: ellipsis;
 }
 
+.item-card-genres {
+    display: block;
+    margin-top: 6px;
+    color: var(--mud-palette-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .item-card-actions {
     padding: 0 4px 4px 12px !important;
     min-height: 40px;

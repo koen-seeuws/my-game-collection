@@ -129,5 +129,6 @@ public class PlayerModesTests
     }
 
     private static IgdbGame IgdbGame(long[]? gameModes, params IgdbMultiplayerMode[] modes) =>
-        new(1, "Overcooked! 2", null, null, null, null, null, gameModes, modes);
+        new(Id: 1, Name: "Overcooked! 2", VersionTitle: null, FirstReleaseDate: null, ReleaseDates: null, Cover: null,
+            Platforms: null, Genres: null, GameModes: gameModes, MultiplayerModes: modes);
 }

@@ -13,6 +13,9 @@ public record Game
     /// <summary>The edition, e.g. "Game of the Year Edition" or "Pre-Udder Edition". Empty for the standard release.</summary>
     public string? Edition { get; init; }
 
+    /// <summary>The game's genres, e.g. "Platform" or "Role-playing (RPG)". Empty when unknown.</summary>
+    public IReadOnlyList<string> Genres { get; init; } = [];
+
     /// <summary>Physical copy, bought download or subscription (e.g. PS Plus).</summary>
     public GameFormat Format { get; init; } = GameFormat.Physical;
 

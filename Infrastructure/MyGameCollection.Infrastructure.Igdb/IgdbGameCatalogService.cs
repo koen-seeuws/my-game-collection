@@ -15,7 +15,7 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
         // version_parent = null leaves out editions (GOTY, Deluxe...) that would otherwise crowd the results.
         var games = await igdb.QueryAsync<IgdbGame>("games",
             $"search {IgdbClient.Quote(search.Trim())}; " +
-            $"fields name, first_release_date, {ReleaseDateFields("release_dates")}, cover.image_id, platforms.name, platforms.abbreviation, " +
+            $"fields name, first_release_date, {ReleaseDateFields("release_dates")}, cover.image_id, platforms.name, platforms.abbreviation, genres.name, " +
             $"{IgdbPlayerModes.Fields}; " +
             $"where version_parent = null; limit {options.Value.SearchLimit};", cancellationToken);
 
@@ -37,7 +37,13 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
                         Players = IgdbPlayerModes.ForPlatform(game, p.Id)
                     })
                     .ToList(),
-                Players = IgdbPlayerModes.ForGame(game)
+                Players = IgdbPlayerModes.ForGame(game),
+                Genres = (game.Genres ?? [])
+                    .Select(g => g.Name?.Trim())
+                    .Where(name => !string.IsNullOrEmpty(name))
+                    .Select(name => name!)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList()
             })
             .ToList();
     }
