@@ -59,6 +59,12 @@ public static class RuleBuilderExtensions
             .GreaterThanOrEqualTo(0m)
             .WithMessage("A price cannot be negative.");
 
+    /// <summary>Empty, or an id in the external catalog (IGDB ids are positive).</summary>
+    public static IRuleBuilderOptions<T, long?> CatalogId<T>(this IRuleBuilder<T, long?> ruleBuilder) =>
+        ruleBuilder
+            .GreaterThan(0L)
+            .WithMessage("{PropertyName} must be positive.");
+
     public static IRuleBuilderOptions<T, Guid> ItemKey<T>(this IRuleBuilder<T, Guid> ruleBuilder) =>
         ruleBuilder
             .NotEmpty()

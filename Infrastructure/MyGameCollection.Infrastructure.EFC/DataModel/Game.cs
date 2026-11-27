@@ -15,6 +15,10 @@ public class Game : CollectionItem
     public List<string> Developers { get; set; } = [];
     public List<string> Publishers { get; set; } = [];
 
+    public string? Series { get; set; }
+    public GameType? Type { get; set; }
+    public string? AgeRating { get; set; }
+
     public GameFormat Format { get; set; }
 
     // Player modes (see Domain.Abstractions.PlayerModes); all false / empty when unknown.

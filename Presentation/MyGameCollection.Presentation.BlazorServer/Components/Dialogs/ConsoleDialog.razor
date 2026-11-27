@@ -183,6 +183,7 @@
         _catalogConsole = console;
         _catalogVersion = null;
 
+        Model.CatalogId = console.Id;
         Model.Name = KnownPlatforms.Match(Platforms, console.Name, console.Abbreviation, console.AlternativeName);
         Model.Manufacturer = KnownPlatforms.ManufacturerOf(Model.Name) ?? console.Manufacturer ?? Model.Manufacturer;
         Model.ReleaseDate = console.ReleaseDate ?? Model.ReleaseDate;

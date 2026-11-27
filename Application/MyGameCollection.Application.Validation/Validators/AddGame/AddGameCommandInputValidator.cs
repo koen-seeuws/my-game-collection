@@ -14,6 +14,9 @@ public sealed class AddGameCommandInputValidator : CommandInputValidatorBase<Add
         RuleFor(c => c.Genres).Genres();
         RuleFor(c => c.Developers).Companies("developer", "developers");
         RuleFor(c => c.Publishers).Companies("publisher", "publishers");
+        RuleFor(c => c.Series).OptionalText(CollectionItemLimits.MaxShortTextLength);
+        RuleFor(c => c.Type).IsInEnum();
+        RuleFor(c => c.AgeRating).OptionalText(CollectionItemLimits.MaxShortTextLength);
         RuleFor(c => c.Format).IsInEnum();
         RuleFor(c => c.Players).PlayerModes();
         RuleFor(c => c.Region).IsInEnum();
@@ -25,5 +28,6 @@ public sealed class AddGameCommandInputValidator : CommandInputValidatorBase<Add
         RuleFor(c => c.PurchaseOrigin).IsInEnum();
         RuleFor(c => c.Notes).OptionalText(CollectionItemLimits.MaxNotesLength);
         RuleFor(c => c.ThumbnailUrl).OptionalHttpUrl();
+        RuleFor(c => c.CatalogId).CatalogId();
     }
 }

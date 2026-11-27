@@ -18,6 +18,18 @@
             {
                 <DetailField Label="Genres" Wide="true">@string.Join(" · ", Model.Genres)</DetailField>
             }
+            @if (!string.IsNullOrWhiteSpace(Model.Series))
+            {
+                <DetailField Label="Series">@Model.Series</DetailField>
+            }
+            @if (Model.Type is { } type)
+            {
+                <DetailField Label="Type">@type.ToDisplayName()</DetailField>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.AgeRating))
+            {
+                <DetailField Label="Age rating">@Model.AgeRating</DetailField>
+            }
             @if (Model.Developers.Count > 0)
             {
                 <DetailField Label="Developers">@string.Join(", ", Model.Developers)</DetailField>

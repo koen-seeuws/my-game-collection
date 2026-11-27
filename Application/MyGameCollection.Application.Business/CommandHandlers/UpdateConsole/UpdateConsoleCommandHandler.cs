@@ -37,7 +37,8 @@ public class UpdateConsoleCommandHandler : ICommandHandler<UpdateConsoleCommand>
             purchasePrice: command.PurchasePrice,
             purchaseOrigin: command.PurchaseOrigin,
             notes: command.Notes,
-            thumbnailUrl: command.ThumbnailUrl);
+            thumbnailUrl: command.ThumbnailUrl,
+            catalogId: command.CatalogId);
 
         await _repository.SaveAsync(collection, cancellationToken);
     }

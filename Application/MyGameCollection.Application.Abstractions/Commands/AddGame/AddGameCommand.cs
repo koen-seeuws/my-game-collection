@@ -19,6 +19,15 @@ public record AddGameCommand : ICommand
     /// <summary>The companies that brought the game out, e.g. "Nintendo". Empty when unknown.</summary>
     public IReadOnlyList<string> Publishers { get; init; } = [];
 
+    /// <summary>The series or franchise the game belongs to, e.g. "Super Mario". Empty when unknown.</summary>
+    public string? Series { get; init; }
+
+    /// <summary>A game of its own, a remake, a DLC... Empty when unknown.</summary>
+    public GameType? Type { get; init; }
+
+    /// <summary>The age rating on the box for the game's region, e.g. "PEGI 7". Empty when unknown.</summary>
+    public string? AgeRating { get; init; }
+
     /// <summary>Physical copy, bought download or subscription (e.g. PS Plus).</summary>
     public GameFormat Format { get; init; }
 
@@ -39,4 +48,7 @@ public record AddGameCommand : ICommand
 
     /// <summary>Absolute http(s) URL of a cover art or picture shown on the item's card.</summary>
     public string? ThumbnailUrl { get; init; }
+
+    /// <summary>The item's id in the external catalog (IGDB). Empty when not picked from the catalog.</summary>
+    public long? CatalogId { get; init; }
 }

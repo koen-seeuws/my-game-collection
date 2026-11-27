@@ -15,6 +15,9 @@ public sealed class ConsoleFormModel : ReleaseDateFormModel
     [Required, StringLength(100)]
     public string Manufacturer { get; set; } = string.Empty;
 
+    /// <summary>The console's IGDB id, set when it is picked from IGDB.</summary>
+    public long? CatalogId { get; set; }
+
     [StringLength(100)]
     public string? Model { get; set; }
 
@@ -56,7 +59,8 @@ public sealed class ConsoleFormModel : ReleaseDateFormModel
         PurchasePrice = console.PurchasePrice,
         PurchaseOrigin = console.PurchaseOrigin,
         Notes = console.Notes,
-        ThumbnailUrl = console.ThumbnailUrl
+        ThumbnailUrl = console.ThumbnailUrl,
+        CatalogId = console.CatalogId
     };
 
     public AddConsoleCommand ToAddCommand() => new()
@@ -74,7 +78,8 @@ public sealed class ConsoleFormModel : ReleaseDateFormModel
         PurchasePrice = PurchasePriceOrNull,
         PurchaseOrigin = PurchaseOriginOrNull,
         Notes = Notes,
-        ThumbnailUrl = ThumbnailUrl
+        ThumbnailUrl = ThumbnailUrl,
+        CatalogId = CatalogId
     };
 
     public UpdateConsoleCommand ToUpdateCommand(Guid key) => new()
@@ -93,7 +98,8 @@ public sealed class ConsoleFormModel : ReleaseDateFormModel
         PurchasePrice = PurchasePriceOrNull,
         PurchaseOrigin = PurchaseOriginOrNull,
         Notes = Notes,
-        ThumbnailUrl = ThumbnailUrl
+        ThumbnailUrl = ThumbnailUrl,
+        CatalogId = CatalogId
     };
 
     /// <summary>Wishlist items have not been bought yet, so their purchase details are left out.</summary>

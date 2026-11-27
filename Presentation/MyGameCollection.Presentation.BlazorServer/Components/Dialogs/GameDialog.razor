@@ -35,6 +35,23 @@
                     </MudStack>
                 </ItemTemplate>
             </CatalogLookup>
+            @if (Model.CatalogId is not null)
+            {
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Refresh" Disabled="_refreshing" OnClick="RefreshFromCatalogAsync">
+                        Refresh from IGDB
+                    </MudButton>
+                    @if (_refreshing)
+                    {
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small" Color="Color.Primary" />
+                    }
+                    else if (_refreshResult is not null)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@_refreshResult</MudText>
+                    }
+                </MudStack>
+            }
             @if (_editionsLoading)
             {
                 <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
@@ -83,12 +100,32 @@
                         <MudAutocomplete T="string" @bind-Value="Model.Platform" For="() => Model.Platform" Label="Platform"
                                          Variant="Variant.Outlined" SearchFunc="SearchPlatformsAsync" MaxItems="null"
                                          CoerceText="false" CoerceValue="true" ResetValueOnEmptyText="true"
-                                         HelperText="Use the same name as the console" @bind-Value:after="ApplyCatalogPlayers" />
+                                         HelperText="Use the same name as the console" @bind-Value:after="ApplyCatalogPlatformDetails" />
                     </MudItem>
                     <MudItem xs="12">
                         <MudTextField @bind-Value="Model.Edition" For="() => Model.Edition" Label="Edition"
                                       Variant="Variant.Outlined" MaxLength="100" Clearable="true"
                                       Placeholder="e.g. Game of the Year Edition" HelperText="Leave empty for the standard edition" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="Model.Series" For="() => Model.Series" Label="Series"
+                                      Variant="Variant.Outlined" MaxLength="100" Clearable="true"
+                                      Placeholder="e.g. Super Mario" HelperText="Filled in from IGDB when available" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="GameType?" @bind-Value="Model.Type" Label="Type" Variant="Variant.Outlined" Clearable="true"
+                                   ToStringFunc="@(type => type is { } t ? t.ToDisplayName() : string.Empty)"
+                                   HelperText="Filled in from IGDB when available">
+                            @foreach (var type in Enum.GetValues<GameType>())
+                            {
+                                <MudSelectItem T="GameType?" Value="type">@type.ToDisplayName()</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="Model.AgeRating" For="() => Model.AgeRating" Label="Age rating"
+                                      Variant="Variant.Outlined" MaxLength="100" Clearable="true" Placeholder="e.g. PEGI 7"
+                                      HelperText="@(_regionalSource ?? "Filled in from IGDB for the region")" />
                     </MudItem>
                     <MudItem xs="12">
                         <MudSelect T="string" MultiSelection="true" SelectedValues="Model.Genres"
@@ -170,7 +207,7 @@
                         <EnumSelect TEnum="CollectionStatus" @bind-Value="Model.Status" Label="Status" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <EnumSelect TEnum="Region" @bind-Value="Model.Region" Label="Region" />
+                        <EnumSelect TEnum="Region" @bind-Value="Model.Region" Label="Region" @bind-Value:after="ApplyCatalogRegionalDetails" />
                     </MudItem>
                     @if (Model.IsPhysical)
                     {
@@ -290,9 +327,22 @@
         _catalogEditions = [];
         _catalogEdition = null;
 
+        Model.CatalogId = game.Id;
         Model.Title = game.Name;
         Model.Edition = null;
-        Model.ReleaseDate = game.ReleaseDate ?? Model.ReleaseDate;
+        ApplyCatalogDescription(game);
+        Model.ThumbnailUrl = game.ThumbnailUrl ?? Model.ThumbnailUrl;
+
+        SetCatalogPlatforms(game);
+        Model.Platform = ChoosePlatform() ?? Model.Platform;
+        ApplyCatalogPlatformDetails();
+    }
+
+    /// <summary>What describes the game itself, whatever the copy: series, type, genres and companies.</summary>
+    private void ApplyCatalogDescription(CatalogGameDto game)
+    {
+        Model.Series = game.Series ?? Model.Series;
+        Model.Type = game.Type ?? Model.Type;
         if (game.Genres.Count > 0)
             Model.Genres = game.Genres.ToList();
         if (game.Developers.Count > 0 || game.Publishers.Count > 0)
@@ -300,8 +350,10 @@
             Model.Developers = game.Developers.ToList();
             Model.Publishers = game.Publishers.ToList();
         }
-        Model.ThumbnailUrl = game.ThumbnailUrl ?? Model.ThumbnailUrl;
+    }
 
+    private void SetCatalogPlatforms(CatalogGameDto game)
+    {
         _catalogPlatforms = game.Platforms
             .Select(p => KnownPlatforms.Match(Platforms, p.Name, p.Abbreviation))
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -310,9 +362,54 @@
         _catalogPlatformDetails = game.Platforms
             .GroupBy(p => KnownPlatforms.Match(Platforms, p.Name, p.Abbreviation), StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+    }
 
-        Model.Platform = ChoosePlatform() ?? Model.Platform;
-        ApplyCatalogPlayers();
+    private bool _refreshing;
+
+    /// <summary>How the last refresh went, shown next to the button.</summary>
+    private string? _refreshResult;
+
+    /// <summary>
+    /// Fetches the game again from IGDB by its stored id and fills in what IGDB knows now, keeping the title,
+    /// edition, platform and cover the user chose. Whatever IGDB does not know (any more) is kept as it was.
+    /// Nothing is stored until the dialog is saved.
+    /// </summary>
+    private async Task RefreshFromCatalogAsync()
+    {
+        if (Model.CatalogId is not { } catalogId)
+            return;
+
+        _refreshing = true;
+        _refreshResult = null;
+        try
+        {
+            if (await GameCatalog.GetGameAsync(catalogId) is not { } game)
+            {
+                _refreshResult = "IGDB no longer knows this game.";
+                return;
+            }
+
+            _catalogGame = game;
+            SetCatalogPlatforms(game);
+            ApplyCatalogDescription(game);
+
+            var platform = _catalogPlatformDetails.GetValueOrDefault(Model.Platform ?? string.Empty);
+            Model.Players = platform?.Players ?? game.Players ?? Model.Players;
+            Model.ReleaseDate = platform?.ReleaseDateFor(Model.Region) ?? game.ReleaseDate ?? Model.ReleaseDate;
+            Model.AgeRating = game.AgeRatingFor(Model.Region) ?? Model.AgeRating;
+            _playersSource = null;
+            _regionalSource = null;
+
+            _refreshResult = "Updated from IGDB. Save to keep the changes.";
+        }
+        catch (CatalogUnavailableException)
+        {
+            _refreshResult = "IGDB could not be reached. Try again later.";
+        }
+        finally
+        {
+            _refreshing = false;
+        }
     }
 
     /// <summary>The picked catalog game's platforms by their name in this collection, for their player modes.</summary>
@@ -325,7 +422,35 @@
     private void SelectPlatform(string? platform)
     {
         Model.Platform = platform ?? Model.Platform;
+        ApplyCatalogPlatformDetails();
+    }
+
+    /// <summary>What IGDB knows of the picked game on the chosen platform: who can play, and when it came out.</summary>
+    private void ApplyCatalogPlatformDetails()
+    {
         ApplyCatalogPlayers();
+        ApplyCatalogRegionalDetails();
+    }
+
+    /// <summary>Where the release date and age rating came from, shown under the age rating.</summary>
+    private string? _regionalSource;
+
+    /// <summary>
+    /// Fills in when the picked catalog game came out on the chosen platform in the chosen region (or else when it
+    /// first came out anywhere), and the age rating on boxes sold in that region.
+    /// </summary>
+    private void ApplyCatalogRegionalDetails()
+    {
+        if (_catalogGame is not { } game)
+            return;
+
+        var platform = _catalogPlatformDetails.GetValueOrDefault(Model.Platform ?? string.Empty);
+        Model.ReleaseDate = platform?.ReleaseDateFor(Model.Region) ?? game.ReleaseDate ?? Model.ReleaseDate;
+
+        Model.AgeRating = game.AgeRatingFor(Model.Region);
+        _regionalSource = Model.AgeRating is null
+            ? $"IGDB does not know the {Model.Region.ToDisplayName()} rating"
+            : $"Filled in from IGDB for {Model.Region.ToDisplayName()}";
     }
 
     /// <summary>

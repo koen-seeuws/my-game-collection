@@ -14,41 +14,61 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
 
         // version_parent = null leaves out editions (GOTY, Deluxe...) that would otherwise crowd the results.
         var games = await igdb.QueryAsync<IgdbGame>("games",
-            $"search {IgdbClient.Quote(search.Trim())}; " +
-            $"fields name, first_release_date, {ReleaseDateFields("release_dates")}, cover.image_id, platforms.name, platforms.abbreviation, genres.name, " +
-            $"{IgdbPlayerModes.Fields}, {IgdbCompanies.Fields}; " +
+            $"search {IgdbClient.Quote(search.Trim())}; fields {GameFields}; " +
             $"where version_parent = null; limit {options.Value.SearchLimit};", cancellationToken);
 
         return games
             .Where(game => !string.IsNullOrWhiteSpace(game.Name))
-            .Select(game => new CatalogGameDto
-            {
-                Id = game.Id,
-                Name = game.Name!,
-                ReleaseDate = FirstReleaseDate(game),
-                CoverUrl = IgdbClient.ImageUrl(game.Cover?.ImageId, "t_cover_small"),
-                ThumbnailUrl = IgdbClient.ImageUrl(game.Cover?.ImageId, "t_cover_big"),
-                Platforms = (game.Platforms ?? [])
-                    .Where(p => !string.IsNullOrWhiteSpace(p.Name))
-                    .Select(p => new CatalogPlatformDto
-                    {
-                        Name = p.Name!,
-                        Abbreviation = p.Abbreviation,
-                        Players = IgdbPlayerModes.ForPlatform(game, p.Id)
-                    })
-                    .ToList(),
-                Players = IgdbPlayerModes.ForGame(game),
-                Genres = (game.Genres ?? [])
-                    .Select(g => g.Name?.Trim())
-                    .Where(name => !string.IsNullOrEmpty(name))
-                    .Select(name => name!)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToList(),
-                Developers = IgdbCompanies.Developers(game),
-                Publishers = IgdbCompanies.Publishers(game)
-            })
+            .Select(ToCatalogGame)
             .ToList();
     }
+
+    public async Task<CatalogGameDto?> GetGameAsync(long gameId, CancellationToken cancellationToken = default)
+    {
+        var games = await igdb.QueryAsync<IgdbGame>("games",
+            $"fields {GameFields}; where id = {gameId}; limit 1;", cancellationToken);
+
+        return games
+            .Where(game => !string.IsNullOrWhiteSpace(game.Name))
+            .Select(ToCatalogGame)
+            .FirstOrDefault();
+    }
+
+    /// <summary>What the game search and lookup ask for of a game.</summary>
+    private static readonly string GameFields =
+        $"name, first_release_date, {ReleaseDateFields("release_dates")}, cover.image_id, platforms.name, platforms.abbreviation, genres.name, " +
+        $"{IgdbPlayerModes.Fields}, {IgdbCompanies.Fields}, {IgdbGameDetails.Fields}";
+
+    private static CatalogGameDto ToCatalogGame(IgdbGame game) => new CatalogGameDto
+    {
+        Id = game.Id,
+        Name = game.Name!,
+        ReleaseDate = FirstReleaseDate(game),
+        CoverUrl = IgdbClient.ImageUrl(game.Cover?.ImageId, "t_cover_small"),
+        ThumbnailUrl = IgdbClient.ImageUrl(game.Cover?.ImageId, "t_cover_big"),
+        Platforms = (game.Platforms ?? [])
+            .Where(p => !string.IsNullOrWhiteSpace(p.Name))
+            .Select(p => new CatalogPlatformDto
+            {
+                Name = p.Name!,
+                Abbreviation = p.Abbreviation,
+                Players = IgdbPlayerModes.ForPlatform(game, p.Id),
+                Releases = Releases(game, p.Id)
+            })
+            .ToList(),
+        Players = IgdbPlayerModes.ForGame(game),
+        Genres = (game.Genres ?? [])
+            .Select(g => g.Name?.Trim())
+            .Where(name => !string.IsNullOrEmpty(name))
+            .Select(name => name!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList(),
+        Developers = IgdbCompanies.Developers(game),
+        Publishers = IgdbCompanies.Publishers(game),
+        Series = IgdbGameDetails.Series(game),
+        Type = IgdbGameDetails.Type(game),
+        AgeRatings = IgdbGameDetails.AgeRatings(game)
+    };
 
     public async Task<IReadOnlyList<CatalogGameEditionDto>> GetGameEditionsAsync(long gameId, CancellationToken cancellationToken = default)
     {
@@ -149,6 +169,15 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
     private static ReleaseDate? FirstReleaseDate(IgdbGame game) =>
         FirstReleaseDate(game.ReleaseDates)
         ?? (game.FirstReleaseDate is { } seconds ? new ReleaseDate(DateTimeOffset.FromUnixTimeSeconds(seconds).Year) : null);
+
+    /// <summary>When the game came out on the platform <paramref name="platformId"/>, per region, as precisely as known.</summary>
+    private static IReadOnlyList<CatalogReleaseDto> Releases(IgdbGame game, long platformId) =>
+        (game.ReleaseDates ?? [])
+            .Where(release => release.Platform == platformId)
+            .Select(release => (region: IgdbGameDetails.Region(release.ReleaseRegion), date: ToReleaseDate(release)))
+            .Where(release => release.date is { Problem: null })
+            .Select(release => new CatalogReleaseDto { Region = release.region, ReleaseDate = release.date!.Value })
+            .ToList();
 
     /// <summary>When a platform version first came out in any region (regions often differ).</summary>
     private static ReleaseDate? FirstReleaseDate(IgdbPlatformVersion version) => FirstReleaseDate(version.ReleaseDates);

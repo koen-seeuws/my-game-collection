@@ -30,6 +30,9 @@ public class UpdateGameCommandHandler : ICommandHandler<UpdateGameCommand>
             genres: command.Genres,
             developers: command.Developers,
             publishers: command.Publishers,
+            series: command.Series,
+            type: command.Type,
+            ageRating: command.AgeRating,
             format: command.Format,
             players: command.Players,
             region: command.Region,
@@ -41,7 +44,8 @@ public class UpdateGameCommandHandler : ICommandHandler<UpdateGameCommand>
             purchasePrice: command.PurchasePrice,
             purchaseOrigin: command.PurchaseOrigin,
             notes: command.Notes,
-            thumbnailUrl: command.ThumbnailUrl);
+            thumbnailUrl: command.ThumbnailUrl,
+            catalogId: command.CatalogId);
 
         await _repository.SaveAsync(collection, cancellationToken);
     }

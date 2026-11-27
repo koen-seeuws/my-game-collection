@@ -39,7 +39,8 @@ public record GetMyConsolesQueryHandler : IQueryHandler<GetMyConsolesQuery, IEnu
                 PurchasePrice = console.PurchasePrice,
                 PurchaseOrigin = console.PurchaseOrigin,
                 Notes = console.Notes,
-                ThumbnailUrl = console.ThumbnailUrl
+                ThumbnailUrl = console.ThumbnailUrl,
+                CatalogId = console.CatalogId
             })
             .ToListAsync(ct);
     }
