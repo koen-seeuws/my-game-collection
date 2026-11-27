@@ -11,6 +11,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Application\MyGameCollection.Application.Abstractions\MyGameCollection.Application.Abstractions.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
       <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.15" />
       <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.15" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.15" />

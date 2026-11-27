@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using MyGameCollection.Application.Abstractions;
+using MyGameCollection.Application.Abstractions.Services.Accounts;
 
 namespace MyGameCollection.Infrastructure.Identity;
 
@@ -61,9 +63,22 @@ public static class ServiceCollectionExtensions
             .PersistKeysToDbContext<AccountsDbContext>();
 
         services.TryAddSingleton(TimeProvider.System);
-        services.AddScoped<InviteService>();
+        services.AddScoped<IAccountService, AccountService>();
+        services.AddQueryHandlers();
 
         return services;
+    }
+
+    private static void AddQueryHandlers(this IServiceCollection services)
+    {
+        var registrations = typeof(ServiceCollectionExtensions).Assembly.GetTypes()
+            .Where(t => t is { IsClass: true, IsAbstract: false, IsGenericTypeDefinition: false })
+            .SelectMany(t => t.GetInterfaces()
+                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>))
+                .Select(i => (Service: i, Implementation: t)));
+
+        foreach (var (service, implementation) in registrations)
+            services.AddScoped(service, implementation);
     }
 
     /// <summary>

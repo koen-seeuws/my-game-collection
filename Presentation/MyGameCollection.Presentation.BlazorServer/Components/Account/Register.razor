@@ -4,7 +4,10 @@
 @attribute [ExcludeFromInteractiveRouting]
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
-@inject InviteService Invites
+@using MyGameCollection.Application.Abstractions.Commands.RedeemInvite
+@using MyGameCollection.Application.Abstractions.Queries.GetOpenInvite
+@inject IUseCaseDispatcher Dispatcher
+@inject UserManager<AppUser> UserManager
 @inject SignInManager<AppUser> SignInManager
 @inject NavigationManager Navigation
 
@@ -66,13 +69,13 @@ else
     [SupplyParameterFromForm]
     private RegisterModel Input { get; set; } = default!;
 
-    private Invite? _invite;
+    private OpenInviteDto? _invite;
     private IReadOnlyList<string> _errors = [];
 
     protected override async Task OnInitializedAsync()
     {
         Input ??= new();
-        _invite = await Invites.FindOpenAsync(Token);
+        _invite = await Dispatcher.QueryAsync(new GetOpenInviteQuery { Token = Token });
     }
 
     private async Task RegisterAsync()
@@ -80,14 +83,21 @@ else
         if (_invite is null)
             return;
 
-        var result = await Invites.RedeemAsync(Token, Input.UserName, Input.Email, Input.Password);
-        if (!result.IsSuccess)
+        var result = await Dispatcher.SendAsync(new RedeemInviteCommand
+        {
+            Token = Token,
+            UserName = Input.UserName,
+            Email = Input.Email,
+            Password = Input.Password
+        });
+        if (!result.Succeeded)
         {
             _errors = result.Errors;
             return;
         }
 
-        await SignInManager.SignInAsync(result.User!, isPersistent: false);
+        var user = await UserManager.FindByNameAsync(result.UserName!);
+        await SignInManager.SignInAsync(user!, isPersistent: false);
         Navigation.NavigateTo("/");
     }
 

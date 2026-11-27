@@ -21,7 +21,7 @@ public sealed class CurrentUser
     internal void Set(ClaimsPrincipal principal)
     {
         var userName = principal.Identity?.IsAuthenticated == true ? principal.Identity.Name : null;
-        var isAdmin = userName is not null && principal.IsInRole(InviteService.AdminRole);
+        var isAdmin = userName is not null && principal.IsInRole(AccountRoles.Admin);
         if (userName == UserName && isAdmin == IsAdmin)
             return;
 

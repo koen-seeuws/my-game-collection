@@ -15,15 +15,19 @@ public sealed class CircuitUserContext : IUserContext
         _circuitServicesAccessor = circuitServicesAccessor;
     }
 
-    public string UserName
+    public string UserName =>
+        CurrentUser.UserName ?? throw new UnauthorizedAccessException("Sign in before working with your game collection.");
+
+    public bool IsAdmin => CurrentUser.IsAdmin;
+
+    private CurrentUser CurrentUser
     {
         get
         {
             var circuitServices = _circuitServicesAccessor.Services
                 ?? throw new InvalidOperationException("There is no active Blazor circuit.");
 
-            return circuitServices.GetRequiredService<CurrentUser>().UserName
-                ?? throw new UnauthorizedAccessException("Sign in before working with your game collection.");
+            return circuitServices.GetRequiredService<CurrentUser>();
         }
     }
 }

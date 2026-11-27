@@ -1,9 +1,10 @@
 @page "/admin"
-@attribute [Authorize(Roles = InviteService.AdminRole)]
-@using Microsoft.AspNetCore.Identity
-@using Microsoft.EntityFrameworkCore
-@inject IServiceScopeFactory ScopeFactory
-@inject CurrentUser CurrentUser
+@attribute [Authorize(Roles = AccountRoles.Admin)]
+@using MyGameCollection.Application.Abstractions.Commands.CreateInvite
+@using MyGameCollection.Application.Abstractions.Commands.RevokeInvite
+@using MyGameCollection.Application.Abstractions.Queries.GetInvites
+@using MyGameCollection.Application.Abstractions.Queries.GetUsers
+@inject IUseCaseDispatcher Dispatcher
 @inject NavigationManager Navigation
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -22,7 +23,7 @@
                 it works once, to create one account.
             </MudText>
             <MudTextField @bind-Value="_note" Label="Who is it for? (optional)" Variant="Variant.Outlined"
-                          MaxLength="200" Immediate="true" Class="mb-3" />
+                          MaxLength="CreateInviteCommand.MaxNoteLength" Immediate="true" Class="mb-3" />
             <MudSelect T="int" @bind-Value="_validDays" Label="Valid for" Variant="Variant.Outlined" Class="mb-3">
                 <MudSelectItem Value="1">1 day</MudSelectItem>
                 <MudSelectItem Value="7">7 days</MudSelectItem>
@@ -35,7 +36,7 @@
 
             @if (_createdLink is not null)
             {
-                <MudAlert Severity="Severity.Success" Variant="Variant.Outlined" Class="mt-4" ContentClass="flex-grow-1">
+                <MudAlert Severity="Severity.Success" Variant="Variant.Outlined" Class="mt-4">
                     <MudText Typo="Typo.body2" Class="mb-2">
                         Copy this link now: it is shown only once.
                     </MudText>
@@ -98,7 +99,7 @@
                     <tbody>
                         @foreach (var invite in _invites)
                         {
-                            var status = invite.GetStatus(DateTime.UtcNow);
+                            var status = invite.Status;
                             <tr>
                                 <td>@(invite.Note ?? "—")</td>
                                 <td>@invite.CreatedAt.ToLocalTime().ToString("g")</td>
@@ -128,8 +129,8 @@
 </MudGrid>
 
 @code {
-    private List<Invite> _invites = [];
-    private List<UserRow> _users = [];
+    private IReadOnlyList<InviteDto> _invites = [];
+    private IReadOnlyList<UserDto> _users = [];
     private string? _note;
     private int _validDays = 7;
     private string? _createdLink;
@@ -137,17 +138,17 @@
 
     protected override Task OnInitializedAsync() => LoadAsync();
 
-    // Each action gets its own DI scope: the circuit lives long, a DbContext should not.
     private async Task LoadAsync()
     {
-        await using var scope = ScopeFactory.CreateAsyncScope();
-        _invites = await scope.ServiceProvider.GetRequiredService<InviteService>().GetAllAsync();
-
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-        var admins = (await userManager.GetUsersInRoleAsync(InviteService.AdminRole)).Select(u => u.Id).ToHashSet();
-        _users = (await userManager.Users.AsNoTracking().OrderBy(u => u.UserName).ToListAsync())
-            .Select(u => new UserRow(u.UserName!, u.Email, u.CreatedAt, admins.Contains(u.Id)))
-            .ToList();
+        try
+        {
+            _invites = await Dispatcher.QueryAsync(new GetInvitesQuery());
+            _users = await Dispatcher.QueryAsync(new GetUsersQuery());
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Could not load invites and users: {ex.Message}", Severity.Error);
+        }
     }
 
     private async Task CreateInviteAsync()
@@ -155,13 +156,19 @@
         _busy = true;
         try
         {
-            await using var scope = ScopeFactory.CreateAsyncScope();
-            var (_, token) = await scope.ServiceProvider.GetRequiredService<InviteService>()
-                .CreateAsync(CurrentUser.UserName!, _note, TimeSpan.FromDays(_validDays));
+            var invite = await Dispatcher.SendAsync(new CreateInviteCommand
+            {
+                Note = _note,
+                ValidFor = TimeSpan.FromDays(_validDays)
+            });
 
-            _createdLink = Navigation.ToAbsoluteUri($"account/register/{token}").ToString();
+            _createdLink = Navigation.ToAbsoluteUri($"account/register/{invite.Token}").ToString();
             _note = null;
             await LoadAsync();
+        }
+        catch (Exception ex) when (ex is ArgumentException or UnauthorizedAccessException)
+        {
+            Snackbar.Add(ex.Message, Severity.Warning);
         }
         catch (Exception ex)
         {
@@ -186,7 +193,7 @@
         }
     }
 
-    private async Task RevokeAsync(Invite invite)
+    private async Task RevokeAsync(InviteDto invite)
     {
         var confirmed = await DialogService.ShowMessageBoxAsync("Revoke invite",
             $"Revoke the invite{(invite.Note is null ? "" : $" for '{invite.Note}'")}? Its link will stop working.",
@@ -194,11 +201,15 @@
         if (confirmed != true)
             return;
 
-        await using var scope = ScopeFactory.CreateAsyncScope();
-        if (await scope.ServiceProvider.GetRequiredService<InviteService>().RevokeAsync(invite.Id))
+        try
+        {
+            await Dispatcher.SendAsync(new RevokeInviteCommand { Id = invite.Id });
             Snackbar.Add("Invite revoked.", Severity.Success);
-        else
-            Snackbar.Add("That invite can no longer be revoked.", Severity.Warning);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or UnauthorizedAccessException)
+        {
+            Snackbar.Add(ex.Message, Severity.Warning);
+        }
 
         await LoadAsync();
     }
@@ -210,6 +221,4 @@
         InviteStatus.Revoked => Color.Error,
         _ => Color.Default
     };
-
-    private sealed record UserRow(string UserName, string? Email, DateTime CreatedAt, bool IsAdmin);
 }

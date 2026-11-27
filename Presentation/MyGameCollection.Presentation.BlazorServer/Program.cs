@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using MyGameCollection.Application.Abstractions;
+using MyGameCollection.Application.Abstractions.Commands.CreateFirstAdminInvite;
 using MyGameCollection.Application.Business;
 using MyGameCollection.Infrastructure.EFC;
 using MyGameCollection.Infrastructure.Identity;
@@ -97,8 +98,8 @@ app.Run();
 static async Task LogFirstAdminInviteAsync(WebApplication app)
 {
     await using var scope = app.Services.CreateAsyncScope();
-    var token = await scope.ServiceProvider.GetRequiredService<InviteService>()
-        .CreateFirstAdminInviteIfNeededAsync(TimeSpan.FromDays(1));
+    var token = await scope.ServiceProvider.GetRequiredService<IUseCaseDispatcher>()
+        .SendAsync(new CreateFirstAdminInviteCommand { ValidFor = TimeSpan.FromDays(1) });
     if (token is null)
         return;
 

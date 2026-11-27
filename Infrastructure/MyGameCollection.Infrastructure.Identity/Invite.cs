@@ -1,3 +1,5 @@
+using MyGameCollection.Application.Abstractions.Queries.GetInvites;
+
 namespace MyGameCollection.Infrastructure.Identity;
 
 /// <summary>
@@ -31,12 +33,7 @@ public sealed class Invite
         : RevokedAt is not null ? InviteStatus.Revoked
         : ExpiresAt <= utcNow ? InviteStatus.Expired
         : InviteStatus.Open;
-}
 
-public enum InviteStatus
-{
-    Open,
-    Used,
-    Expired,
-    Revoked
+    public static string HashToken(string token) =>
+        Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(token)));
 }
