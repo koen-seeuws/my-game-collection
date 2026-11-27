@@ -44,6 +44,7 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
         var platforms = await igdb.QueryAsync<IgdbPlatform>("platforms",
             $"search {IgdbClient.Quote(search.Trim())}; " +
             "fields name, abbreviation, alternative_name, platform_logo.image_id, " +
+            "versions.name, versions.platform_logo.image_id, " +
             "versions.companies.manufacturer, versions.companies.company.name, versions.platform_version_release_dates.y; " +
             $"limit {options.Value.SearchLimit};", cancellationToken);
 
@@ -64,15 +65,33 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
                         .Select(c => c.Company!.Name)
                         .FirstOrDefault(),
                     // The earliest release of any of the platform's versions (models / revisions).
-                    ReleaseYear = versions
-                        .SelectMany(v => v.ReleaseDates ?? [])
-                        .Select(d => d.Year)
-                        .Where(y => y is > 0)
-                        .Min(),
+                    ReleaseYear = versions.Select(EarliestYear).Min(),
                     LogoUrl = IgdbClient.ImageUrl(platform.PlatformLogo?.ImageId, "t_thumb"),
-                    ThumbnailUrl = IgdbClient.ImageUrl(platform.PlatformLogo?.ImageId, "t_logo_med")
+                    ThumbnailUrl = IgdbClient.ImageUrl(platform.PlatformLogo?.ImageId, "t_logo_med"),
+                    Versions = versions
+                        .Where(v => !string.IsNullOrWhiteSpace(v.Name))
+                        .Select(v => new CatalogConsoleVersionDto
+                        {
+                            Id = v.Id,
+                            Name = v.Name!,
+                            ReleaseYear = EarliestYear(v),
+                            // Not t_thumb: that square crop cuts off wide pictures and logos.
+                            LogoUrl = IgdbClient.ImageUrl(v.PlatformLogo?.ImageId, "t_logo_med"),
+                            ThumbnailUrl = IgdbClient.ImageUrl(v.PlatformLogo?.ImageId, "t_logo_med")
+                        })
+                        // Oldest first; versions without a known release date go last.
+                        .OrderBy(v => v.ReleaseYear ?? int.MaxValue)
+                        .ThenBy(v => v.Name, StringComparer.OrdinalIgnoreCase)
+                        .ToList()
                 };
             })
             .ToList();
     }
+
+    /// <summary>The earliest year a platform version was released in any region (regions often differ).</summary>
+    private static int? EarliestYear(IgdbPlatformVersion version) =>
+        (version.ReleaseDates ?? [])
+            .Select(d => d.Year)
+            .Where(y => y is > 0)
+            .Min();
 }
