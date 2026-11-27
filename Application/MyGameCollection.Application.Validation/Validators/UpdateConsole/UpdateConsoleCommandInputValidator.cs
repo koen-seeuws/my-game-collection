@@ -12,6 +12,7 @@ public sealed class UpdateConsoleCommandInputValidator : CommandInputValidatorBa
         RuleFor(c => c.Name).RequiredText(CollectionItemLimits.MaxNameLength);
         RuleFor(c => c.Manufacturer).RequiredText(CollectionItemLimits.MaxShortTextLength);
         RuleFor(c => c.Model).OptionalText(CollectionItemLimits.MaxShortTextLength);
+        RuleFor(c => c.Colour).OptionalText(CollectionItemLimits.MaxShortTextLength);
         RuleFor(c => c.Region).IsInEnum();
         RuleFor(c => c.Condition).IsInEnum();
         RuleFor(c => c.Completeness).IsInEnum();

@@ -8,6 +8,7 @@ public record ConsoleDto
     public required string Name { get; init; }
     public required string Manufacturer { get; init; }
     public string? Model { get; init; }
+    public string? Colour { get; init; }
     public required Region Region { get; init; }
     public required ItemCondition Condition { get; init; }
     public required Completeness Completeness { get; init; }

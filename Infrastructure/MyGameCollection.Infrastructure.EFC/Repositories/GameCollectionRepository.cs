@@ -63,6 +63,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 Name = c.Name,
                 Manufacturer = c.Manufacturer,
                 Model = c.Model,
+                Colour = c.Colour,
                 Region = c.Region,
                 Condition = c.Condition,
                 Completeness = c.Completeness,
@@ -98,6 +99,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.Name = c.Name;
                 row.Manufacturer = c.Manufacturer;
                 row.Model = c.Model;
+                row.Colour = c.Colour;
                 ApplyCommon(row, c.Region, c.Condition, c.Completeness, c.Status, c.ReleaseDate, c.PurchaseDate,
                     c.PurchasePrice, c.PurchaseOrigin, c.Notes, c.ThumbnailUrl);
             });

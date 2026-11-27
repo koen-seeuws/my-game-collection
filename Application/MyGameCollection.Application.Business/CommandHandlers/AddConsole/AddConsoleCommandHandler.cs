@@ -26,6 +26,7 @@ public class AddConsoleCommandHandler : ICommandHandler<AddConsoleCommand>
             name: command.Name,
             manufacturer: command.Manufacturer,
             model: command.Model,
+            colour: command.Colour,
             region: command.Region,
             condition: command.Condition,
             completeness: command.Completeness,

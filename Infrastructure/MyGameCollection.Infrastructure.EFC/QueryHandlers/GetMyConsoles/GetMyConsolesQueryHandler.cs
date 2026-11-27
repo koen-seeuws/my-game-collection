@@ -29,6 +29,7 @@ public record GetMyConsolesQueryHandler : IQueryHandler<GetMyConsolesQuery, IEnu
                 Name = console.Name,
                 Manufacturer = console.Manufacturer,
                 Model = console.Model,
+                Colour = console.Colour,
                 Region = console.Region,
                 Condition = console.Condition,
                 Completeness = console.Completeness,

@@ -27,6 +27,7 @@ public class UpdateConsoleCommandHandler : ICommandHandler<UpdateConsoleCommand>
             name: command.Name,
             manufacturer: command.Manufacturer,
             model: command.Model,
+            colour: command.Colour,
             region: command.Region,
             condition: command.Condition,
             completeness: command.Completeness,

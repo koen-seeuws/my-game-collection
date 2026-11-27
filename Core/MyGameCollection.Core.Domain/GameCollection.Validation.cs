@@ -32,6 +32,7 @@ internal static class GameCollectionValidation
             Name = Required(console.Name, "name", MaxNameLength),
             Manufacturer = Required(console.Manufacturer, "manufacturer", MaxShortTextLength),
             Model = Optional(console.Model, "model", MaxShortTextLength),
+            Colour = Optional(console.Colour, "colour", MaxShortTextLength),
             Notes = Optional(console.Notes, "notes", MaxNotesLength),
             ThumbnailUrl = OptionalUrl(console.ThumbnailUrl, "thumbnailUrl"),
             // An item on the wishlist has not been bought yet.
