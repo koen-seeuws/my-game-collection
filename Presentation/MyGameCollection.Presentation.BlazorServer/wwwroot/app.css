@@ -335,6 +335,7 @@ body::after {
     font-family: var(--neon-heading-font);
     font-size: 0.7rem !important;
     font-weight: 600 !important;
+    font-size: 0.8rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--neon-cyan) !important;
@@ -1098,4 +1099,26 @@ body::after {
 .item-tag.add-ons {
     border-color: var(--mud-palette-secondary);
     color: var(--mud-palette-secondary);
+}
+
+/* ---- Form sections (grouped fields in the add/edit dialogs) ---- */
+
+.form-section {
+    padding-bottom: 0 !important;
+}
+
+.form-section-divider {
+    margin: 8px 0 12px;
+}
+
+.form-section:first-child .form-section-divider {
+    display: none;
+}
+
+.form-section-title {
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    line-height: 1.5;
+    color: var(--mud-palette-text-secondary);
 }

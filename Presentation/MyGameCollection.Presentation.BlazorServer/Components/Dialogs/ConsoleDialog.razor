@@ -67,6 +67,7 @@
             <EditForm id="@_formId" Model="Model" OnValidSubmit="Submit">
                 <DataAnnotationsValidator />
                 <MudGrid Spacing="2">
+                    <FormSection Title="Console" Icon="@Icons.Material.Outlined.SportsEsports" />
                     <MudItem xs="12" sm="6">
                         <MudAutocomplete T="string" Value="Model.Name" ValueChanged="OnNameChanged" For="() => Model.Name"
                                          Label="System" Variant="Variant.Outlined" SearchFunc="SearchNamesAsync" MaxItems="null"
@@ -86,21 +87,23 @@
                         <MudTextField @bind-Value="Model.Colour" For="() => Model.Colour" Label="Colour / edition"
                                       Variant="Variant.Outlined" MaxLength="100" Placeholder="e.g. Tribal Edition, Pearl Pink" />
                     </MudItem>
+                    <ReleaseDateFields Model="Model" />
+                    <FormSection Title="Your copy" Icon="@Icons.Material.Outlined.Inventory2" />
                     <MudItem xs="12" sm="6">
                         <EnumSelect TEnum="CollectionStatus" @bind-Value="Model.Status" Label="Status" />
                     </MudItem>
-                    <MudItem xs="12" sm="4">
+                    <MudItem xs="12" sm="6">
                         <EnumSelect TEnum="Region" @bind-Value="Model.Region" Label="Region" />
                     </MudItem>
-                    <MudItem xs="12" sm="4">
+                    <MudItem xs="12" sm="6">
                         <EnumSelect TEnum="Completeness" @bind-Value="Model.Completeness" Label="Completeness" />
                     </MudItem>
-                    <MudItem xs="12" sm="4">
+                    <MudItem xs="12" sm="6">
                         <EnumSelect TEnum="ItemCondition" @bind-Value="Model.Condition" Label="Condition" />
                     </MudItem>
-                    <ReleaseDateFields Model="Model" />
                     @if (Model.Status == CollectionStatus.Owned)
                     {
+                        <FormSection Title="Purchase" Icon="@Icons.Material.Outlined.ShoppingBag" />
                         <MudItem xs="12" sm="6">
                             <MudDatePicker @bind-Date="Model.PurchaseDate" Label="Purchase date" Variant="Variant.Outlined"
                                            Clearable="true" MaxDate="DateTime.Today" />
@@ -114,6 +117,7 @@
                             <PurchaseOriginField @bind-Value="Model.PurchaseOrigin" />
                         </MudItem>
                     }
+                    <FormSection Title="Picture & notes" Icon="@Icons.Material.Outlined.Image" />
                     <MudItem xs="12">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                             <ItemThumbnail Url="@Model.ThumbnailUrl" Icon="@Icons.Material.Outlined.SportsEsports" Class="thumbnail-preview logo" />
