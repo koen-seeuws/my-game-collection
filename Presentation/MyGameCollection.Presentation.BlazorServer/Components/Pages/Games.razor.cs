@@ -87,7 +87,11 @@ public partial class Games : IDisposable
 
     private async Task AcquireGameAsync(GameDto game)
     {
-        var parameters = new DialogParameters<AcquireDialog> { { d => d.ItemName, game.Title } };
+        var parameters = new DialogParameters<AcquireDialog> 
+        {
+            { d => d.ItemName, game.Title },
+            { d => d.AskOrigin, game.Format == GameFormat.Physical }
+        };
         var dialog = await DialogService.ShowAsync<AcquireDialog>("Got it!", parameters,
             new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true });
 
@@ -98,7 +102,8 @@ public partial class Games : IDisposable
         {
             Key = game.Key,
             PurchaseDate = DateOnly.FromDateTime(model.PurchaseDate ?? DateTime.Today),
-            PurchasePrice = model.PurchasePrice
+            PurchasePrice = model.PurchasePrice,
+            PurchaseOrigin = model.PurchaseOrigin
         }, $"'{game.Title}' is now part of your collection!");
     }
 

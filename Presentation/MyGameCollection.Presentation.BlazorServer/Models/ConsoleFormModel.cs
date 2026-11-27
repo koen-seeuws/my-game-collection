@@ -28,6 +28,9 @@ public sealed class ConsoleFormModel : ReleaseDateFormModel
     [Range(typeof(decimal), "0", "1000000")]
     public decimal? PurchasePrice { get; set; }
 
+    /// <summary>Bought new or secondhand; empty when unknown.</summary>
+    public PurchaseOrigin? PurchaseOrigin { get; set; }
+
     [StringLength(2000)]
     public string? Notes { get; set; }
 
@@ -46,6 +49,7 @@ public sealed class ConsoleFormModel : ReleaseDateFormModel
         ReleaseDate = console.ReleaseDate,
         PurchaseDate = console.PurchaseDate?.ToDateTime(TimeOnly.MinValue),
         PurchasePrice = console.PurchasePrice,
+        PurchaseOrigin = console.PurchaseOrigin,
         Notes = console.Notes,
         ThumbnailUrl = console.ThumbnailUrl
     };
@@ -62,6 +66,7 @@ public sealed class ConsoleFormModel : ReleaseDateFormModel
         ReleaseDate = ReleaseDate,
         PurchaseDate = PurchaseDateOrNull,
         PurchasePrice = PurchasePriceOrNull,
+        PurchaseOrigin = PurchaseOriginOrNull,
         Notes = Notes,
         ThumbnailUrl = ThumbnailUrl
     };
@@ -79,6 +84,7 @@ public sealed class ConsoleFormModel : ReleaseDateFormModel
         ReleaseDate = ReleaseDate,
         PurchaseDate = PurchaseDateOrNull,
         PurchasePrice = PurchasePriceOrNull,
+        PurchaseOrigin = PurchaseOriginOrNull,
         Notes = Notes,
         ThumbnailUrl = ThumbnailUrl
     };
@@ -88,4 +94,6 @@ public sealed class ConsoleFormModel : ReleaseDateFormModel
         Status == CollectionStatus.Owned && PurchaseDate is { } date ? DateOnly.FromDateTime(date) : null;
 
     private decimal? PurchasePriceOrNull => Status == CollectionStatus.Owned ? PurchasePrice : null;
+
+    private PurchaseOrigin? PurchaseOriginOrNull => Status == CollectionStatus.Owned ? PurchaseOrigin : null;
 }

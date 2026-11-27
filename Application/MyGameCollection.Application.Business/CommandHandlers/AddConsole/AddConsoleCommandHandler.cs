@@ -33,6 +33,7 @@ public class AddConsoleCommandHandler : ICommandHandler<AddConsoleCommand>
             releaseDate: command.ReleaseDate,
             purchaseDate: command.PurchaseDate,
             purchasePrice: command.PurchasePrice,
+            purchaseOrigin: command.PurchaseOrigin,
             notes: command.Notes,
             thumbnailUrl: command.ThumbnailUrl);
 

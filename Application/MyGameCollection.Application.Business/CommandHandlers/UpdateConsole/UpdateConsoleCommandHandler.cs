@@ -34,6 +34,7 @@ public class UpdateConsoleCommandHandler : ICommandHandler<UpdateConsoleCommand>
             releaseDate: command.ReleaseDate,
             purchaseDate: command.PurchaseDate,
             purchasePrice: command.PurchasePrice,
+            purchaseOrigin: command.PurchaseOrigin,
             notes: command.Notes,
             thumbnailUrl: command.ThumbnailUrl);
 

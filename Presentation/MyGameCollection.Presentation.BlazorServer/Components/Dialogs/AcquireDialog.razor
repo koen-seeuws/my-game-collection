@@ -10,6 +10,12 @@
                 <MudNumericField T="decimal?" @bind-Value="_model.PurchasePrice" For="() => _model.PurchasePrice"
                                  Label="Price paid" Variant="Variant.Outlined" HideSpinButtons="true" Min="0"
                                  Adornment="Adornment.Start" AdornmentText="@CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol" />
+                @if (AskOrigin)
+                {
+                    <div>
+                        <PurchaseOriginField @bind-Value="_model.PurchaseOrigin" />
+                    </div>
+                }
             </MudStack>
         </DialogContent>
         <DialogActions>
@@ -26,6 +32,10 @@
 
     [Parameter]
     public string ItemName { get; set; } = string.Empty;
+
+    /// <summary>Whether to ask if it was bought new or secondhand (not for downloads).</summary>
+    [Parameter]
+    public bool AskOrigin { get; set; } = true;
 
     private readonly AcquireFormModel _model = new();
 

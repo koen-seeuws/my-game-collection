@@ -1,4 +1,4 @@
-@* Format, region, completeness and condition of an item, as compact tags. *@
+@* Format, region, completeness, condition and purchase origin of an item, as compact tags. *@
 <div class="item-tags">
     @if (Format is { } format)
     {
@@ -13,6 +13,10 @@
     {
         <span class="item-tag">@condition.ToDisplayName()</span>
     }
+    @if (Origin is { } origin)
+    {
+        <span class="@($"item-tag origin {origin.ToString().ToLowerInvariant()}")">@origin.ToDisplayName()</span>
+    }
 </div>
 
 @code {
@@ -26,4 +30,7 @@
 
     /// <summary>Only games have a format; consoles leave it out.</summary>
     [Parameter] public GameFormat? Format { get; set; }
+
+    /// <summary>New or secondhand; left out when unknown.</summary>
+    [Parameter] public PurchaseOrigin? Origin { get; set; }
 }

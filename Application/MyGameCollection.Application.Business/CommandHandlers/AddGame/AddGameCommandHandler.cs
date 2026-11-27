@@ -34,6 +34,7 @@ public class AddGameCommandHandler : ICommandHandler<AddGameCommand>
             releaseDate: command.ReleaseDate,
             purchaseDate: command.PurchaseDate,
             purchasePrice: command.PurchasePrice,
+            purchaseOrigin: command.PurchaseOrigin,
             notes: command.Notes,
             thumbnailUrl: command.ThumbnailUrl);
 

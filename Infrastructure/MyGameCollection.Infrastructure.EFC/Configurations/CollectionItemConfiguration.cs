@@ -16,6 +16,7 @@ internal static class CollectionItemConfiguration
         builder.Property(i => i.Condition).HasConversion<string>().HasMaxLength(20);
         builder.Property(i => i.Completeness).HasConversion<string>().HasMaxLength(20);
         builder.Property(i => i.Status).HasConversion<string>().HasMaxLength(20);
+        builder.Property(i => i.PurchaseOrigin).HasConversion<string>().HasMaxLength(20);
 
         builder.Property(i => i.PurchasePrice).HasPrecision(10, 2);
         builder.Property(i => i.Notes).HasMaxLength(2000);

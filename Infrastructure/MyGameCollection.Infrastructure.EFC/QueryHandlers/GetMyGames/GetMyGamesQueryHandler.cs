@@ -37,6 +37,7 @@ public record GetMyGamesQueryHandler : IQueryHandler<GetMyGamesQuery, IEnumerabl
                 ReleaseDate = game.ReleaseYear == null ? null : new ReleaseDate(game.ReleaseYear.Value, game.ReleaseMonth, game.ReleaseDay),
                 PurchaseDate = game.PurchaseDate,
                 PurchasePrice = game.PurchasePrice,
+                PurchaseOrigin = game.PurchaseOrigin,
                 Notes = game.Notes,
                 ThumbnailUrl = game.ThumbnailUrl
             })

@@ -17,6 +17,7 @@ public static partial class GameCollectionOperations
         ReleaseDate? releaseDate = null,
         DateOnly? purchaseDate = null,
         decimal? purchasePrice = null,
+        PurchaseOrigin? purchaseOrigin = null,
         string? notes = null,
         string? thumbnailUrl = null)
     {
@@ -33,6 +34,7 @@ public static partial class GameCollectionOperations
             ReleaseDate = releaseDate,
             PurchaseDate = purchaseDate,
             PurchasePrice = purchasePrice,
+            PurchaseOrigin = purchaseOrigin,
             Notes = notes,
             ThumbnailUrl = thumbnailUrl
         });

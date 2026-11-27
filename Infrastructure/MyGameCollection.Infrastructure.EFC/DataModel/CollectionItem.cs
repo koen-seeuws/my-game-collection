@@ -20,6 +20,7 @@ public abstract class CollectionItem
     public int? ReleaseDay { get; set; }
     public DateOnly? PurchaseDate { get; set; }
     public decimal? PurchasePrice { get; set; }
+    public PurchaseOrigin? PurchaseOrigin { get; set; }
     public string? Notes { get; set; }
     public string? ThumbnailUrl { get; set; }
 

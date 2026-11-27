@@ -48,6 +48,12 @@ public static class DisplayNames
         _ => "Claimed through a subscription like PS Plus; playable while subscribed"
     };
 
+    public static string ToDisplayName(this PurchaseOrigin origin) => origin switch
+    {
+        PurchaseOrigin.New => "New",
+        _ => "Secondhand"
+    };
+
     public static string ToDisplayName(this CollectionStatus status) => status switch
     {
         CollectionStatus.Owned => "Owned",
@@ -62,6 +68,7 @@ public static class DisplayNames
         Completeness c => c.ToDisplayName(),
         CollectionStatus s => s.ToDisplayName(),
         GameFormat f => f.ToDisplayName(),
+        PurchaseOrigin o => o.ToDisplayName(),
         _ => value.ToString()
     };
 

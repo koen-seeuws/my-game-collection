@@ -36,6 +36,7 @@ public record GetMyConsolesQueryHandler : IQueryHandler<GetMyConsolesQuery, IEnu
                 ReleaseDate = console.ReleaseYear == null ? null : new ReleaseDate(console.ReleaseYear.Value, console.ReleaseMonth, console.ReleaseDay),
                 PurchaseDate = console.PurchaseDate,
                 PurchasePrice = console.PurchasePrice,
+                PurchaseOrigin = console.PurchaseOrigin,
                 Notes = console.Notes,
                 ThumbnailUrl = console.ThumbnailUrl
             })

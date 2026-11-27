@@ -14,7 +14,11 @@ internal static class GameCollectionValidation
             Platform = Required(game.Platform, "platform", MaxShortTextLength),
             Edition = Optional(game.Edition, "edition", MaxShortTextLength),
             Notes = Optional(game.Notes, "notes", MaxNotesLength),
-            ThumbnailUrl = OptionalUrl(game.ThumbnailUrl, "thumbnailUrl")
+            ThumbnailUrl = OptionalUrl(game.ThumbnailUrl, "thumbnailUrl"),
+            // A download is always new, and an item on the wishlist has not been bought yet.
+            PurchaseOrigin = game.Status == CollectionStatus.Owned && game.Format == GameFormat.Physical
+                ? game.PurchaseOrigin
+                : null
         };
 
         EnsureValid(normalised.ReleaseDate, normalised.PurchasePrice);
@@ -29,7 +33,9 @@ internal static class GameCollectionValidation
             Manufacturer = Required(console.Manufacturer, "manufacturer", MaxShortTextLength),
             Model = Optional(console.Model, "model", MaxShortTextLength),
             Notes = Optional(console.Notes, "notes", MaxNotesLength),
-            ThumbnailUrl = OptionalUrl(console.ThumbnailUrl, "thumbnailUrl")
+            ThumbnailUrl = OptionalUrl(console.ThumbnailUrl, "thumbnailUrl"),
+            // An item on the wishlist has not been bought yet.
+            PurchaseOrigin = console.Status == CollectionStatus.Owned ? console.PurchaseOrigin : null
         };
 
         EnsureValid(normalised.ReleaseDate, normalised.PurchasePrice);

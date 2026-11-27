@@ -91,14 +91,15 @@ public partial class Wishlist : IDisposable
 
     private async Task AcquireGameAsync(GameDto game)
     {
-        if (await ShowAcquireDialogAsync(game.Title) is not { } model)
+        if (await ShowAcquireDialogAsync(game.Title, askOrigin: game.Format == GameFormat.Physical) is not { } model)
             return;
 
         await ExecuteAsync(new AcquireGameCommand
         {
             Key = game.Key,
             PurchaseDate = DateOnly.FromDateTime(model.PurchaseDate ?? DateTime.Today),
-            PurchasePrice = model.PurchasePrice
+            PurchasePrice = model.PurchasePrice,
+            PurchaseOrigin = model.PurchaseOrigin
         }, $"'{game.Title}' is now part of your collection!");
     }
 
@@ -137,7 +138,8 @@ public partial class Wishlist : IDisposable
         {
             Key = console.Key,
             PurchaseDate = DateOnly.FromDateTime(model.PurchaseDate ?? DateTime.Today),
-            PurchasePrice = model.PurchasePrice
+            PurchasePrice = model.PurchasePrice,
+            PurchaseOrigin = model.PurchaseOrigin
         }, $"'{console.Name}' is now part of your collection!");
     }
 
@@ -157,9 +159,13 @@ public partial class Wishlist : IDisposable
         return await dialog.Result is { Canceled: false, Data: TModel result } ? result : null;
     }
 
-    private async Task<AcquireFormModel?> ShowAcquireDialogAsync(string itemName)
+    private async Task<AcquireFormModel?> ShowAcquireDialogAsync(string itemName, bool askOrigin = true)
     {
-        var parameters = new DialogParameters<AcquireDialog> { { d => d.ItemName, itemName } };
+        var parameters = new DialogParameters<AcquireDialog>
+        {
+            { d => d.ItemName, itemName },
+            { d => d.AskOrigin, askOrigin }
+        };
         var dialog = await DialogService.ShowAsync<AcquireDialog>("Got it!", parameters,
             new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true });
 

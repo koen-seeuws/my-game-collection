@@ -22,7 +22,7 @@ public class AcquireConsoleCommandHandler : ICommandHandler<AcquireConsoleComman
         var collection = await _repository.GetAsync(owner, cancellationToken)
             ?? throw new InvalidOperationException($"No game collection could be loaded for owner '{owner}'.");
 
-        collection.AcquireConsole(command.Key, command.PurchaseDate, command.PurchasePrice);
+        collection.AcquireConsole(command.Key, command.PurchaseDate, command.PurchasePrice, command.PurchaseOrigin);
 
         await _repository.SaveAsync(collection, cancellationToken);
     }
