@@ -1,6 +1,8 @@
 @using System.Globalization
 @using MyGameCollection.Application.Abstractions.Services.GameCatalog
+@using MyGameCollection.Application.Abstractions.Queries.FindConsoleByBarcode
 @inject IGameCatalogService GameCatalog
+@inject IUseCaseDispatcher Dispatcher
 
 <MudDialog>
     <DialogContent>
@@ -10,7 +12,7 @@
         }
         else
         {
-            <CatalogLookup TItem="CatalogConsoleDto" Label="Find the console on IGDB" SearchFunc="SearchCatalogAsync"
+            <CatalogLookup TItem="CatalogConsoleDto" Label="Find the console on IGDB" SearchFunc="SearchCatalogAsync" BarcodeFunc="FindByBarcodeAsync"
                            ItemName="c => c.Name" InitialSearch="@Model.Name" AutoFocus="string.IsNullOrEmpty(Model.Name)" OnSelected="ApplyCatalogConsole">
                 <ItemTemplate Context="console">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
@@ -176,6 +178,9 @@
 
     private Task<IReadOnlyList<CatalogConsoleDto>> SearchCatalogAsync(string search, CancellationToken ct) =>
         GameCatalog.SearchConsolesAsync(search, ct);
+
+    private Task<CatalogConsoleDto?> FindByBarcodeAsync(string barcode, CancellationToken ct) =>
+        Dispatcher.QueryAsync(new FindConsoleByBarcodeQuery { Barcode = barcode }, ct);
 
     /// <summary>The console last picked from IGDB, whose models are offered in the model picker.</summary>
     private CatalogConsoleDto? _catalogConsole;

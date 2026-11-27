@@ -12,9 +12,25 @@ public static class ServiceCollectionExtensions
     {
         services.AddCommandInputValidators();
         services.AddCommandHandlers();
+        services.AddQueryHandlers();
 
         // Runs each use case in its own DI scope.
         services.AddScoped<IUseCaseDispatcher, UseCaseDispatcher>();
+
+        return services;
+    }
+
+    /// <summary>Query handlers that combine services (e.g. barcode lookup then catalog), rather than read the database.</summary>
+    private static IServiceCollection AddQueryHandlers(this IServiceCollection services)
+    {
+        var registrations = typeof(ServiceCollectionExtensions).Assembly.GetTypes()
+            .Where(t => t is { IsClass: true, IsAbstract: false, IsGenericTypeDefinition: false })
+            .SelectMany(t => t.GetInterfaces()
+                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>))
+                .Select(i => (Service: i, Implementation: t)));
+
+        foreach (var (service, implementation) in registrations)
+            services.AddScoped(service, implementation);
 
         return services;
     }

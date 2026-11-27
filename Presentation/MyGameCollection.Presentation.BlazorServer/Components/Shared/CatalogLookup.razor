@@ -1,5 +1,6 @@
 @typeparam TItem
 @using MyGameCollection.Application.Abstractions.Services
+@using MyGameCollection.Application.Abstractions.Services.Barcodes
 @implements IDisposable
 
 @* Lives outside the item form, so pressing Enter here searches instead of saving the form. *@
@@ -8,6 +9,7 @@
         <MudTextField T="string" @bind-Value="_text" Label="@Label" Variant="Variant.Outlined" Margin="Margin.Dense"
                       Immediate="true" AutoFocus="AutoFocus" OnKeyDown="OnKeyDownAsync" Clearable="true"
                       Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ManageSearch"
+                      HelperText="@(BarcodeFunc is null ? null : "Search by name, or type or scan the barcode on the box")"
                       Class="flex-grow-1" />
         <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="LookupAsync" Disabled="_busy" Class="mt-1">
             Search
@@ -52,6 +54,13 @@
     [Parameter]
     public EventCallback<TItem> OnSelected { get; set; }
 
+    /// <summary>
+    /// Looks up the item printed on a box by its barcode; empty when the barcode is unknown. When set, a search that
+    /// is a barcode (8 to 14 digits) picks the item right away instead of searching by name.
+    /// </summary>
+    [Parameter]
+    public Func<string, CancellationToken, Task<TItem?>>? BarcodeFunc { get; set; }
+
     [Parameter]
     public string Label { get; set; } = "Look up on IGDB";
 
@@ -92,6 +101,12 @@
 
         try
         {
+            if (BarcodeFunc is not null && Barcode.TryParse(text, out var barcode))
+            {
+                await FindByBarcodeAsync(barcode.Value, ct);
+                return;
+            }
+
             _results = await SearchFunc(text, ct);
             if (_results.Count == 0)
                 _message = (Severity.Info, $"Nothing found for '{text}'. Adjust the search, or fill in the form yourself.");
@@ -112,6 +127,19 @@
         {
             _busy = false;
         }
+    }
+
+    private async Task FindByBarcodeAsync(Barcode barcode, CancellationToken ct)
+    {
+        if (await BarcodeFunc!(barcode.Value, ct) is not { } item)
+        {
+            _message = (Severity.Info, $"No match for barcode {barcode} yet. Search by name, or fill in the form yourself.");
+            return;
+        }
+
+        await OnSelected.InvokeAsync(item);
+        _text = ItemName(item);
+        _message = (Severity.Success, $"Barcode {barcode} is '{ItemName(item)}'. Filled in from IGDB; you can still change anything below.");
     }
 
     private async Task SelectAsync(TItem item)
