@@ -28,7 +28,7 @@ public class CreateInviteCommandHandler : ICommandHandler<CreateInviteCommand, C
         if (note?.Length > CreateInviteCommand.MaxNoteLength)
             throw new ArgumentException($"Keep the note under {CreateInviteCommand.MaxNoteLength} characters.");
 
-        return _accounts.CreateInviteAsync(_userContext.UserName, note, command.ValidFor, grantsAdmin: false,
+        return _accounts.CreateInviteAsync(_userContext.UserId, note, command.ValidFor, grantsAdmin: false,
             cancellationToken);
     }
 }

@@ -17,7 +17,7 @@ public record GetMyConsolesQueryHandler : IQueryHandler<GetMyConsolesQuery, IEnu
 
     public async Task<IEnumerable<ConsoleDto>> HandleAsync(GetMyConsolesQuery query, CancellationToken ct = default)
     {
-        var owner = _userContext.UserName;
+        var owner = _userContext.UserId;
 
         return await _dbContext.Consoles
             .Where(console => console.GameCollection.Owner.ToUpper() == owner.ToUpper())

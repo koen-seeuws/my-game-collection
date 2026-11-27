@@ -15,8 +15,8 @@ public sealed class CircuitUserContext : IUserContext
         _circuitServicesAccessor = circuitServicesAccessor;
     }
 
-    public string UserName =>
-        CurrentUser.UserName ?? throw new UnauthorizedAccessException("Sign in before working with your game collection.");
+    public string UserId =>
+        CurrentUser.UserId ?? throw new UnauthorizedAccessException("Sign in before working with your game collection.");
 
     public bool IsAdmin => CurrentUser.IsAdmin;
 

@@ -20,9 +20,9 @@
 <EditForm Model="Input" method="post" OnValidSubmit="SignInAsync" FormName="login" class="account-form">
     <DataAnnotationsValidator />
 
-    <label for="login">Email or user name</label>
-    <InputText id="login" @bind-Value="Input.Login" autocomplete="username" autofocus />
-    <ValidationMessage For="() => Input.Login" />
+    <label for="email">Email</label>
+    <InputText id="email" type="email" @bind-Value="Input.Email" autocomplete="username" autofocus />
+    <ValidationMessage For="() => Input.Email" />
 
     <label for="password">Password</label>
     <InputText id="password" type="password" @bind-Value="Input.Password" autocomplete="current-password" />
@@ -61,8 +61,7 @@
 
     private async Task SignInAsync()
     {
-        var login = Input.Login.Trim();
-        var user = await UserManager.FindByNameAsync(login) ?? await UserManager.FindByEmailAsync(login);
+        var user = await UserManager.FindByEmailAsync(Input.Email.Trim());
 
         // Same message for an unknown account and a wrong password, so accounts can't be probed.
         if (user is null)
@@ -82,8 +81,8 @@
 
     private sealed class LoginModel
     {
-        [Required(ErrorMessage = "Enter your email or user name.")]
-        public string Login { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Enter your email address.")]
+        public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Enter your password.")]
         public string Password { get; set; } = string.Empty;

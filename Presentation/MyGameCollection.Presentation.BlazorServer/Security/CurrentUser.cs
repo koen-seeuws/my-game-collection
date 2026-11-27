@@ -9,9 +9,13 @@ namespace MyGameCollection.Presentation.BlazorServer.Security;
 /// </summary>
 public sealed class CurrentUser
 {
-    public string? UserName { get; private set; }
+    /// <summary>The account id, which owns the user's game collection.</summary>
+    public string? UserId { get; private set; }
 
-    public bool IsSignedIn => UserName is not null;
+    /// <summary>First and last name, or the email address for an account without a name.</summary>
+    public string? DisplayName { get; private set; }
+
+    public bool IsSignedIn => UserId is not null;
 
     public bool IsAdmin { get; private set; }
 
@@ -20,12 +24,17 @@ public sealed class CurrentUser
 
     internal void Set(ClaimsPrincipal principal)
     {
-        var userName = principal.Identity?.IsAuthenticated == true ? principal.Identity.Name : null;
-        var isAdmin = userName is not null && principal.IsInRole(AccountRoles.Admin);
-        if (userName == UserName && isAdmin == IsAdmin)
+        var userId = principal.Identity?.IsAuthenticated == true
+            ? principal.FindFirstValue(ClaimTypes.NameIdentifier)
+            : null;
+        var fullName = $"{principal.FindFirstValue(ClaimTypes.GivenName)} {principal.FindFirstValue(ClaimTypes.Surname)}".Trim();
+        var displayName = userId is null ? null : fullName.Length > 0 ? fullName : principal.Identity?.Name;
+        var isAdmin = userId is not null && principal.IsInRole(AccountRoles.Admin);
+        if (userId == UserId && displayName == DisplayName && isAdmin == IsAdmin)
             return;
 
-        UserName = userName;
+        UserId = userId;
+        DisplayName = displayName;
         IsAdmin = isAdmin;
         Changed?.Invoke();
     }

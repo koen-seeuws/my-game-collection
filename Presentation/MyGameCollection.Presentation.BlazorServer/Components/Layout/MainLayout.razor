@@ -19,7 +19,7 @@
         @if (CurrentUser.IsSignedIn)
         {
             <MudChip T="string" Icon="@Icons.Material.Filled.Person" Color="Color.Secondary" Class="ml-2">
-                @CurrentUser.UserName
+                @CurrentUser.DisplayName
             </MudChip>
             <form action="account/logout" method="post" class="d-inline-flex">
                 <AntiforgeryToken />

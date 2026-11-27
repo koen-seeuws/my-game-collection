@@ -16,7 +16,17 @@ public class RedeemInviteCommandHandler : ICommandHandler<RedeemInviteCommand, R
         _accounts = accounts;
     }
 
-    public Task<RedeemInviteResultDto> HandleAsync(RedeemInviteCommand command, CancellationToken cancellationToken) =>
-        _accounts.RedeemInviteAsync(command.Token, command.UserName.Trim(), command.Email.Trim(), command.Password,
+    public Task<RedeemInviteResultDto> HandleAsync(RedeemInviteCommand command, CancellationToken cancellationToken)
+    {
+        var firstName = command.FirstName.Trim();
+        var lastName = command.LastName.Trim();
+        if (firstName.Length == 0 || lastName.Length == 0)
+            return Task.FromResult(RedeemInviteResultDto.Failure("Enter your first and last name."));
+        if (firstName.Length > RedeemInviteCommand.MaxNameLength || lastName.Length > RedeemInviteCommand.MaxNameLength)
+            return Task.FromResult(RedeemInviteResultDto.Failure(
+                $"Keep your names under {RedeemInviteCommand.MaxNameLength} characters."));
+
+        return _accounts.RedeemInviteAsync(command.Token, firstName, lastName, command.Email.Trim(), command.Password,
             cancellationToken);
+    }
 }

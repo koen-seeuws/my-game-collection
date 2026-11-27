@@ -18,7 +18,7 @@ public record GetMyCollectionSummaryQueryHandler : IQueryHandler<GetMyCollection
 
     public async Task<CollectionSummaryDto> HandleAsync(GetMyCollectionSummaryQuery query, CancellationToken ct = default)
     {
-        var owner = _userContext.UserName;
+        var owner = _userContext.UserId;
 
         // Only the few columns needed are loaded; the figures are computed in memory because SQLite
         // cannot aggregate decimals, and a personal collection is small enough for that.

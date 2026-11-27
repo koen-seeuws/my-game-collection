@@ -19,13 +19,14 @@ public sealed class Invite
     /// <summary>Whether the account created with this invite becomes an administrator.</summary>
     public bool GrantsAdmin { get; set; }
 
+    /// <summary>The id of the administrator who created the invite ("system" for the first one).</summary>
     public required string CreatedBy { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime ExpiresAt { get; set; }
     public DateTime? RevokedAt { get; set; }
     public DateTime? RedeemedAt { get; set; }
 
-    /// <summary>The user name of the account that was created with this invite.</summary>
+    /// <summary>The email address of the account that was created with this invite.</summary>
     public string? RedeemedBy { get; set; }
 
     public InviteStatus GetStatus(DateTime utcNow) =>

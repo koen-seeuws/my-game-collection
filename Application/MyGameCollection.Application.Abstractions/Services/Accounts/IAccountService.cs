@@ -9,6 +9,7 @@ namespace MyGameCollection.Application.Abstractions.Services.Accounts;
 /// </summary>
 public interface IAccountService
 {
+    /// <param name="createdBy">The id of the administrator creating the invite.</param>
     Task<CreatedInviteDto> CreateInviteAsync(string createdBy, string? note, TimeSpan validFor, bool grantsAdmin,
         CancellationToken cancellationToken = default);
 
@@ -22,8 +23,8 @@ public interface IAccountService
     /// Creates the account and marks the invite as used, together or not at all (so an invite never creates two
     /// accounts). Validation problems, like a taken email or a weak password, come back as errors.
     /// </summary>
-    Task<RedeemInviteResultDto> RedeemInviteAsync(string token, string userName, string email, string password,
-        CancellationToken cancellationToken = default);
+    Task<RedeemInviteResultDto> RedeemInviteAsync(string token, string firstName, string lastName, string email,
+        string password, CancellationToken cancellationToken = default);
 
     Task<bool> HasAdminAsync(CancellationToken cancellationToken = default);
 }

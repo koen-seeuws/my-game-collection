@@ -22,7 +22,7 @@ public sealed class InviteTests : IAsyncLifetime
 
     private readonly SqliteConnection _connection = new("Data Source=:memory:");
     private readonly FakeTime _time = new(new DateTimeOffset(2026, 11, 27, 12, 0, 0, TimeSpan.Zero));
-    private readonly FakeUserContext _user = new() { UserName = "admin", IsAdmin = true };
+    private readonly FakeUserContext _user = new() { UserId = "admin-id", IsAdmin = true };
     private ServiceProvider _services = default!;
 
     private IUseCaseDispatcher Dispatcher => _services.GetRequiredService<IUseCaseDispatcher>();
@@ -53,17 +53,17 @@ public sealed class InviteTests : IAsyncLifetime
     {
         var token = await CreateInviteAsync();
 
-        var first = await RedeemAsync(token, "alice", "alice@example.com");
-        var second = await RedeemAsync(token, "bob", "bob@example.com");
+        var first = await RedeemAsync(token, "alice@example.com");
+        var second = await RedeemAsync(token, "bob@example.com");
 
         Assert.True(first.Succeeded);
         Assert.False(second.Succeeded);
-        Assert.Null(await FindUserAsync("bob"));
+        Assert.Null(await FindUserAsync("bob@example.com"));
 
         var invite = Assert.Single(await Dispatcher.QueryAsync(new GetInvitesQuery()));
         Assert.Equal(InviteStatus.Used, invite.Status);
-        Assert.Equal("alice", invite.RedeemedBy);
-        Assert.Equal("admin", invite.CreatedBy);
+        Assert.Equal("alice@example.com", invite.RedeemedBy);
+        Assert.Equal("admin-id", invite.CreatedBy);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public sealed class InviteTests : IAsyncLifetime
         _time.Advance(TimeSpan.FromDays(1) + TimeSpan.FromSeconds(1));
 
         Assert.Null(await Dispatcher.QueryAsync(new GetOpenInviteQuery { Token = token }));
-        Assert.False((await RedeemAsync(token, "alice", "alice@example.com")).Succeeded);
+        Assert.False((await RedeemAsync(token, "alice@example.com")).Succeeded);
         Assert.Equal(InviteStatus.Expired, Assert.Single(await Dispatcher.QueryAsync(new GetInvitesQuery())).Status);
     }
 
@@ -85,7 +85,7 @@ public sealed class InviteTests : IAsyncLifetime
 
         await Dispatcher.SendAsync(new RevokeInviteCommand { Id = invite.Id });
 
-        Assert.False((await RedeemAsync(token, "alice", "alice@example.com")).Succeeded);
+        Assert.False((await RedeemAsync(token, "alice@example.com")).Succeeded);
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             Dispatcher.SendAsync(new RevokeInviteCommand { Id = invite.Id }));
     }
@@ -97,9 +97,9 @@ public sealed class InviteTests : IAsyncLifetime
 
         var tooShort = await Dispatcher.SendAsync(new RedeemInviteCommand
         {
-            Token = token, UserName = "alice", Email = "alice@example.com", Password = "short"
+            Token = token, FirstName = "Alice", LastName = "Example", Email = "alice@example.com", Password = "short"
         });
-        var retried = await RedeemAsync(token, "alice", "alice@example.com");
+        var retried = await RedeemAsync(token, "alice@example.com");
 
         Assert.False(tooShort.Succeeded);
         Assert.NotEmpty(tooShort.Errors);
@@ -112,7 +112,7 @@ public sealed class InviteTests : IAsyncLifetime
         await CreateInviteAsync();
 
         Assert.Null(await Dispatcher.QueryAsync(new GetOpenInviteQuery { Token = "not-a-real-token" }));
-        Assert.False((await RedeemAsync("not-a-real-token", "alice", "alice@example.com")).Succeeded);
+        Assert.False((await RedeemAsync("not-a-real-token", "alice@example.com")).Succeeded);
     }
 
     [Fact]
@@ -130,7 +130,37 @@ public sealed class InviteTests : IAsyncLifetime
 
         // Opening and using a link needs no signed-in user at all.
         Assert.NotNull(await Dispatcher.QueryAsync(new GetOpenInviteQuery { Token = token }));
-        Assert.True((await RedeemAsync(token, "alice", "alice@example.com")).Succeeded);
+        Assert.True((await RedeemAsync(token, "alice@example.com")).Succeeded);
+    }
+
+    [Fact]
+    public async Task An_email_address_can_only_have_one_account()
+    {
+        await RedeemAsync(await CreateInviteAsync(), "alice@example.com");
+
+        var duplicate = await RedeemAsync(await CreateInviteAsync(), "ALICE@example.com");
+
+        Assert.False(duplicate.Succeeded);
+        Assert.Contains("taken", Assert.Single(duplicate.Errors));
+    }
+
+    [Fact]
+    public async Task Names_are_required()
+    {
+        var result = await Dispatcher.SendAsync(new RedeemInviteCommand
+        {
+            Token = await CreateInviteAsync(), FirstName = " ", LastName = "User", Email = "a@example.com", Password = Password
+        });
+
+        Assert.False(result.Succeeded);
+    }
+
+    [Fact]
+    public async Task Redeeming_replies_with_the_new_account_id()
+    {
+        var result = await RedeemAsync(await CreateInviteAsync(), "alice@example.com");
+
+        Assert.Equal((await FindUserAsync("alice@example.com"))!.Id, result.UserId);
     }
 
     [Theory]
@@ -148,10 +178,11 @@ public sealed class InviteTests : IAsyncLifetime
         Assert.NotNull(token);
         Assert.True((await Dispatcher.QueryAsync(new GetOpenInviteQuery { Token = token }))!.GrantsAdmin);
 
-        Assert.True((await RedeemAsync(token, "owner", "owner@example.com")).Succeeded);
+        Assert.True((await RedeemAsync(token, "owner@example.com")).Succeeded);
 
         var owner = Assert.Single(await Dispatcher.QueryAsync(new GetUsersQuery()));
-        Assert.Equal("owner", owner.UserName);
+        Assert.Equal("owner@example.com", owner.Email);
+        Assert.Equal(("Test", "User"), (owner.FirstName, owner.LastName));
         Assert.True(owner.IsAdmin);
         Assert.Null(await Dispatcher.SendAsync(new CreateFirstAdminInviteCommand { ValidFor = TimeSpan.FromDays(1) }));
     }
@@ -170,7 +201,7 @@ public sealed class InviteTests : IAsyncLifetime
     public async Task A_normal_invite_does_not_make_an_administrator()
     {
         var token = await CreateInviteAsync();
-        await RedeemAsync(token, "alice", "alice@example.com");
+        await RedeemAsync(token, "alice@example.com");
 
         var alice = Assert.Single(await Dispatcher.QueryAsync(new GetUsersQuery()));
         Assert.False(alice.IsAdmin);
@@ -180,21 +211,21 @@ public sealed class InviteTests : IAsyncLifetime
         (await Dispatcher.SendAsync(new CreateInviteCommand { Note = "test", ValidFor = validFor ?? TimeSpan.FromDays(7) }))
         .Token;
 
-    private Task<RedeemInviteResultDto> RedeemAsync(string token, string userName, string email) =>
+    private Task<RedeemInviteResultDto> RedeemAsync(string token, string email) =>
         Dispatcher.SendAsync(new RedeemInviteCommand
         {
-            Token = token, UserName = userName, Email = email, Password = Password
+            Token = token, FirstName = "Test", LastName = "User", Email = email, Password = Password
         });
 
-    private async Task<AppUser?> FindUserAsync(string userName)
+    private async Task<AppUser?> FindUserAsync(string email)
     {
         await using var scope = _services.CreateAsyncScope();
-        return await scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>().FindByNameAsync(userName);
+        return await scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>().FindByEmailAsync(email);
     }
 
     private sealed class FakeUserContext : IUserContext
     {
-        public required string UserName { get; init; }
+        public required string UserId { get; init; }
         public bool IsAdmin { get; set; }
     }
 

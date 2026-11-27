@@ -20,7 +20,7 @@ public abstract class GameCollectionCommandHandler<TCommand> : ICommandHandler<T
 
     public async Task HandleAsync(TCommand command, CancellationToken cancellationToken)
     {
-        var owner = _userContext.UserName;
+        var owner = _userContext.UserId;
 
         var collection = await _repository.GetAsync(owner, cancellationToken)
             ?? throw new InvalidOperationException($"No game collection could be loaded for owner '{owner}'.");

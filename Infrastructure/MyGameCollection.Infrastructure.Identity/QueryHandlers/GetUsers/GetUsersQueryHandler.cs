@@ -24,8 +24,8 @@ public sealed class GetUsersQueryHandler : IQueryHandler<GetUsersQuery, IReadOnl
             .Select(ur => ur.UserId);
 
         return await _db.Users.AsNoTracking()
-            .OrderBy(u => u.UserName)
-            .Select(u => new UserDto(u.UserName!, u.Email, adminIds.Contains(u.Id), u.CreatedAt))
+            .OrderBy(u => u.LastName).ThenBy(u => u.FirstName)
+            .Select(u => new UserDto(u.FirstName, u.LastName, u.Email!, adminIds.Contains(u.Id), u.CreatedAt))
             .ToListAsync(ct);
     }
 }

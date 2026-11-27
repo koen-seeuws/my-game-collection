@@ -17,7 +17,7 @@ public record GetMyGamesQueryHandler : IQueryHandler<GetMyGamesQuery, IEnumerabl
 
     public async Task<IEnumerable<GameDto>> HandleAsync(GetMyGamesQuery query, CancellationToken ct = default)
     {
-        var owner = _userContext.UserName;
+        var owner = _userContext.UserId;
 
         return await _dbContext.Games
             .Where(game => game.GameCollection.Owner.ToUpper() == owner.ToUpper())

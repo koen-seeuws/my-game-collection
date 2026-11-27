@@ -28,7 +28,10 @@ public static class ServiceCollectionExtensions
 
         services.AddIdentityCore<AppUser>(options =>
             {
+                // Accounts sign in with their email address, which is also stored as the user name; any
+                // character an email address may contain is fine.
                 options.User.RequireUniqueEmail = true;
+                options.User.AllowedUserNameCharacters = string.Empty;
 
                 // Length over composition rules (NIST SP 800-63B).
                 options.Password.RequiredLength = 10;
@@ -43,6 +46,7 @@ public static class ServiceCollectionExtensions
             })
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<AccountsDbContext>()
+            .AddClaimsPrincipalFactory<AppUserClaimsPrincipalFactory>()
             .AddSignInManager();
 
         services.ConfigureApplicationCookie(options =>

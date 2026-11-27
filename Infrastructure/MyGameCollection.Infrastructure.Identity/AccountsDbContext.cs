@@ -21,6 +21,12 @@ public sealed class AccountsDbContext : IdentityDbContext<AppUser>, IDataProtect
     {
         base.OnModelCreating(builder);
 
+        builder.Entity<AppUser>(user =>
+        {
+            user.Property(u => u.FirstName).HasMaxLength(100).IsRequired();
+            user.Property(u => u.LastName).HasMaxLength(100).IsRequired();
+        });
+
         builder.Entity<Invite>(invite =>
         {
             invite.ToTable("Invites");

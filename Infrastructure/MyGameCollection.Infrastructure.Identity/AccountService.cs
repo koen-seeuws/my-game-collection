@@ -66,8 +66,8 @@ internal sealed class AccountService : IAccountService
             .ExecuteUpdateAsync(s => s.SetProperty(i => i.RevokedAt, now), cancellationToken);
     }
 
-    public async Task<RedeemInviteResultDto> RedeemInviteAsync(string token, string userName, string email,
-        string password, CancellationToken cancellationToken = default)
+    public async Task<RedeemInviteResultDto> RedeemInviteAsync(string token, string firstName, string lastName,
+        string email, string password, CancellationToken cancellationToken = default)
     {
         // The account and the used invite are saved together, or not at all.
         await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
@@ -80,11 +80,17 @@ internal sealed class AccountService : IAccountService
         if (invite is null)
             return RedeemInviteResultDto.Failure("This invite link is invalid, has expired or has already been used.");
 
-        var user = new AppUser { UserName = userName, Email = email, CreatedAt = now };
+        // Identity needs a user name: the email address doubles as one.
+        var user = new AppUser { UserName = email, Email = email, FirstName = firstName, LastName = lastName, CreatedAt = now };
 
         var created = await _userManager.CreateAsync(user, password);
         if (!created.Succeeded)
-            return RedeemInviteResultDto.Failure(created.Errors.Select(e => e.Description).ToArray());
+            return RedeemInviteResultDto.Failure(created.Errors
+                .Where(e => e.Code is not (nameof(IdentityErrorDescriber.DuplicateUserName)
+                    or nameof(IdentityErrorDescriber.InvalidUserName)))
+                .Select(e => e.Description)
+                .DefaultIfEmpty("The account could not be created.")
+                .ToArray());
 
         if (invite.GrantsAdmin)
         {
@@ -101,12 +107,12 @@ internal sealed class AccountService : IAccountService
             .Where(i => i.Id == invite.Id && i.RedeemedAt == null && i.RevokedAt == null)
             .ExecuteUpdateAsync(s => s
                 .SetProperty(i => i.RedeemedAt, now)
-                .SetProperty(i => i.RedeemedBy, user.UserName), cancellationToken);
+                .SetProperty(i => i.RedeemedBy, user.Email), cancellationToken);
         if (claimed != 1)
             return RedeemInviteResultDto.Failure("This invite link has already been used.");
 
         await transaction.CommitAsync(cancellationToken);
-        return RedeemInviteResultDto.Success(user.UserName);
+        return RedeemInviteResultDto.Success(user.Id);
     }
 
     public async Task<bool> HasAdminAsync(CancellationToken cancellationToken = default) =>

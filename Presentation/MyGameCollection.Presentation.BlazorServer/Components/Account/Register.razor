@@ -42,12 +42,16 @@ else
     <EditForm Model="Input" method="post" OnValidSubmit="RegisterAsync" FormName="register" class="account-form">
         <DataAnnotationsValidator />
 
-        <label for="username">User name</label>
-        <InputText id="username" @bind-Value="Input.UserName" autocomplete="username" autofocus />
-        <ValidationMessage For="() => Input.UserName" />
+        <label for="firstname">First name</label>
+        <InputText id="firstname" @bind-Value="Input.FirstName" autocomplete="given-name" autofocus />
+        <ValidationMessage For="() => Input.FirstName" />
 
-        <label for="email">Email</label>
-        <InputText id="email" type="email" @bind-Value="Input.Email" autocomplete="email" />
+        <label for="lastname">Last name</label>
+        <InputText id="lastname" @bind-Value="Input.LastName" autocomplete="family-name" />
+        <ValidationMessage For="() => Input.LastName" />
+
+        <label for="email">Email <span class="account-label-hint">(you sign in with it)</span></label>
+        <InputText id="email" type="email" @bind-Value="Input.Email" autocomplete="username" />
         <ValidationMessage For="() => Input.Email" />
 
         <label for="password">Password <span class="account-label-hint">(at least 10 characters)</span></label>
@@ -86,7 +90,8 @@ else
         var result = await Dispatcher.SendAsync(new RedeemInviteCommand
         {
             Token = Token,
-            UserName = Input.UserName,
+            FirstName = Input.FirstName,
+            LastName = Input.LastName,
             Email = Input.Email,
             Password = Input.Password
         });
@@ -96,17 +101,20 @@ else
             return;
         }
 
-        var user = await UserManager.FindByNameAsync(result.UserName!);
+        var user = await UserManager.FindByIdAsync(result.UserId!);
         await SignInManager.SignInAsync(user!, isPersistent: false);
         Navigation.NavigateTo("/");
     }
 
     private sealed class RegisterModel
     {
-        [Required(ErrorMessage = "Choose a user name.")]
-        [StringLength(50, MinimumLength = 3, ErrorMessage = "Use 3 to 50 characters.")]
-        [RegularExpression(@"^[A-Za-z0-9._-]+$", ErrorMessage = "Use letters, digits, dots, dashes or underscores.")]
-        public string UserName { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Enter your first name.")]
+        [StringLength(RedeemInviteCommand.MaxNameLength, ErrorMessage = "Keep it under 100 characters.")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Enter your last name.")]
+        [StringLength(RedeemInviteCommand.MaxNameLength, ErrorMessage = "Keep it under 100 characters.")]
+        public string LastName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Enter your email address.")]
         [EmailAddress(ErrorMessage = "Enter a valid email address.")]
