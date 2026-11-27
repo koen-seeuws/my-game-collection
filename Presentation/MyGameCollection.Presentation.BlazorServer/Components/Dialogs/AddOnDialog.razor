@@ -70,6 +70,7 @@
         <EditForm id="@_formId" Model="Model" OnValidSubmit="Submit">
             <DataAnnotationsValidator />
             <MudGrid Spacing="2">
+                <FormSection Title="Add-on" Icon="@Icons.Material.Outlined.Extension" />
                 <MudItem xs="12" sm="8">
                     <MudTextField @bind-Value="Model.Title" For="() => Model.Title" Label="Title"
                                   Variant="Variant.Outlined" MaxLength="200" Immediate="true" />
@@ -77,6 +78,8 @@
                 <MudItem xs="12" sm="4">
                     <EnumSelect TEnum="AddOnType" @bind-Value="Model.Type" Label="Type" />
                 </MudItem>
+                <ReleaseDateFields Model="Model" />
+                <FormSection Title="Your copy" Icon="@Icons.Material.Outlined.Inventory2" />
                 <MudItem xs="12">
                     <MudText Typo="Typo.caption" Color="Color.Secondary">Format</MudText>
                     <MudToggleGroup T="GameFormat" @bind-Value="Model.Format" SelectionMode="SelectionMode.SingleSelection"
@@ -99,9 +102,9 @@
                         <EnumSelect TEnum="ItemCondition" @bind-Value="Model.Condition" Label="Condition" />
                     </MudItem>
                 }
-                <ReleaseDateFields Model="Model" />
                 @if (Model.Status == CollectionStatus.Owned)
                 {
+                    <FormSection Title="Purchase" Icon="@Icons.Material.Outlined.ShoppingBag" />
                     <MudItem xs="12" sm="6">
                         <MudDatePicker @bind-Date="Model.PurchaseDate"
                                        Label="@(Model.Format == GameFormat.Subscription ? "Claimed on" : "Purchase date")"
@@ -122,6 +125,7 @@
                         </MudItem>
                     }
                 }
+                <FormSection Title="Picture & notes" Icon="@Icons.Material.Outlined.Image" />
                 <MudItem xs="12">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                         <ItemThumbnail Url="@Model.ThumbnailUrl" Icon="@Icons.Material.Outlined.Extension" Class="thumbnail-preview" />
