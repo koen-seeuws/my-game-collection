@@ -1,7 +1,14 @@
-@* Region, completeness and condition of an item, as compact tags. *@
+@* Format, region, completeness and condition of an item, as compact tags. *@
 <div class="item-tags">
+    @if (Format is { } format)
+    {
+        <span class="@($"item-tag format {format.ToString().ToLowerInvariant()}")">@format.ToDisplayName()</span>
+    }
     <span class="item-tag region">@Region.ToDisplayName()</span>
-    <span class="item-tag">@Completeness.ToDisplayName()</span>
+    @if (Completeness is { } completeness)
+    {
+        <span class="item-tag">@completeness.ToDisplayName()</span>
+    }
     @if (Condition is { } condition)
     {
         <span class="item-tag">@condition.ToDisplayName()</span>
@@ -10,8 +17,13 @@
 
 @code {
     [Parameter, EditorRequired] public Region Region { get; set; }
-    [Parameter, EditorRequired] public Completeness Completeness { get; set; }
 
-    /// <summary>Left out for wishlist items, which have no condition yet.</summary>
+    /// <summary>Left out for digital games, which have no box.</summary>
+    [Parameter] public Completeness? Completeness { get; set; }
+
+    /// <summary>Left out for wishlist items and digital games, which have no condition.</summary>
     [Parameter] public ItemCondition? Condition { get; set; }
+
+    /// <summary>Only games have a format; consoles leave it out.</summary>
+    [Parameter] public GameFormat? Format { get; set; }
 }

@@ -7,8 +7,9 @@
                   PurchasePrice="game.PurchasePrice" PurchaseDate="game.PurchaseDate"
                   OnEdit="() => OnEdit.InvokeAsync(game)" OnDelete="() => OnDelete.InvokeAsync(game)"
                   OnAcquire="() => OnAcquire.InvokeAsync(game)">
-            <ItemTags Region="game.Region" Completeness="game.Completeness"
-                      Condition="@(game.Status == CollectionStatus.Owned ? game.Condition : null)" />
+            <ItemTags Format="game.Format" Region="game.Region"
+                      Completeness="@(game.Format == GameFormat.Physical ? game.Completeness : null)"
+                      Condition="@(game.Status == CollectionStatus.Owned && game.Format == GameFormat.Physical ? game.Condition : null)" />
         </ItemCard>
     }
 </div>

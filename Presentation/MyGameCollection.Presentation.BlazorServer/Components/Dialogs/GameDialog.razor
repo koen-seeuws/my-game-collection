@@ -97,30 +97,48 @@
                         </MudChipSet>
                     </MudItem>
                 }
+                <MudItem xs="12">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Format</MudText>
+                    <MudToggleGroup T="GameFormat" @bind-Value="Model.Format" SelectionMode="SelectionMode.SingleSelection"
+                                    Color="Color.Primary" CheckMark="true" FixedContent="true" Size="Size.Small">
+                        @foreach (var format in Enum.GetValues<GameFormat>())
+                        {
+                            <MudToggleItem T="GameFormat" Value="format" Text="@format.ToDisplayName()" />
+                        }
+                    </MudToggleGroup>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@Model.Format.ToDescription()</MudText>
+                </MudItem>
                 <MudItem xs="12" sm="6">
                     <EnumSelect TEnum="CollectionStatus" @bind-Value="Model.Status" Label="Status" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
                     <EnumSelect TEnum="Region" @bind-Value="Model.Region" Label="Region" />
                 </MudItem>
-                <MudItem xs="12" sm="6">
-                    <EnumSelect TEnum="Completeness" @bind-Value="Model.Completeness" Label="Completeness" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <EnumSelect TEnum="ItemCondition" @bind-Value="Model.Condition" Label="Condition" />
-                </MudItem>
+                @if (Model.IsPhysical)
+                {
+                    <MudItem xs="12" sm="6">
+                        <EnumSelect TEnum="Completeness" @bind-Value="Model.Completeness" Label="Completeness" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <EnumSelect TEnum="ItemCondition" @bind-Value="Model.Condition" Label="Condition" />
+                    </MudItem>
+                }
                 <ReleaseDateFields Model="Model" />
                 @if (Model.Status == CollectionStatus.Owned)
                 {
                     <MudItem xs="12" sm="6">
-                        <MudDatePicker @bind-Date="Model.PurchaseDate" Label="Purchase date" Variant="Variant.Outlined"
-                                       Clearable="true" MaxDate="DateTime.Today" />
+                        <MudDatePicker @bind-Date="Model.PurchaseDate"
+                                       Label="@(Model.Format == GameFormat.Subscription ? "Claimed on" : "Purchase date")"
+                                       Variant="Variant.Outlined" Clearable="true" MaxDate="DateTime.Today" />
                     </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudNumericField T="decimal?" @bind-Value="Model.PurchasePrice" For="() => Model.PurchasePrice"
-                                         Label="Price paid" Variant="Variant.Outlined" HideSpinButtons="true" Min="0"
-                                         Adornment="Adornment.Start" AdornmentText="@CurrencySymbol" />
-                    </MudItem>
+                    @if (Model.Format != GameFormat.Subscription)
+                    {
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField T="decimal?" @bind-Value="Model.PurchasePrice" For="() => Model.PurchasePrice"
+                                             Label="Price paid" Variant="Variant.Outlined" HideSpinButtons="true" Min="0"
+                                             Adornment="Adornment.Start" AdornmentText="@CurrencySymbol" />
+                        </MudItem>
+                    }
                 }
                 <MudItem xs="12">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">

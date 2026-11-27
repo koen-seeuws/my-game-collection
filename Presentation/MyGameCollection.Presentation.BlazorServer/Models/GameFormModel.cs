@@ -19,6 +19,7 @@ public sealed class GameFormModel : ReleaseDateFormModel
     public string? Edition { get; set; }
 
     public CollectionStatus Status { get; set; } = CollectionStatus.Owned;
+    public GameFormat Format { get; set; } = GameFormat.Physical;
     public Region Region { get; set; } = Region.Pal;
     public ItemCondition Condition { get; set; } = ItemCondition.Good;
     public Completeness Completeness { get; set; } = Completeness.CompleteInBox;
@@ -40,6 +41,7 @@ public sealed class GameFormModel : ReleaseDateFormModel
         Platform = game.Platform,
         Edition = game.Edition,
         Status = game.Status,
+        Format = game.Format,
         Region = game.Region,
         Condition = game.Condition,
         Completeness = game.Completeness,
@@ -56,6 +58,7 @@ public sealed class GameFormModel : ReleaseDateFormModel
         Platform = Platform,
         Edition = Edition,
         Status = Status,
+        Format = Format,
         Region = Region,
         Condition = Condition,
         Completeness = Completeness,
@@ -73,6 +76,7 @@ public sealed class GameFormModel : ReleaseDateFormModel
         Platform = Platform,
         Edition = Edition,
         Status = Status,
+        Format = Format,
         Region = Region,
         Condition = Condition,
         Completeness = Completeness,
@@ -87,5 +91,10 @@ public sealed class GameFormModel : ReleaseDateFormModel
     private DateOnly? PurchaseDateOrNull =>
         Status == CollectionStatus.Owned && PurchaseDate is { } date ? DateOnly.FromDateTime(date) : null;
 
-    private decimal? PurchasePriceOrNull => Status == CollectionStatus.Owned ? PurchasePrice : null;
+    /// <summary>Subscription games are not bought, so they have no price either.</summary>
+    private decimal? PurchasePriceOrNull =>
+        Status == CollectionStatus.Owned && Format != GameFormat.Subscription ? PurchasePrice : null;
+
+    /// <summary>Only physical copies have a box, manual and wear.</summary>
+    public bool IsPhysical => Format == GameFormat.Physical;
 }

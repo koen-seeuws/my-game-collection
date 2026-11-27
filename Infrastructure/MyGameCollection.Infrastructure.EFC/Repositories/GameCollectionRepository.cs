@@ -42,6 +42,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 Title = g.Title,
                 Platform = g.Platform,
                 Edition = g.Edition,
+                Format = g.Format,
                 Region = g.Region,
                 Condition = g.Condition,
                 Completeness = g.Completeness,
@@ -83,6 +84,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.Title = g.Title;
                 row.Platform = g.Platform;
                 row.Edition = g.Edition;
+                row.Format = g.Format;
                 ApplyCommon(row, g.Region, g.Condition, g.Completeness, g.Status, g.ReleaseDate, g.PurchaseDate,
                     g.PurchasePrice, g.Notes, g.ThumbnailUrl);
             });

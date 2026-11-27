@@ -21,6 +21,14 @@ else
                 <MudToggleItem T="CollectionStatus?" Value="CollectionStatus.Owned" Text="Owned" />
                 <MudToggleItem T="CollectionStatus?" Value="CollectionStatus.Wishlist" Text="Wishlist" />
             </MudToggleGroup>
+            <MudSelect T="GameFormat?" @bind-Value="_formatFilter" Label="Format" Dense="true" Margin="Margin.Dense"
+                       Variant="Variant.Outlined" Style="max-width: 170px" ToStringFunc="FormatLabel">
+                <MudSelectItem T="GameFormat?" Value="null">All formats</MudSelectItem>
+                @foreach (var format in Enum.GetValues<GameFormat>())
+                {
+                    <MudSelectItem T="GameFormat?" Value="format">@format.ToDisplayName()</MudSelectItem>
+                }
+            </MudSelect>
             <MudSelect T="GameSort" @bind-Value="_sort" Label="Sort by" Dense="true" Margin="Margin.Dense"
                        Variant="Variant.Outlined" Style="max-width: 200px">
                 <MudSelectItem Value="GameSort.Title">Title</MudSelectItem>

@@ -45,7 +45,8 @@ else
                           ShowStatus="false" Notes="@game.Notes"
                           OnEdit="() => EditGameAsync(game)" OnDelete="() => DeleteGameAsync(game)"
                           OnAcquire="() => AcquireGameAsync(game)">
-                    <ItemTags Region="game.Region" Completeness="game.Completeness" />
+                    <ItemTags Format="game.Format" Region="game.Region"
+                              Completeness="@(game.Format == GameFormat.Physical ? game.Completeness : null)" />
                 </ItemCard>
             }
         </div>
