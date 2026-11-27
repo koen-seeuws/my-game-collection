@@ -7,6 +7,9 @@ public record AddConsoleCommand : ICommand
     public required string Name { get; init; }
     public required string Manufacturer { get; init; }
     public string? Model { get; init; }
+
+    /// <summary>Colour or special edition, e.g. "Tribal Edition".</summary>
+    public string? Colour { get; init; }
     public Region Region { get; init; }
     public ItemCondition Condition { get; init; }
     public Completeness Completeness { get; init; }

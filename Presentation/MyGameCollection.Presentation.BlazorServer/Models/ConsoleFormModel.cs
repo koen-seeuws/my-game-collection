@@ -18,6 +18,10 @@ public sealed class ConsoleFormModel : ReleaseDateFormModel
     [StringLength(100)]
     public string? Model { get; set; }
 
+    /// <summary>Colour or special edition, e.g. "Tribal Edition".</summary>
+    [StringLength(100)]
+    public string? Colour { get; set; }
+
     public CollectionStatus Status { get; set; } = CollectionStatus.Owned;
     public Region Region { get; set; } = Region.Pal;
     public ItemCondition Condition { get; set; } = ItemCondition.Good;
@@ -42,6 +46,7 @@ public sealed class ConsoleFormModel : ReleaseDateFormModel
         Name = console.Name,
         Manufacturer = console.Manufacturer,
         Model = console.Model,
+        Colour = console.Colour,
         Status = console.Status,
         Region = console.Region,
         Condition = console.Condition,
@@ -59,6 +64,7 @@ public sealed class ConsoleFormModel : ReleaseDateFormModel
         Name = Name,
         Manufacturer = Manufacturer,
         Model = Model,
+        Colour = Colour,
         Status = Status,
         Region = Region,
         Condition = Condition,
@@ -77,6 +83,7 @@ public sealed class ConsoleFormModel : ReleaseDateFormModel
         Name = Name,
         Manufacturer = Manufacturer,
         Model = Model,
+        Colour = Colour,
         Status = Status,
         Region = Region,
         Condition = Condition,

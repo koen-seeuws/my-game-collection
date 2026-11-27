@@ -170,7 +170,7 @@ public partial class Consoles : IDisposable
     }
 
     private static string Subtitle(ConsoleDto console) =>
-        string.Join(" · ", new[] { console.Manufacturer, console.Model, console.ReleaseDate?.ToString() }
+        string.Join(" · ", new[] { console.Manufacturer, console.Model, console.Colour, console.ReleaseDate?.ToString() }
             .Where(part => !string.IsNullOrWhiteSpace(part)));
 
     /// <summary>The number of owned games for this system (matched on platform name).</summary>
@@ -183,6 +183,7 @@ public partial class Consoles : IDisposable
         || console.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)
         || console.Manufacturer.Contains(_search, StringComparison.OrdinalIgnoreCase)
         || (console.Model?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
+        || (console.Colour?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
         || (console.Notes?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false);
 
     private void OnUserChanged() => InvokeAsync(async () =>

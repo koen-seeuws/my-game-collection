@@ -15,5 +15,6 @@ public class GameConsoleConfiguration : IEntityTypeConfiguration<GameConsole>
         builder.Property(c => c.Name).HasMaxLength(200).IsRequired();
         builder.Property(c => c.Manufacturer).HasMaxLength(100).IsRequired();
         builder.Property(c => c.Model).HasMaxLength(100);
+        builder.Property(c => c.Colour).HasMaxLength(100);
     }
 }

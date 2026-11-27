@@ -77,6 +77,10 @@
                                   Variant="Variant.Outlined" MaxLength="100" Placeholder="e.g. SCPH-1002, Slim" />
                 </MudItem>
                 <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="Model.Colour" For="() => Model.Colour" Label="Colour / edition"
+                                  Variant="Variant.Outlined" MaxLength="100" Placeholder="e.g. Tribal Edition, Pearl Pink" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
                     <EnumSelect TEnum="CollectionStatus" @bind-Value="Model.Status" Label="Status" />
                 </MudItem>
                 <MudItem xs="12" sm="4">

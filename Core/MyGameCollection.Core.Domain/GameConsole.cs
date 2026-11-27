@@ -14,6 +14,9 @@ public record GameConsole
     /// <summary>Model or revision, e.g. "SNSP-001A" or "Slim".</summary>
     public string? Model { get; init; }
 
+    /// <summary>Colour or special edition, e.g. "Tribal Edition" or "Pearl Pink". The catalog does not know these.</summary>
+    public string? Colour { get; init; }
+
     public Region Region { get; init; } = Region.Pal;
     public ItemCondition Condition { get; init; } = ItemCondition.Good;
     public Completeness Completeness { get; init; } = Completeness.Loose;

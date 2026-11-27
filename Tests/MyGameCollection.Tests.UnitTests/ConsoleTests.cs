@@ -10,13 +10,14 @@ public class ConsoleTests
     {
         var collection = Empty();
 
-        var key = collection.AddConsole(" PlayStation ", " Sony ", model: "  ");
+        var key = collection.AddConsole(" PlayStation ", " Sony ", model: "  ", colour: " Tribal Edition ");
 
         var console = collection.Consoles.Should().ContainSingle().Subject;
         console.Key.Should().Be(key);
         console.Name.Should().Be("PlayStation");
         console.Manufacturer.Should().Be("Sony");
         console.Model.Should().BeNull();
+        console.Colour.Should().Be("Tribal Edition");
         collection.Games.Should().BeEmpty();
     }
 
@@ -37,10 +38,11 @@ public class ConsoleTests
         var console = Console("Mega Drive");
         var collection = WithConsoles(console);
 
-        collection.UpdateConsole(console.Key, "Mega Drive", "Sega", model: "Model 2");
+        collection.UpdateConsole(console.Key, "Mega Drive", "Sega", model: "Model 2", colour: "Pearl Pink");
 
         collection.Consoles[0].Key.Should().Be(console.Key);
         collection.Consoles[0].Model.Should().Be("Model 2");
+        collection.Consoles[0].Colour.Should().Be("Pearl Pink");
     }
 
     [Fact]
