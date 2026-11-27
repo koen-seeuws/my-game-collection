@@ -16,7 +16,7 @@ public sealed class UpdateConsoleCommandInputValidator : CommandInputValidatorBa
         RuleFor(c => c.Condition).IsInEnum();
         RuleFor(c => c.Completeness).IsInEnum();
         RuleFor(c => c.Status).IsInEnum();
-        RuleFor(c => c.ReleaseYear).ReleaseYear();
+        RuleFor(c => c.ReleaseDate).ReleaseDate();
         RuleFor(c => c.PurchasePrice).Price();
         RuleFor(c => c.Notes).OptionalText(CollectionItemLimits.MaxNotesLength);
         RuleFor(c => c.ThumbnailUrl).OptionalHttpUrl();

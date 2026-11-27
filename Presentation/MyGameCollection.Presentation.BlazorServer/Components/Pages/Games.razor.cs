@@ -140,7 +140,7 @@ public partial class Games : IDisposable
 
     // ---- Filtering and sorting ----
 
-    private enum GameSort { Title, ReleaseYear, RecentlyPurchased, Price }
+    private enum GameSort { Title, ReleaseDate, RecentlyPurchased, Price }
 
     private string? _search;
     private CollectionStatus? _statusFilter;
@@ -157,7 +157,7 @@ public partial class Games : IDisposable
 
             return _sort switch
             {
-                GameSort.ReleaseYear => games.OrderBy(g => g.ReleaseYear ?? int.MaxValue).ThenBy(g => g.Title),
+                GameSort.ReleaseDate => games.OrderBy(g => g.ReleaseDate is null).ThenBy(g => g.ReleaseDate).ThenBy(g => g.Title),
                 GameSort.RecentlyPurchased => games.OrderByDescending(g => g.PurchaseDate ?? DateOnly.MinValue).ThenBy(g => g.Title),
                 GameSort.Price => games.OrderByDescending(g => g.PurchasePrice ?? -1).ThenBy(g => g.Title),
                 _ => games.OrderBy(g => g.Title, StringComparer.CurrentCultureIgnoreCase)

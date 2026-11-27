@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using MyGameCollection.Application.Abstractions.Services.GameCatalog;
+using MyGameCollection.Core.Domain.Abstractions;
 
 namespace MyGameCollection.Infrastructure.Igdb;
 
@@ -14,7 +15,7 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
         // version_parent = null leaves out editions (GOTY, Deluxe...) that would otherwise crowd the results.
         var games = await igdb.QueryAsync<IgdbGame>("games",
             $"search {IgdbClient.Quote(search.Trim())}; " +
-            "fields name, first_release_date, cover.image_id, platforms.name, platforms.abbreviation; " +
+            $"fields name, first_release_date, {ReleaseDateFields("release_dates")}, cover.image_id, platforms.name, platforms.abbreviation; " +
             $"where version_parent = null; limit {options.Value.SearchLimit};", cancellationToken);
 
         return games
@@ -23,9 +24,7 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
             {
                 Id = game.Id,
                 Name = game.Name!,
-                ReleaseYear = game.FirstReleaseDate is { } seconds
-                    ? DateTimeOffset.FromUnixTimeSeconds(seconds).Year
-                    : null,
+                ReleaseDate = FirstReleaseDate(game),
                 CoverUrl = IgdbClient.ImageUrl(game.Cover?.ImageId, "t_cover_small"),
                 ThumbnailUrl = IgdbClient.ImageUrl(game.Cover?.ImageId, "t_cover_big"),
                 Platforms = (game.Platforms ?? [])
@@ -40,7 +39,7 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
     {
         // Editions are games of their own on IGDB, pointing to the standard release through version_parent.
         var editions = await igdb.QueryAsync<IgdbGame>("games",
-            "fields name, version_title, first_release_date, cover.image_id; " +
+            $"fields name, version_title, first_release_date, {ReleaseDateFields("release_dates")}, cover.image_id; " +
             $"where version_parent = {gameId}; sort first_release_date asc; limit 50;", cancellationToken);
 
         return editions
@@ -50,9 +49,7 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
             {
                 Id = e.edition.Id,
                 Edition = e.title!,
-                ReleaseYear = e.edition.FirstReleaseDate is { } seconds
-                    ? DateTimeOffset.FromUnixTimeSeconds(seconds).Year
-                    : null,
+                ReleaseDate = FirstReleaseDate(e.edition),
                 CoverUrl = IgdbClient.ImageUrl(e.edition.Cover?.ImageId, "t_cover_small"),
                 ThumbnailUrl = IgdbClient.ImageUrl(e.edition.Cover?.ImageId, "t_cover_big")
             })
@@ -81,7 +78,8 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
             $"search {IgdbClient.Quote(search.Trim())}; " +
             "fields name, abbreviation, alternative_name, platform_logo.image_id, " +
             "versions.name, versions.platform_logo.image_id, " +
-            "versions.companies.manufacturer, versions.companies.company.name, versions.platform_version_release_dates.y; " +
+            "versions.companies.manufacturer, versions.companies.company.name, " +
+            $"{ReleaseDateFields("versions.platform_version_release_dates")}; " +
             $"limit {options.Value.SearchLimit};", cancellationToken);
 
         return platforms
@@ -101,7 +99,7 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
                         .Select(c => c.Company!.Name)
                         .FirstOrDefault(),
                     // The earliest release of any of the platform's versions (models / revisions).
-                    ReleaseYear = versions.Select(EarliestYear).Min(),
+                    ReleaseDate = versions.Select(FirstReleaseDate).Min(),
                     LogoUrl = IgdbClient.ImageUrl(platform.PlatformLogo?.ImageId, "t_thumb"),
                     ThumbnailUrl = IgdbClient.ImageUrl(platform.PlatformLogo?.ImageId, "t_logo_med"),
                     Versions = versions
@@ -110,13 +108,14 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
                         {
                             Id = v.Id,
                             Name = v.Name!,
-                            ReleaseYear = EarliestYear(v),
+                            ReleaseDate = FirstReleaseDate(v),
                             // Not t_thumb: that square crop cuts off wide pictures and logos.
                             LogoUrl = IgdbClient.ImageUrl(v.PlatformLogo?.ImageId, "t_logo_med"),
                             ThumbnailUrl = IgdbClient.ImageUrl(v.PlatformLogo?.ImageId, "t_logo_med")
                         })
                         // Oldest first; versions without a known release date go last.
-                        .OrderBy(v => v.ReleaseYear ?? int.MaxValue)
+                        .OrderBy(v => v.ReleaseDate is null)
+                        .ThenBy(v => v.ReleaseDate)
                         .ThenBy(v => v.Name, StringComparer.OrdinalIgnoreCase)
                         .ToList()
                 };
@@ -124,10 +123,47 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
             .ToList();
     }
 
-    /// <summary>The earliest year a platform version was released in any region (regions often differ).</summary>
-    private static int? EarliestYear(IgdbPlatformVersion version) =>
-        (version.ReleaseDates ?? [])
-            .Select(d => d.Year)
-            .Where(y => y is > 0)
+    /// <summary>The release date fields to ask for of <paramref name="path"/> (e.g. "release_dates").</summary>
+    private static string ReleaseDateFields(string path) =>
+        string.Join(", ", new[] { "date", "date_format", "category", "y", "m" }.Select(field => $"{path}.{field}"));
+
+    /// <summary>
+    /// When the game first came out (in any region or on any platform), as precisely as IGDB knows it.
+    /// Falls back to the year of first_release_date, which has no precision of its own.
+    /// </summary>
+    private static ReleaseDate? FirstReleaseDate(IgdbGame game) =>
+        FirstReleaseDate(game.ReleaseDates)
+        ?? (game.FirstReleaseDate is { } seconds ? new ReleaseDate(DateTimeOffset.FromUnixTimeSeconds(seconds).Year) : null);
+
+    /// <summary>When a platform version first came out in any region (regions often differ).</summary>
+    private static ReleaseDate? FirstReleaseDate(IgdbPlatformVersion version) => FirstReleaseDate(version.ReleaseDates);
+
+    private static ReleaseDate? FirstReleaseDate(IReadOnlyList<IgdbReleaseDate>? releases) =>
+        (releases ?? [])
+            .Select(ToReleaseDate)
+            .Where(date => date?.Problem is null)
             .Min();
+
+    /// <summary>
+    /// A release as precisely as IGDB knows it. Its format (the older category field uses the same values):
+    /// 0 = year, month and day; 1 = year and month; 2 = year; 3-6 = a quarter of the year; 7 = to be decided.
+    /// </summary>
+    private static ReleaseDate? ToReleaseDate(IgdbReleaseDate release)
+    {
+        if (release.Date is not { } seconds)
+            return null;
+
+        var date = DateTimeOffset.FromUnixTimeSeconds(seconds).UtcDateTime;
+        var year = release.Year ?? date.Year;
+
+        return (release.DateFormat ?? release.Category) switch
+        {
+            0 => new ReleaseDate(date.Year, date.Month, date.Day),
+            1 => new ReleaseDate(year, release.Month ?? date.Month),
+            >= 2 and <= 6 => new ReleaseDate(year),
+            7 => null,
+            // Unknown precision: only trust the year.
+            _ => new ReleaseDate(year)
+        };
+    }
 }

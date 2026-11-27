@@ -12,7 +12,7 @@ public record UpdateConsoleCommand : ICommand
     public ItemCondition Condition { get; init; }
     public Completeness Completeness { get; init; }
     public CollectionStatus Status { get; init; }
-    public int? ReleaseYear { get; init; }
+    public ReleaseDate? ReleaseDate { get; init; }
     public DateOnly? PurchaseDate { get; init; }
     public decimal? PurchasePrice { get; init; }
     public string? Notes { get; init; }

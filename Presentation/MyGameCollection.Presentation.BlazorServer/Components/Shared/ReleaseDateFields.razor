@@ -1,0 +1,28 @@
+@using System.Globalization
+@* The release year, month and day of a game or console form, as grid items. Month and day are optional. *@
+
+<MudItem xs="12" sm="4">
+    <MudNumericField T="int?" @bind-Value="Model.ReleaseYear" For="() => Model.ReleaseYear"
+                     Label="Release year" Variant="Variant.Outlined" HideSpinButtons="true" />
+</MudItem>
+<MudItem xs="6" sm="4">
+    <MudSelect T="int?" @bind-Value="Model.ReleaseMonth" For="() => Model.ReleaseMonth" Label="Month"
+               Variant="Variant.Outlined" Clearable="true" ToStringFunc="MonthName">
+        @foreach (var month in Enumerable.Range(1, 12))
+        {
+            <MudSelectItem T="int?" Value="month">@MonthName(month)</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+<MudItem xs="6" sm="4">
+    <MudNumericField T="int?" @bind-Value="Model.ReleaseDay" For="() => Model.ReleaseDay" Label="Day"
+                     Variant="Variant.Outlined" HideSpinButtons="true" Disabled="Model.ReleaseMonth is null" />
+</MudItem>
+
+@code {
+    [Parameter, EditorRequired]
+    public ReleaseDateFormModel Model { get; set; } = default!;
+
+    private static string MonthName(int? month) =>
+        month is { } m ? CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m) : string.Empty;
+}

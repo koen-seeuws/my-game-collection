@@ -1,3 +1,4 @@
+using MyGameCollection.Core.Domain.Abstractions;
 using static MyGameCollection.Core.Domain.Abstractions.CollectionItemLimits;
 
 namespace MyGameCollection.Core.Domain;
@@ -16,7 +17,7 @@ internal static class GameCollectionValidation
             ThumbnailUrl = OptionalUrl(game.ThumbnailUrl, "thumbnailUrl")
         };
 
-        EnsureValid(normalised.ReleaseYear, normalised.PurchasePrice);
+        EnsureValid(normalised.ReleaseDate, normalised.PurchasePrice);
         return normalised;
     }
 
@@ -31,7 +32,7 @@ internal static class GameCollectionValidation
             ThumbnailUrl = OptionalUrl(console.ThumbnailUrl, "thumbnailUrl")
         };
 
-        EnsureValid(normalised.ReleaseYear, normalised.PurchasePrice);
+        EnsureValid(normalised.ReleaseDate, normalised.PurchasePrice);
         return normalised;
     }
 
@@ -41,11 +42,10 @@ internal static class GameCollectionValidation
             throw new ArgumentOutOfRangeException(paramName, price, "A price cannot be negative.");
     }
 
-    private static void EnsureValid(int? releaseYear, decimal? purchasePrice)
+    private static void EnsureValid(ReleaseDate? releaseDate, decimal? purchasePrice)
     {
-        if (releaseYear is < MinReleaseYear or > MaxReleaseYear)
-            throw new ArgumentOutOfRangeException(nameof(releaseYear), releaseYear,
-                $"The release year must be between {MinReleaseYear} and {MaxReleaseYear}.");
+        if (releaseDate?.Problem is { } problem)
+            throw new ArgumentOutOfRangeException(nameof(releaseDate), releaseDate, problem);
 
         EnsureValidPrice(purchasePrice, nameof(purchasePrice));
     }

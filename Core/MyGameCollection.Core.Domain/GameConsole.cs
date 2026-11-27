@@ -18,7 +18,7 @@ public record GameConsole
     public ItemCondition Condition { get; init; } = ItemCondition.Good;
     public Completeness Completeness { get; init; } = Completeness.Loose;
     public CollectionStatus Status { get; init; } = CollectionStatus.Owned;
-    public int? ReleaseYear { get; init; }
+    public ReleaseDate? ReleaseDate { get; init; }
     public DateOnly? PurchaseDate { get; init; }
     public decimal? PurchasePrice { get; init; }
     public string? Notes { get; init; }

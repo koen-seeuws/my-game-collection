@@ -24,10 +24,11 @@ public static class RuleBuilderExtensions
             .Must(value => string.IsNullOrWhiteSpace(value) || IsHttpUrl(value.Trim()))
             .WithMessage("{PropertyName} must be an absolute http(s) URL.");
 
-    public static IRuleBuilderOptions<T, int?> ReleaseYear<T>(this IRuleBuilder<T, int?> ruleBuilder) =>
+    /// <summary>Empty, or a year, month or day that exists (see <see cref="Core.Domain.Abstractions.ReleaseDate.Problem"/>).</summary>
+    public static IRuleBuilderOptions<T, ReleaseDate?> ReleaseDate<T>(this IRuleBuilder<T, ReleaseDate?> ruleBuilder) =>
         ruleBuilder
-            .InclusiveBetween(CollectionItemLimits.MinReleaseYear, CollectionItemLimits.MaxReleaseYear)
-            .WithMessage($"The release year must be between {CollectionItemLimits.MinReleaseYear} and {CollectionItemLimits.MaxReleaseYear}.");
+            .Must(value => value?.Problem is null)
+            .WithMessage((_, value) => value?.Problem ?? string.Empty);
 
     public static IRuleBuilderOptions<T, decimal?> Price<T>(this IRuleBuilder<T, decimal?> ruleBuilder) =>
         ruleBuilder

@@ -7,7 +7,7 @@ using MyGameCollection.Core.Domain.Abstractions;
 namespace MyGameCollection.Presentation.BlazorServer.Models;
 
 /// <summary>Input for adding or editing a console (same rules as the domain).</summary>
-public sealed class ConsoleFormModel
+public sealed class ConsoleFormModel : ReleaseDateFormModel
 {
     [Required, StringLength(200)]
     public string Name { get; set; } = string.Empty;
@@ -22,9 +22,6 @@ public sealed class ConsoleFormModel
     public Region Region { get; set; } = Region.Pal;
     public ItemCondition Condition { get; set; } = ItemCondition.Good;
     public Completeness Completeness { get; set; } = Completeness.Loose;
-
-    [Range(1950, 2100)]
-    public int? ReleaseYear { get; set; }
 
     public DateTime? PurchaseDate { get; set; }
 
@@ -46,7 +43,7 @@ public sealed class ConsoleFormModel
         Region = console.Region,
         Condition = console.Condition,
         Completeness = console.Completeness,
-        ReleaseYear = console.ReleaseYear,
+        ReleaseDate = console.ReleaseDate,
         PurchaseDate = console.PurchaseDate?.ToDateTime(TimeOnly.MinValue),
         PurchasePrice = console.PurchasePrice,
         Notes = console.Notes,
@@ -62,7 +59,7 @@ public sealed class ConsoleFormModel
         Region = Region,
         Condition = Condition,
         Completeness = Completeness,
-        ReleaseYear = ReleaseYear,
+        ReleaseDate = ReleaseDate,
         PurchaseDate = PurchaseDateOrNull,
         PurchasePrice = PurchasePriceOrNull,
         Notes = Notes,
@@ -79,7 +76,7 @@ public sealed class ConsoleFormModel
         Region = Region,
         Condition = Condition,
         Completeness = Completeness,
-        ReleaseYear = ReleaseYear,
+        ReleaseDate = ReleaseDate,
         PurchaseDate = PurchaseDateOrNull,
         PurchasePrice = PurchasePriceOrNull,
         Notes = Notes,

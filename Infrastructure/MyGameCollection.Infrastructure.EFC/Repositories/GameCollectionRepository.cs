@@ -46,7 +46,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 Condition = g.Condition,
                 Completeness = g.Completeness,
                 Status = g.Status,
-                ReleaseYear = g.ReleaseYear,
+                ReleaseDate = ToReleaseDate(g),
                 PurchaseDate = g.PurchaseDate,
                 PurchasePrice = g.PurchasePrice,
                 Notes = g.Notes,
@@ -65,7 +65,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 Condition = c.Condition,
                 Completeness = c.Completeness,
                 Status = c.Status,
-                ReleaseYear = c.ReleaseYear,
+                ReleaseDate = ToReleaseDate(c),
                 PurchaseDate = c.PurchaseDate,
                 PurchasePrice = c.PurchasePrice,
                 Notes = c.Notes,
@@ -83,7 +83,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.Title = g.Title;
                 row.Platform = g.Platform;
                 row.Edition = g.Edition;
-                ApplyCommon(row, g.Region, g.Condition, g.Completeness, g.Status, g.ReleaseYear, g.PurchaseDate,
+                ApplyCommon(row, g.Region, g.Condition, g.Completeness, g.Status, g.ReleaseDate, g.PurchaseDate,
                     g.PurchasePrice, g.Notes, g.ThumbnailUrl);
             });
 
@@ -94,7 +94,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.Name = c.Name;
                 row.Manufacturer = c.Manufacturer;
                 row.Model = c.Model;
-                ApplyCommon(row, c.Region, c.Condition, c.Completeness, c.Status, c.ReleaseYear, c.PurchaseDate,
+                ApplyCommon(row, c.Region, c.Condition, c.Completeness, c.Status, c.ReleaseDate, c.PurchaseDate,
                     c.PurchasePrice, c.Notes, c.ThumbnailUrl);
             });
     }
@@ -131,17 +131,22 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
 
     private static void ApplyCommon(CollectionItem row, Region region,
         ItemCondition condition, Completeness completeness,
-        CollectionStatus status, int? releaseYear, DateOnly? purchaseDate,
+        CollectionStatus status, ReleaseDate? releaseDate, DateOnly? purchaseDate,
         decimal? purchasePrice, string? notes, string? thumbnailUrl)
     {
         row.Region = region;
         row.Condition = condition;
         row.Completeness = completeness;
         row.Status = status;
-        row.ReleaseYear = releaseYear;
+        row.ReleaseYear = releaseDate?.Year;
+        row.ReleaseMonth = releaseDate?.Month;
+        row.ReleaseDay = releaseDate?.Day;
         row.PurchaseDate = purchaseDate;
         row.PurchasePrice = purchasePrice;
         row.Notes = notes;
         row.ThumbnailUrl = thumbnailUrl;
     }
+
+    private static ReleaseDate? ToReleaseDate(CollectionItem row) =>
+        row.ReleaseYear is { } year ? new ReleaseDate(year, row.ReleaseMonth, row.ReleaseDay) : null;
 }

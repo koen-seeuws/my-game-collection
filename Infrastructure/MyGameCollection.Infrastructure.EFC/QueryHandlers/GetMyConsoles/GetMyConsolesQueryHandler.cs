@@ -1,3 +1,4 @@
+using MyGameCollection.Core.Domain.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using MyGameCollection.Application.Abstractions;
 using MyGameCollection.Application.Abstractions.Queries.GetMyConsoles;
@@ -32,7 +33,7 @@ public record GetMyConsolesQueryHandler : IQueryHandler<GetMyConsolesQuery, IEnu
                 Condition = console.Condition,
                 Completeness = console.Completeness,
                 Status = console.Status,
-                ReleaseYear = console.ReleaseYear,
+                ReleaseDate = console.ReleaseYear == null ? null : new ReleaseDate(console.ReleaseYear.Value, console.ReleaseMonth, console.ReleaseDay),
                 PurchaseDate = console.PurchaseDate,
                 PurchasePrice = console.PurchasePrice,
                 Notes = console.Notes,
