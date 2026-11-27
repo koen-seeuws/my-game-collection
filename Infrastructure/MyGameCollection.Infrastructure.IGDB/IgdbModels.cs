@@ -101,3 +101,19 @@ internal sealed record IgdbReleaseDate(
     [property: JsonPropertyName("m")] int? Month,
     [property: JsonPropertyName("platform")] long? Platform = null,
     [property: JsonPropertyName("release_region")] IgdbReleaseRegion? ReleaseRegion = null);
+
+/// <summary>A game's live details: what changes over time and is not stored with the game.</summary>
+internal sealed record IgdbGameLiveDetails(
+    [property: JsonPropertyName("id")] long Id,
+    [property: JsonPropertyName("summary")] string? Summary,
+    [property: JsonPropertyName("total_rating")] double? TotalRating,
+    [property: JsonPropertyName("total_rating_count")] int? TotalRatingCount,
+    [property: JsonPropertyName("screenshots")] IReadOnlyList<IgdbImage>? Screenshots,
+    [property: JsonPropertyName("url")] string? Url);
+
+/// <summary>How long players took to finish a game, in seconds (IGDB's game_time_to_beats endpoint).</summary>
+internal sealed record IgdbTimeToBeat(
+    [property: JsonPropertyName("hastily")] long? Hastily,
+    [property: JsonPropertyName("normally")] long? Normally,
+    [property: JsonPropertyName("completely")] long? Completely,
+    [property: JsonPropertyName("count")] int? Count);

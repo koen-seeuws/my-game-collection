@@ -110,6 +110,20 @@ public static class DisplayNames
         _ => value.ToString()
     };
 
+    /// <summary>"45 min", or hours to the nearest half: "13 h", "12.5 h".</summary>
+    public static string Hours(TimeSpan duration)
+    {
+        if (duration < TimeSpan.FromMinutes(45))
+            return $"{Math.Max(1, (int)Math.Round(duration.TotalMinutes))} min";
+
+        var hours = Math.Round(duration.TotalHours * 2, MidpointRounding.AwayFromZero) / 2;
+        return $"{hours.ToString("0.#", CultureInfo.CurrentCulture)} h";
+    }
+
+    /// <summary>"1 rating", "2,102 ratings".</summary>
+    public static string Count(int count, string singular) =>
+        $"{count.ToString("N0", CultureInfo.CurrentCulture)} {(count == 1 ? singular : singular + "s")}";
+
     /// <summary>Formats an amount in the app's culture (see "Culture" in appsettings.json).</summary>
     public static string Money(decimal? amount) =>
         amount is null ? "–" : amount.Value.ToString("C", CultureInfo.CurrentCulture);
