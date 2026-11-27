@@ -45,6 +45,9 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 Genres = g.Genres.ToList(),
                 Developers = g.Developers.ToList(),
                 Publishers = g.Publishers.ToList(),
+                Series = g.Series,
+                Type = g.Type,
+                AgeRating = g.AgeRating,
                 Format = g.Format,
                 Players = ToPlayerModes(g),
                 Region = g.Region,
@@ -56,7 +59,8 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 PurchasePrice = g.PurchasePrice,
                 PurchaseOrigin = g.PurchaseOrigin,
                 Notes = g.Notes,
-                ThumbnailUrl = g.ThumbnailUrl
+                ThumbnailUrl = g.ThumbnailUrl,
+                CatalogId = g.CatalogId
             })
             .ToImmutableList(),
         Consoles = entity.Consoles
@@ -77,7 +81,8 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 PurchasePrice = c.PurchasePrice,
                 PurchaseOrigin = c.PurchaseOrigin,
                 Notes = c.Notes,
-                ThumbnailUrl = c.ThumbnailUrl
+                ThumbnailUrl = c.ThumbnailUrl,
+                CatalogId = c.CatalogId
             })
             .ToImmutableList()
     };
@@ -94,6 +99,10 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.Genres = g.Genres.ToList();
                 row.Developers = g.Developers.ToList();
                 row.Publishers = g.Publishers.ToList();
+                row.Series = g.Series;
+                row.Type = g.Type;
+                row.AgeRating = g.AgeRating;
+                row.CatalogId = g.CatalogId;
                 row.Format = g.Format;
                 ApplyPlayerModes(row, g.Players);
                 ApplyCommon(row, g.Region, g.Condition, g.Completeness, g.Status, g.ReleaseDate, g.PurchaseDate,
@@ -108,6 +117,7 @@ public class GameCollectionRepository : BaseRepository<Domain.GameCollection, st
                 row.Manufacturer = c.Manufacturer;
                 row.Model = c.Model;
                 row.Colour = c.Colour;
+                row.CatalogId = c.CatalogId;
                 ApplyCommon(row, c.Region, c.Condition, c.Completeness, c.Status, c.ReleaseDate, c.PurchaseDate,
                     c.PurchasePrice, c.PurchaseOrigin, c.Notes, c.ThumbnailUrl);
             });

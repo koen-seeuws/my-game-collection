@@ -20,7 +20,8 @@ public static partial class GameCollectionOperations
         decimal? purchasePrice = null,
         PurchaseOrigin? purchaseOrigin = null,
         string? notes = null,
-        string? thumbnailUrl = null)
+        string? thumbnailUrl = null,
+        long? catalogId = null)
     {
         var index = collection.IndexOfConsole(key);
         var updated = GameCollectionValidation.Validated(collection.Consoles[index] with
@@ -38,7 +39,8 @@ public static partial class GameCollectionOperations
             PurchasePrice = purchasePrice,
             PurchaseOrigin = purchaseOrigin,
             Notes = notes,
-            ThumbnailUrl = thumbnailUrl
+            ThumbnailUrl = thumbnailUrl,
+            CatalogId = catalogId
         });
 
         collection.Consoles = collection.Consoles.SetItem(index, updated);

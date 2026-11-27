@@ -32,6 +32,9 @@ public record GetMyGamesQueryHandler : IQueryHandler<GetMyGamesQuery, IEnumerabl
                 Genres = game.Genres,
                 Developers = game.Developers,
                 Publishers = game.Publishers,
+                Series = game.Series,
+                Type = game.Type,
+                AgeRating = game.AgeRating,
                 Format = game.Format,
                 Region = game.Region,
                 Condition = game.Condition,
@@ -43,6 +46,7 @@ public record GetMyGamesQueryHandler : IQueryHandler<GetMyGamesQuery, IEnumerabl
                 PurchaseOrigin = game.PurchaseOrigin,
                 Notes = game.Notes,
                 ThumbnailUrl = game.ThumbnailUrl,
+                CatalogId = game.CatalogId,
                 Players = new PlayerModes
                 {
                     SinglePlayer = game.SinglePlayer,

@@ -5,6 +5,10 @@ namespace MyGameCollection.Core.Domain;
 public record Game
 {
     public required Guid Key { get; init; }
+
+    /// <summary>The game's id in the external catalog (IGDB), to look it up again. Empty when not picked from the catalog.</summary>
+    public long? CatalogId { get; init; }
+
     public required string Title { get; init; }
 
     /// <summary>The system the game runs on, e.g. "Super Nintendo".</summary>
@@ -21,6 +25,15 @@ public record Game
 
     /// <summary>The companies that brought the game out, e.g. "Nintendo". Empty when unknown.</summary>
     public IReadOnlyList<string> Publishers { get; init; } = [];
+
+    /// <summary>The series or franchise the game belongs to, e.g. "Super Mario". Empty when unknown.</summary>
+    public string? Series { get; init; }
+
+    /// <summary>A game of its own, a remake, a DLC... Empty when unknown.</summary>
+    public GameType? Type { get; init; }
+
+    /// <summary>The age rating on the box for the game's region, e.g. "PEGI 7" or "ESRB E10+". Empty when unknown.</summary>
+    public string? AgeRating { get; init; }
 
     /// <summary>Physical copy, bought download or subscription (e.g. PS Plus).</summary>
     public GameFormat Format { get; init; } = GameFormat.Physical;

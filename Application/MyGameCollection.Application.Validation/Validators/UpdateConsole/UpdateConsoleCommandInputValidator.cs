@@ -22,5 +22,6 @@ public sealed class UpdateConsoleCommandInputValidator : CommandInputValidatorBa
         RuleFor(c => c.PurchaseOrigin).IsInEnum();
         RuleFor(c => c.Notes).OptionalText(CollectionItemLimits.MaxNotesLength);
         RuleFor(c => c.ThumbnailUrl).OptionalHttpUrl();
+        RuleFor(c => c.CatalogId).CatalogId();
     }
 }

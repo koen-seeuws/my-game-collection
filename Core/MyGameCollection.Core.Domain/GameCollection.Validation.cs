@@ -16,6 +16,8 @@ internal static class GameCollectionValidation
             Genres = Names(game.Genres, "genres", MaxGenres),
             Developers = Names(game.Developers, "developers", MaxCompanies),
             Publishers = Names(game.Publishers, "publishers", MaxCompanies),
+            Series = Optional(game.Series, "series", MaxShortTextLength),
+            AgeRating = Optional(game.AgeRating, "ageRating", MaxShortTextLength),
             Notes = Optional(game.Notes, "notes", MaxNotesLength),
             ThumbnailUrl = OptionalUrl(game.ThumbnailUrl, "thumbnailUrl"),
             Players = game.Players?.Normalised(),
@@ -26,6 +28,9 @@ internal static class GameCollectionValidation
         };
 
         EnsureValid(normalised.ReleaseDate, normalised.PurchasePrice);
+        EnsureValidCatalogId(normalised.CatalogId);
+        if (normalised.Type is { } type && !Enum.IsDefined(type))
+            throw new ArgumentOutOfRangeException("type", type, "Unknown game type.");
         if (normalised.Players?.Problem is { } problem)
             throw new ArgumentOutOfRangeException("players", normalised.Players, problem);
 
@@ -47,6 +52,7 @@ internal static class GameCollectionValidation
         };
 
         EnsureValid(normalised.ReleaseDate, normalised.PurchasePrice);
+        EnsureValidCatalogId(normalised.CatalogId);
         return normalised;
     }
 
@@ -54,6 +60,12 @@ internal static class GameCollectionValidation
     {
         if (price < 0)
             throw new ArgumentOutOfRangeException(paramName, price, "A price cannot be negative.");
+    }
+
+    private static void EnsureValidCatalogId(long? catalogId)
+    {
+        if (catalogId <= 0)
+            throw new ArgumentOutOfRangeException(nameof(catalogId), catalogId, "A catalog id must be positive.");
     }
 
     private static void EnsureValid(ReleaseDate? releaseDate, decimal? purchasePrice)

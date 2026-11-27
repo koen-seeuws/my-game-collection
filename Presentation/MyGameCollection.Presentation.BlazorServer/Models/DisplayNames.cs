@@ -60,6 +60,19 @@ public static class DisplayNames
         _ => "Wishlist"
     };
 
+    public static string ToDisplayName(this GameType type) => type switch
+    {
+        GameType.MainGame => "Main game",
+        GameType.Remake => "Remake",
+        GameType.Remaster => "Remaster",
+        GameType.ExpandedGame => "Expanded edition",
+        GameType.Port => "Port",
+        GameType.Expansion => "Expansion",
+        GameType.Dlc => "DLC",
+        GameType.Bundle => "Bundle",
+        _ => "Other"
+    };
+
     /// <summary>"Couch co-op · 4P": playing together on one console, for a game card.</summary>
     public static string LocalPlayersLabel(PlayerModes players) =>
         (players.CouchCoop ? "Couch co-op" : "Couch") + PlayerCount(players.MaxLocalPlayers);
@@ -93,6 +106,7 @@ public static class DisplayNames
         CollectionStatus s => s.ToDisplayName(),
         GameFormat f => f.ToDisplayName(),
         PurchaseOrigin o => o.ToDisplayName(),
+        GameType t => t.ToDisplayName(),
         _ => value.ToString()
     };
 

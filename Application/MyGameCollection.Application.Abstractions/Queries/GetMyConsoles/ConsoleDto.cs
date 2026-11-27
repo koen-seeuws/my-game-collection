@@ -23,4 +23,7 @@ public record ConsoleDto
 
     /// <summary>Absolute http(s) URL of a cover art or picture shown on the item's card.</summary>
     public string? ThumbnailUrl { get; init; }
+
+    /// <summary>The item's id in the external catalog (IGDB). Empty when not picked from the catalog.</summary>
+    public long? CatalogId { get; init; }
 }

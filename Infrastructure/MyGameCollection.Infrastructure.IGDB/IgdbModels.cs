@@ -15,7 +15,28 @@ internal sealed record IgdbGame(
     [property: JsonPropertyName("genres")] IReadOnlyList<IgdbGenre>? Genres,
     [property: JsonPropertyName("game_modes")] IReadOnlyList<long>? GameModes = null,
     [property: JsonPropertyName("multiplayer_modes")] IReadOnlyList<IgdbMultiplayerMode>? MultiplayerModes = null,
-    [property: JsonPropertyName("involved_companies")] IReadOnlyList<IgdbInvolvedCompany>? InvolvedCompanies = null);
+    [property: JsonPropertyName("involved_companies")] IReadOnlyList<IgdbInvolvedCompany>? InvolvedCompanies = null,
+    [property: JsonPropertyName("game_type")] long? GameType = null,
+    [property: JsonPropertyName("collections")] IReadOnlyList<IgdbNamed>? Collections = null,
+    [property: JsonPropertyName("franchise")] IgdbNamed? Franchise = null,
+    [property: JsonPropertyName("franchises")] IReadOnlyList<IgdbNamed>? Franchises = null,
+    [property: JsonPropertyName("age_ratings")] IReadOnlyList<IgdbAgeRating>? AgeRatings = null);
+
+/// <summary>Anything IGDB only names here, like a collection (series) or franchise.</summary>
+internal sealed record IgdbNamed(
+    [property: JsonPropertyName("name")] string? Name);
+
+/// <summary>A rating from one board: organization.name is "PEGI", rating_category.rating is "7".</summary>
+internal sealed record IgdbAgeRating(
+    [property: JsonPropertyName("organization")] IgdbNamed? Organization,
+    [property: JsonPropertyName("rating_category")] IgdbAgeRatingCategory? RatingCategory);
+
+internal sealed record IgdbAgeRatingCategory(
+    [property: JsonPropertyName("rating")] string? Rating);
+
+/// <summary>A part of the world a game came out in, e.g. "europe" or "worldwide".</summary>
+internal sealed record IgdbReleaseRegion(
+    [property: JsonPropertyName("region")] string? Region);
 
 /// <summary>A company's part in a game: it can have developed it, published it, or both (or only ported it).</summary>
 internal sealed record IgdbInvolvedCompany(
@@ -77,4 +98,6 @@ internal sealed record IgdbReleaseDate(
     [property: JsonPropertyName("date_format")] int? DateFormat,
     [property: JsonPropertyName("category")] int? Category,
     [property: JsonPropertyName("y")] int? Year,
-    [property: JsonPropertyName("m")] int? Month);
+    [property: JsonPropertyName("m")] int? Month,
+    [property: JsonPropertyName("platform")] long? Platform = null,
+    [property: JsonPropertyName("release_region")] IgdbReleaseRegion? ReleaseRegion = null);

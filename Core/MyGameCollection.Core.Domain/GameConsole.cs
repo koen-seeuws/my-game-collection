@@ -6,6 +6,9 @@ public record GameConsole
 {
     public required Guid Key { get; init; }
 
+    /// <summary>The console's id in the external catalog (IGDB), to look it up again. Empty when not picked from the catalog.</summary>
+    public long? CatalogId { get; init; }
+
     /// <summary>The name of the system, e.g. "Super Nintendo". Games use the same name as their platform.</summary>
     public required string Name { get; init; }
 

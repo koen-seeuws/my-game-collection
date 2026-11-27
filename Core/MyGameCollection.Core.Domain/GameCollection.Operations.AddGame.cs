@@ -13,6 +13,9 @@ public static partial class GameCollectionOperations
         IEnumerable<string>? genres = null,
         IEnumerable<string>? developers = null,
         IEnumerable<string>? publishers = null,
+        string? series = null,
+        GameType? type = null,
+        string? ageRating = null,
         GameFormat format = GameFormat.Physical,
         PlayerModes? players = null,
         Region region = Region.Pal,
@@ -24,7 +27,8 @@ public static partial class GameCollectionOperations
         decimal? purchasePrice = null,
         PurchaseOrigin? purchaseOrigin = null,
         string? notes = null,
-        string? thumbnailUrl = null)
+        string? thumbnailUrl = null,
+        long? catalogId = null)
     {
         var game = GameCollectionValidation.Validated(new Game
         {
@@ -35,6 +39,9 @@ public static partial class GameCollectionOperations
             Genres = genres?.ToList() ?? [],
             Developers = developers?.ToList() ?? [],
             Publishers = publishers?.ToList() ?? [],
+            Series = series,
+            Type = type,
+            AgeRating = ageRating,
             Format = format,
             Players = players,
             Region = region,
@@ -46,7 +53,8 @@ public static partial class GameCollectionOperations
             PurchasePrice = purchasePrice,
             PurchaseOrigin = purchaseOrigin,
             Notes = notes,
-            ThumbnailUrl = thumbnailUrl
+            ThumbnailUrl = thumbnailUrl,
+            CatalogId = catalogId
         });
 
         collection.Games = collection.Games.Add(game);

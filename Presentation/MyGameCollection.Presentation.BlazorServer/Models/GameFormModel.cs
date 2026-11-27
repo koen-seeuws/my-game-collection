@@ -27,6 +27,20 @@ public sealed class GameFormModel : ReleaseDateFormModel
     /// <summary>The companies that published the game, filled in from IGDB or typed in.</summary>
     public List<string> Publishers { get; set; } = [];
 
+    /// <summary>The series or franchise, filled in from IGDB or typed in.</summary>
+    [StringLength(100)]
+    public string? Series { get; set; }
+
+    /// <summary>A game of its own, a remake, a DLC... Empty when unknown.</summary>
+    public GameType? Type { get; set; }
+
+    /// <summary>The age rating on the box, e.g. "PEGI 7"; filled in from IGDB for the chosen region.</summary>
+    [StringLength(100)]
+    public string? AgeRating { get; set; }
+
+    /// <summary>The game's IGDB id, set when it is picked from IGDB.</summary>
+    public long? CatalogId { get; set; }
+
     public CollectionStatus Status { get; set; } = CollectionStatus.Owned;
 
     // ---- Players ----
@@ -98,6 +112,10 @@ public sealed class GameFormModel : ReleaseDateFormModel
         Genres = game.Genres.ToList(),
         Developers = game.Developers.ToList(),
         Publishers = game.Publishers.ToList(),
+        Series = game.Series,
+        Type = game.Type,
+        AgeRating = game.AgeRating,
+        CatalogId = game.CatalogId,
         Status = game.Status,
         Format = game.Format,
         Players = game.Players,
@@ -120,6 +138,10 @@ public sealed class GameFormModel : ReleaseDateFormModel
         Genres = Genres,
         Developers = Developers,
         Publishers = Publishers,
+        Series = Series,
+        Type = Type,
+        AgeRating = AgeRating,
+        CatalogId = CatalogId,
         Status = Status,
         Format = Format,
         Players = Players,
@@ -143,6 +165,10 @@ public sealed class GameFormModel : ReleaseDateFormModel
         Genres = Genres,
         Developers = Developers,
         Publishers = Publishers,
+        Series = Series,
+        Type = Type,
+        AgeRating = AgeRating,
+        CatalogId = CatalogId,
         Status = Status,
         Format = Format,
         Players = Players,

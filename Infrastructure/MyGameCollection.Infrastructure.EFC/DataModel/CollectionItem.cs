@@ -10,6 +10,9 @@ public abstract class CollectionItem
     /// <summary>The domain key of the item (unique).</summary>
     public required Guid Key { get; set; }
 
+    /// <summary>The item's id in the external catalog (IGDB); empty when not picked from it.</summary>
+    public long? CatalogId { get; set; }
+
     public Region Region { get; set; }
     public ItemCondition Condition { get; set; }
     public Completeness Completeness { get; set; }
