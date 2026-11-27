@@ -14,12 +14,12 @@ public class KnownPlatformsTests
     [InlineData("Xbox Series X|S", "Series X|S", "Xbox Series X|S")]
     [InlineData("Some Obscure Handheld", null, "Some Obscure Handheld")]
     public void Catalog_names_map_to_the_well_known_names(string name, string? abbreviation, string expected) =>
-        Assert.Equal(expected, KnownPlatforms.Match([], name, abbreviation));
+        KnownPlatforms.Match([], name, abbreviation).Should().Be(expected);
 
     [Fact]
     public void The_collections_own_name_for_a_system_wins()
     {
-        Assert.Equal("Sega Genesis", KnownPlatforms.Match(["Sega Genesis"], "Sega Mega Drive/Genesis", "Genesis/MegaDrive"));
-        Assert.Equal("PS2", KnownPlatforms.Match(["PS2"], "PlayStation 2"));
+        KnownPlatforms.Match(["Sega Genesis"], "Sega Mega Drive/Genesis", "Genesis/MegaDrive").Should().Be("Sega Genesis");
+        KnownPlatforms.Match(["PS2"], "PlayStation 2").Should().Be("PS2");
     }
 }

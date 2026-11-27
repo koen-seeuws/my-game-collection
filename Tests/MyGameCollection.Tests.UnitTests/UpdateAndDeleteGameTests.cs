@@ -16,10 +16,10 @@ public class UpdateAndDeleteGameTests
 
         collection.UpdateGame(middle.Key, "Changed", "Game Boy", completeness: Completeness.Sealed);
 
-        Assert.Same(first, collection.Games[0]);
-        Assert.Equal(middle with { Title = "Changed", Platform = "Game Boy", Completeness = Completeness.Sealed },
-            collection.Games[1]);
-        Assert.Same(last, collection.Games[2]);
+        collection.Games[0].Should().BeSameAs(first);
+        collection.Games[1].Should()
+            .Be(middle with { Title = "Changed", Platform = "Game Boy", Completeness = Completeness.Sealed });
+        collection.Games[2].Should().BeSameAs(last);
     }
 
     [Fact]
@@ -28,8 +28,8 @@ public class UpdateAndDeleteGameTests
         var game = Game();
         var collection = WithGames(game);
 
-        Assert.Throws<ArgumentException>(() => collection.UpdateGame(game.Key, "", "Super Nintendo"));
-        Assert.Same(game, collection.Games[0]);
+        collection.Invoking(c => c.UpdateGame(game.Key, "", "Super Nintendo")).Should().Throw<ArgumentException>();
+        collection.Games[0].Should().BeSameAs(game);
     }
 
     [Fact]
@@ -38,10 +38,9 @@ public class UpdateAndDeleteGameTests
         var collection = WithGames(Game());
         var unknownKey = Guid.NewGuid();
 
-        var ex = Assert.Throws<KeyNotFoundException>(() => collection.UpdateGame(unknownKey, "Super Mario World", "Super Nintendo"));
-
-        Assert.Contains(unknownKey.ToString(), ex.Message);
-        Assert.Contains(Owner, ex.Message);
+        collection.Invoking(c => c.UpdateGame(unknownKey, "Super Mario World", "Super Nintendo"))
+            .Should().Throw<KeyNotFoundException>()
+            .Which.Message.Should().Contain(unknownKey.ToString()).And.Contain(Owner);
     }
 
     [Fact]
@@ -54,7 +53,7 @@ public class UpdateAndDeleteGameTests
 
         collection.DeleteGame(middle.Key);
 
-        Assert.Equal([first, last], collection.Games);
+        collection.Games.Should().Equal(first, last);
     }
 
     [Fact]
@@ -65,7 +64,7 @@ public class UpdateAndDeleteGameTests
 
         collection.DeleteGame(game.Key);
 
-        Assert.Throws<KeyNotFoundException>(() => collection.DeleteGame(game.Key));
+        collection.Invoking(c => c.DeleteGame(game.Key)).Should().Throw<KeyNotFoundException>();
     }
 
     [Fact]
@@ -77,6 +76,6 @@ public class UpdateAndDeleteGameTests
 
         collection.DeleteGame(game.Key);
 
-        Assert.Equal([console], collection.Consoles);
+        collection.Consoles.Should().Equal(console);
     }
 }
