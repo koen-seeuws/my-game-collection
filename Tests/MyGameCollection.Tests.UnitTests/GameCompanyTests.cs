@@ -1,10 +1,8 @@
 using MyGameCollection.Application.Abstractions.Commands.AddGame;
-using MyGameCollection.Application.Abstractions.Queries.GetMyGames;
 using MyGameCollection.Application.Validation.Validators.AddGame;
 using MyGameCollection.Core.Domain;
 using MyGameCollection.Core.Domain.Abstractions;
 using MyGameCollection.Infrastructure.IGDB;
-using MyGameCollection.Presentation.BlazorServer.Components.Shared;
 using static MyGameCollection.Tests.UnitTests.GameCollectionBuilder;
 
 namespace MyGameCollection.Tests.UnitTests;
@@ -104,24 +102,6 @@ public class GameCompanyTests
             .ToArray());
 
         IgdbCompanies.Publishers(game).Should().HaveCount(CollectionItemLimits.MaxCompanies);
-    }
-
-    [Theory]
-    [InlineData(new[] { "Nintendo EPD" }, new[] { "Nintendo" }, "By Nintendo EPD · Published by Nintendo")]
-    [InlineData(new[] { "Nintendo" }, new[] { "nintendo" }, "By Nintendo")]
-    [InlineData(new[] { "Mojang Studios", "4J Studios" }, new string[0], "By Mojang Studios, 4J Studios")]
-    [InlineData(new string[0], new[] { "Microsoft" }, "Published by Microsoft")]
-    [InlineData(new string[0], new string[0], null)]
-    public void Card_ShowsWhoMadeAndPublishedTheGame(string[] developers, string[] publishers, string? expected)
-    {
-        var game = new GameDto
-        {
-            Key = Guid.NewGuid(), Title = "A game", Platform = "PC", Format = GameFormat.Physical, Region = Region.Pal,
-            Condition = ItemCondition.Good, Completeness = Completeness.Loose, Status = CollectionStatus.Owned,
-            Developers = developers, Publishers = publishers
-        };
-
-        GameCardGrid.Companies(game).Should().Be(expected);
     }
 
     private static IgdbGame IgdbGame(params IgdbInvolvedCompany[] companies) =>

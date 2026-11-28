@@ -1,0 +1,11 @@
+@* What kind of accessory it is, as a compact tag on its card. *@
+<div class="item-tags">
+    <span class="item-tag kind">
+        <MudIcon Icon="@Type.ToIcon()" Class="item-tag-icon" />
+        @Type.ToDisplayName()
+    </span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public AccessoryType Type { get; set; }
+}

@@ -95,9 +95,7 @@ else
                         }
                     </Badge>
                     <ChildContent>
-                        <ItemTags AccessoryType="accessory.Type" Region="accessory.Region" Completeness="accessory.Completeness"
-                                  Condition="@(accessory.Status == CollectionStatus.Owned ? accessory.Condition : null)"
-                                  Origin="accessory.PurchaseOrigin" />
+                        <AccessoryTypeTag Type="accessory.Type" />
                     </ChildContent>
                 </ItemCard>
             }

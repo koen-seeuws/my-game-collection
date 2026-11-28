@@ -171,7 +171,7 @@ public partial class Consoles : IDisposable
     }
 
     private static string Subtitle(ConsoleDto console) =>
-        string.Join(" · ", new[] { console.Manufacturer, console.Model, console.Colour, console.ReleaseDate?.ToString() }
+        string.Join(" · ", new[] { console.Manufacturer, console.Model }
             .Where(part => !string.IsNullOrWhiteSpace(part)));
 
     /// <summary>The number of owned games for this system (matched on platform name).</summary>
