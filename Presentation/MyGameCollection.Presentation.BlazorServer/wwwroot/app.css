@@ -362,6 +362,17 @@ body::after {
     overflow-y: auto;
 }
 
+/* The Search and scan buttons beside the dense lookup field: same top margin (8px) and height (40px) as its box. */
+.catalog-lookup-action {
+    margin-top: 8px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.catalog-lookup-action.square {
+    width: 40px;
+}
+
 /* Camera view of the barcode scanner in the catalog lookup. */
 .barcode-scanner-view {
     position: relative;

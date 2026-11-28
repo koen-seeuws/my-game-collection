@@ -10,14 +10,14 @@
                       Immediate="true" AutoFocus="AutoFocus" OnKeyDown="OnKeyDownAsync" Clearable="true"
                       Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ManageSearch"
                       Class="flex-grow-1" />
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="LookupAsync" Disabled="_busy" Class="mt-1">
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="LookupAsync" Disabled="_busy" Class="catalog-lookup-action">
             Search
         </MudButton>
         @if (BarcodeFunc is not null)
         {
             <MudTooltip Text="Scan the barcode on the box with your camera">
                 <MudIconButton Icon="@Icons.Material.Filled.QrCodeScanner" Variant="Variant.Outlined" Color="Color.Primary"
-                               aria-label="Scan barcode" OnClick="ToggleScanner" Disabled="_busy" Class="mt-1" />
+                               aria-label="Scan barcode" OnClick="ToggleScanner" Disabled="_busy" Class="catalog-lookup-action square" />
             </MudTooltip>
         }
     </MudStack>
