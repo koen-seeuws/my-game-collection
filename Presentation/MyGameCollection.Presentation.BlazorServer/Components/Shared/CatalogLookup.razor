@@ -1,5 +1,6 @@
 @typeparam TItem
 @using MyGameCollection.Application.Abstractions.Services
+@using MyGameCollection.Application.Abstractions.Services.Barcodes
 @implements IDisposable
 
 @* Lives outside the item form, so pressing Enter here searches instead of saving the form. *@
@@ -9,10 +10,22 @@
                       Immediate="true" AutoFocus="AutoFocus" OnKeyDown="OnKeyDownAsync" Clearable="true"
                       Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ManageSearch"
                       Class="flex-grow-1" />
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="LookupAsync" Disabled="_busy" Class="mt-1">
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="LookupAsync" Disabled="_busy" Class="catalog-lookup-action">
             Search
         </MudButton>
+        @if (BarcodeFunc is not null)
+        {
+            <MudTooltip Text="Scan the barcode on the box with your camera">
+                <MudIconButton Icon="@Icons.Material.Filled.QrCodeScanner" Variant="Variant.Outlined" Color="Color.Primary"
+                               aria-label="Scan barcode" OnClick="ToggleScanner" Disabled="_busy" Class="catalog-lookup-action square" />
+            </MudTooltip>
+        }
     </MudStack>
+
+    @if (_scanning)
+    {
+        <BarcodeScanner OnScanned="OnBarcodeScannedAsync" OnClose="() => _scanning = false" />
+    }
 
     @if (_busy)
     {
@@ -51,6 +64,13 @@
     /// <summary>Raised when a catalog item is picked: prefill the form from it.</summary>
     [Parameter]
     public EventCallback<TItem> OnSelected { get; set; }
+
+    /// <summary>
+    /// Looks up the item printed on a box by its barcode; empty when the barcode is unknown. When set, a button opens
+    /// the camera to scan the barcode, and the item found is picked right away.
+    /// </summary>
+    [Parameter]
+    public Func<string, CancellationToken, Task<TItem?>>? BarcodeFunc { get; set; }
 
     [Parameter]
     public string Label { get; set; } = "Look up on IGDB";
@@ -107,6 +127,65 @@
         catch (Exception ex)
         {
             _message = (Severity.Error, $"The lookup failed: {ex.Message}");
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private bool _scanning;
+
+    private void ToggleScanner()
+    {
+        _scanning = !_scanning;
+        _message = null;
+        _results = [];
+    }
+
+    private async Task OnBarcodeScannedAsync(string scanned)
+    {
+        _scanning = false;
+        if (BarcodeFunc is null || _busy)
+            return;
+
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
+        var ct = _cts.Token;
+
+        _busy = true;
+        _message = null;
+        _results = [];
+
+        try
+        {
+            if (!Barcode.TryParse(scanned, out var barcode))
+            {
+                _message = (Severity.Warning, $"'{scanned}' is not a game barcode. Scan the EAN or UPC barcode on the box.");
+                return;
+            }
+
+            if (await BarcodeFunc(barcode.Value.Value, ct) is not { } item)
+            {
+                _message = (Severity.Info, $"No match for barcode {barcode} yet. Search by name, or fill in the form yourself.");
+                return;
+            }
+
+            await OnSelected.InvokeAsync(item);
+            _text = ItemName(item);
+            _message = (Severity.Success, $"Barcode {barcode} is '{ItemName(item)}'. Filled in from IGDB; you can still change anything below.");
+        }
+        catch (Exception ex) when (ex is CatalogUnavailableException or ArgumentException)
+        {
+            _message = (Severity.Warning, ex.Message);
+        }
+        catch (OperationCanceledException)
+        {
+            // A newer lookup took over, or the dialog closed.
+        }
+        catch (Exception ex)
+        {
+            _message = (Severity.Error, $"The barcode lookup failed: {ex.Message}");
         }
         finally
         {

@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\Infrastructure\MyGameCollection.Infrastructure.EFC\MyGameCollection.Infrastructure.EFC.csproj" />
     <ProjectReference Include="..\..\Infrastructure\MyGameCollection.Infrastructure.Identity\MyGameCollection.Infrastructure.Identity.csproj" />
     <ProjectReference Include="..\..\Infrastructure\MyGameCollection.Infrastructure.IGDB\MyGameCollection.Infrastructure.IGDB.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\MyGameCollection.Infrastructure.ScanDex\MyGameCollection.Infrastructure.ScanDex.csproj" />
   </ItemGroup>
 
 </Project>

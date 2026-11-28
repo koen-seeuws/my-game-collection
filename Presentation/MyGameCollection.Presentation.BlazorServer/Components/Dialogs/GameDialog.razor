@@ -1,7 +1,9 @@
 @using System.Globalization
 @using MyGameCollection.Application.Abstractions.Services.GameCatalog
 @using MyGameCollection.Application.Abstractions.Services
+@using MyGameCollection.Application.Abstractions.Queries.FindGameByBarcode
 @inject IGameCatalogService GameCatalog
+@inject IUseCaseDispatcher Dispatcher
 @implements IDisposable
 
 <MudDialog>
@@ -12,7 +14,7 @@
         }
         else
         {
-            <CatalogLookup TItem="CatalogGameDto" Label="Find the game on IGDB" SearchFunc="SearchCatalogAsync"
+            <CatalogLookup TItem="CatalogGameDto" Label="Find the game on IGDB" SearchFunc="SearchCatalogAsync" BarcodeFunc="FindByBarcodeAsync"
                            ItemName="g => g.Name" InitialSearch="@Model.Title" AutoFocus="string.IsNullOrEmpty(Model.Title)" OnSelected="ApplyCatalogGame">
                 <ItemTemplate Context="game">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
@@ -346,6 +348,16 @@
     private Task<IReadOnlyList<CatalogGameDto>> SearchCatalogAsync(string search, CancellationToken ct) =>
         GameCatalog.SearchGamesAsync(search, ct);
 
+    /// <summary>The platform on the box of the game last found by barcode, in IGDB's naming; used once, by the next pick.</summary>
+    private string? _barcodePlatform;
+
+    private async Task<CatalogGameDto?> FindByBarcodeAsync(string barcode, CancellationToken ct)
+    {
+        var found = await Dispatcher.QueryAsync(new FindGameByBarcodeQuery { Barcode = barcode }, ct);
+        _barcodePlatform = found?.PlatformName;
+        return found?.Game;
+    }
+
     /// <summary>The game last picked from IGDB, whose editions are offered in the edition picker.</summary>
     private CatalogGameDto? _catalogGame;
 
@@ -373,7 +385,7 @@
         Model.ThumbnailUrl = game.ThumbnailUrl ?? Model.ThumbnailUrl;
 
         SetCatalogPlatforms(game);
-        Model.Platform = ChoosePlatform() ?? Model.Platform;
+        Model.Platform = BarcodePlatform() ?? ChoosePlatform() ?? Model.Platform;
         ApplyCatalogPlatformDetails();
     }
 
@@ -575,6 +587,14 @@
 
         var inCollection = _catalogPlatforms.Where(p => Platforms.Contains(p, StringComparer.OrdinalIgnoreCase)).ToList();
         return inCollection.Count == 1 ? inCollection[0] : null;
+    }
+
+    /// <summary>The platform printed on the box of a game found by barcode, in this collection's naming.</summary>
+    private string? BarcodePlatform()
+    {
+        var name = _barcodePlatform;
+        _barcodePlatform = null;
+        return name is null ? null : KnownPlatforms.Match(Platforms, name);
     }
 
     private Task<IEnumerable<string>> SearchPlatformsAsync(string? search, CancellationToken _) =>

@@ -26,4 +26,8 @@ public interface IGameCatalogService
     /// <summary>Consoles (platforms) whose name matches <paramref name="search"/>.</summary>
     /// <exception cref="CatalogUnavailableException">The catalog is not configured or could not be reached.</exception>
     Task<IReadOnlyList<CatalogConsoleDto>> SearchConsolesAsync(string search, CancellationToken cancellationToken = default);
+
+    /// <summary>The catalog console (platform) <paramref name="consoleId"/>; empty when it does not exist.</summary>
+    /// <exception cref="CatalogUnavailableException">The catalog is not configured or could not be reached.</exception>
+    Task<CatalogConsoleDto?> GetConsoleAsync(long consoleId, CancellationToken cancellationToken = default);
 }

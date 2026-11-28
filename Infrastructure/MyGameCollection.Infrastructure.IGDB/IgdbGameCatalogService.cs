@@ -157,52 +157,68 @@ internal sealed class IgdbGameCatalogService(IgdbClient igdb, IOptions<IgdbOptio
             return [];
 
         var platforms = await igdb.QueryAsync<IgdbPlatform>("platforms",
-            $"search {IgdbClient.Quote(search.Trim())}; " +
-            "fields name, abbreviation, alternative_name, platform_logo.image_id, " +
-            "versions.name, versions.platform_logo.image_id, " +
-            "versions.companies.manufacturer, versions.companies.company.name, " +
-            $"{ReleaseDateFields("versions.platform_version_release_dates")}; " +
-            $"limit {options.Value.SearchLimit};", cancellationToken);
+            $"search {IgdbClient.Quote(search.Trim())}; fields {ConsoleFields}; limit {options.Value.SearchLimit};",
+            cancellationToken);
 
         return platforms
             .Where(platform => !string.IsNullOrWhiteSpace(platform.Name))
-            .Select(platform =>
-            {
-                var versions = platform.Versions ?? [];
-                return new CatalogConsoleDto
-                {
-                    Id = platform.Id,
-                    Name = platform.Name!,
-                    Abbreviation = platform.Abbreviation,
-                    AlternativeName = platform.AlternativeName,
-                    Manufacturer = versions
-                        .SelectMany(v => v.Companies ?? [])
-                        .Where(c => c.Manufacturer && !string.IsNullOrWhiteSpace(c.Company?.Name))
-                        .Select(c => c.Company!.Name)
-                        .FirstOrDefault(),
-                    // The earliest release of any of the platform's versions (models / revisions).
-                    ReleaseDate = versions.Select(FirstReleaseDate).Min(),
-                    LogoUrl = IgdbClient.ImageUrl(platform.PlatformLogo?.ImageId, "t_thumb"),
-                    ThumbnailUrl = IgdbClient.ImageUrl(platform.PlatformLogo?.ImageId, "t_logo_med"),
-                    Versions = versions
-                        .Where(v => !string.IsNullOrWhiteSpace(v.Name))
-                        .Select(v => new CatalogConsoleVersionDto
-                        {
-                            Id = v.Id,
-                            Name = v.Name!,
-                            ReleaseDate = FirstReleaseDate(v),
-                            // Not t_thumb: that square crop cuts off wide pictures and logos.
-                            LogoUrl = IgdbClient.ImageUrl(v.PlatformLogo?.ImageId, "t_logo_med"),
-                            ThumbnailUrl = IgdbClient.ImageUrl(v.PlatformLogo?.ImageId, "t_logo_med")
-                        })
-                        // Oldest first; versions without a known release date go last.
-                        .OrderBy(v => v.ReleaseDate is null)
-                        .ThenBy(v => v.ReleaseDate)
-                        .ThenBy(v => v.Name, StringComparer.OrdinalIgnoreCase)
-                        .ToList()
-                };
-            })
+            .Select(ToCatalogConsole)
             .ToList();
+    }
+
+    public async Task<CatalogConsoleDto?> GetConsoleAsync(long consoleId, CancellationToken cancellationToken = default)
+    {
+        var platforms = await igdb.QueryAsync<IgdbPlatform>("platforms",
+            $"fields {ConsoleFields}; where id = {consoleId}; limit 1;", cancellationToken);
+
+        return platforms
+            .Where(platform => !string.IsNullOrWhiteSpace(platform.Name))
+            .Select(ToCatalogConsole)
+            .FirstOrDefault();
+    }
+
+    /// <summary>What the console search and lookup ask for of a platform.</summary>
+    private static readonly string ConsoleFields =
+        "name, abbreviation, alternative_name, platform_logo.image_id, " +
+        "versions.name, versions.platform_logo.image_id, " +
+        "versions.companies.manufacturer, versions.companies.company.name, " +
+        ReleaseDateFields("versions.platform_version_release_dates");
+
+    private static CatalogConsoleDto ToCatalogConsole(IgdbPlatform platform)
+    {
+        var versions = platform.Versions ?? [];
+        return new CatalogConsoleDto
+        {
+            Id = platform.Id,
+            Name = platform.Name!,
+            Abbreviation = platform.Abbreviation,
+            AlternativeName = platform.AlternativeName,
+            Manufacturer = versions
+                .SelectMany(v => v.Companies ?? [])
+                .Where(c => c.Manufacturer && !string.IsNullOrWhiteSpace(c.Company?.Name))
+                .Select(c => c.Company!.Name)
+                .FirstOrDefault(),
+            // The earliest release of any of the platform's versions (models / revisions).
+            ReleaseDate = versions.Select(FirstReleaseDate).Min(),
+            LogoUrl = IgdbClient.ImageUrl(platform.PlatformLogo?.ImageId, "t_thumb"),
+            ThumbnailUrl = IgdbClient.ImageUrl(platform.PlatformLogo?.ImageId, "t_logo_med"),
+            Versions = versions
+                .Where(v => !string.IsNullOrWhiteSpace(v.Name))
+                .Select(v => new CatalogConsoleVersionDto
+                {
+                    Id = v.Id,
+                    Name = v.Name!,
+                    ReleaseDate = FirstReleaseDate(v),
+                    // Not t_thumb: that square crop cuts off wide pictures and logos.
+                    LogoUrl = IgdbClient.ImageUrl(v.PlatformLogo?.ImageId, "t_logo_med"),
+                    ThumbnailUrl = IgdbClient.ImageUrl(v.PlatformLogo?.ImageId, "t_logo_med")
+                })
+                // Oldest first; versions without a known release date go last.
+                .OrderBy(v => v.ReleaseDate is null)
+                .ThenBy(v => v.ReleaseDate)
+                .ThenBy(v => v.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList()
+        };
     }
 
     /// <summary>The release date fields to ask for of <paramref name="path"/> (e.g. "release_dates").</summary>

@@ -10,6 +10,7 @@ using MyGameCollection.Application.Business;
 using MyGameCollection.Infrastructure.EFC;
 using MyGameCollection.Infrastructure.Identity;
 using MyGameCollection.Infrastructure.IGDB;
+using MyGameCollection.Infrastructure.ScanDex;
 using MyGameCollection.Presentation.BlazorServer.Components;
 using MyGameCollection.Presentation.BlazorServer.Security;
 
@@ -31,6 +32,7 @@ else
 
 // Prefilling the add game / console forms from an IGDB search.
 builder.Services.AddIgdbServices(builder.Configuration);
+builder.Services.AddScanDexServices(builder.Configuration);
 
 // Who is signed in, per circuit (browser tab): taken from the login cookie and re-checked every few minutes.
 builder.Services.AddCascadingAuthenticationState();
