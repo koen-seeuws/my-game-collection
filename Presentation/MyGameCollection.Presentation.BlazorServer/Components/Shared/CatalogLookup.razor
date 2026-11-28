@@ -9,12 +9,23 @@
         <MudTextField T="string" @bind-Value="_text" Label="@Label" Variant="Variant.Outlined" Margin="Margin.Dense"
                       Immediate="true" AutoFocus="AutoFocus" OnKeyDown="OnKeyDownAsync" Clearable="true"
                       Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ManageSearch"
-                      HelperText="@(BarcodeFunc is null ? null : "Search by name, or type or scan the barcode on the box")"
                       Class="flex-grow-1" />
         <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="LookupAsync" Disabled="_busy" Class="mt-1">
             Search
         </MudButton>
+        @if (BarcodeFunc is not null)
+        {
+            <MudTooltip Text="Scan the barcode on the box with your camera">
+                <MudIconButton Icon="@Icons.Material.Filled.QrCodeScanner" Variant="Variant.Outlined" Color="Color.Primary"
+                               aria-label="Scan barcode" OnClick="ToggleScanner" Disabled="_busy" Class="mt-1" />
+            </MudTooltip>
+        }
     </MudStack>
+
+    @if (_scanning)
+    {
+        <BarcodeScanner OnScanned="OnBarcodeScannedAsync" OnClose="() => _scanning = false" />
+    }
 
     @if (_busy)
     {
@@ -55,8 +66,8 @@
     public EventCallback<TItem> OnSelected { get; set; }
 
     /// <summary>
-    /// Looks up the item printed on a box by its barcode; empty when the barcode is unknown. When set, a search that
-    /// is a barcode (8 to 14 digits) picks the item right away instead of searching by name.
+    /// Looks up the item printed on a box by its barcode; empty when the barcode is unknown. When set, a button opens
+    /// the camera to scan the barcode, and the item found is picked right away.
     /// </summary>
     [Parameter]
     public Func<string, CancellationToken, Task<TItem?>>? BarcodeFunc { get; set; }
@@ -101,12 +112,6 @@
 
         try
         {
-            if (BarcodeFunc is not null && Barcode.TryParse(text, out var barcode))
-            {
-                await FindByBarcodeAsync(barcode.Value, ct);
-                return;
-            }
-
             _results = await SearchFunc(text, ct);
             if (_results.Count == 0)
                 _message = (Severity.Info, $"Nothing found for '{text}'. Adjust the search, or fill in the form yourself.");
@@ -129,17 +134,63 @@
         }
     }
 
-    private async Task FindByBarcodeAsync(Barcode barcode, CancellationToken ct)
-    {
-        if (await BarcodeFunc!(barcode.Value, ct) is not { } item)
-        {
-            _message = (Severity.Info, $"No match for barcode {barcode} yet. Search by name, or fill in the form yourself.");
-            return;
-        }
+    private bool _scanning;
 
-        await OnSelected.InvokeAsync(item);
-        _text = ItemName(item);
-        _message = (Severity.Success, $"Barcode {barcode} is '{ItemName(item)}'. Filled in from IGDB; you can still change anything below.");
+    private void ToggleScanner()
+    {
+        _scanning = !_scanning;
+        _message = null;
+        _results = [];
+    }
+
+    private async Task OnBarcodeScannedAsync(string scanned)
+    {
+        _scanning = false;
+        if (BarcodeFunc is null || _busy)
+            return;
+
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
+        var ct = _cts.Token;
+
+        _busy = true;
+        _message = null;
+        _results = [];
+
+        try
+        {
+            if (!Barcode.TryParse(scanned, out var barcode))
+            {
+                _message = (Severity.Warning, $"'{scanned}' is not a game barcode. Scan the EAN or UPC barcode on the box.");
+                return;
+            }
+
+            if (await BarcodeFunc(barcode.Value.Value, ct) is not { } item)
+            {
+                _message = (Severity.Info, $"No match for barcode {barcode} yet. Search by name, or fill in the form yourself.");
+                return;
+            }
+
+            await OnSelected.InvokeAsync(item);
+            _text = ItemName(item);
+            _message = (Severity.Success, $"Barcode {barcode} is '{ItemName(item)}'. Filled in from IGDB; you can still change anything below.");
+        }
+        catch (Exception ex) when (ex is CatalogUnavailableException or ArgumentException)
+        {
+            _message = (Severity.Warning, ex.Message);
+        }
+        catch (OperationCanceledException)
+        {
+            // A newer lookup took over, or the dialog closed.
+        }
+        catch (Exception ex)
+        {
+            _message = (Severity.Error, $"The barcode lookup failed: {ex.Message}");
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
 
     private async Task SelectAsync(TItem item)
