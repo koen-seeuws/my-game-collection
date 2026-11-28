@@ -190,7 +190,7 @@ public partial class Accessories : IDisposable
     }
 
     private static string Subtitle(AccessoryDto accessory) =>
-        string.Join(" · ", new[] { accessory.Platform ?? "Any system", accessory.Manufacturer, accessory.Model, accessory.Colour }
+        string.Join(" · ", new[] { accessory.Platform ?? "Any system", accessory.Manufacturer }
             .Where(part => !string.IsNullOrWhiteSpace(part)));
 
     private bool MatchesSearch(AccessoryDto accessory) =>

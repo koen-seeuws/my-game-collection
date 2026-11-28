@@ -47,9 +47,7 @@ else
                           ShowStatus="false" Notes="@game.Notes"
                           OnOpen="() => OpenGameAsync(game)" OnDelete="() => DeleteGameAsync(game)"
                           OnAcquire="() => AcquireGameAsync(game)">
-                    <ItemTags Format="game.Format" Region="game.Region"
-                              Completeness="@(game.Format == GameFormat.Physical ? game.Completeness : null)" />
-                    <PlayerTags Players="game.Players" />
+                    <GameCardTags Game="game" />
                 </ItemCard>
             }
         </div>
@@ -68,7 +66,10 @@ else
                           OnAcquire="() => AcquireAddOnAsync(addOn)">
                     <div class="item-tags">
                         <span class="item-tag">@addOn.Type.ToDisplayName()</span>
-                        <span class="@($"item-tag format {addOn.Format.ToString().ToLowerInvariant()}")">@addOn.Format.ToDisplayName()</span>
+                        @if (addOn.Format != GameFormat.Physical)
+                        {
+                            <span class="@($"item-tag format {addOn.Format.ToString().ToLowerInvariant()}")">@addOn.Format.ToDisplayName()</span>
+                        }
                     </div>
                 </ItemCard>
             }
@@ -96,9 +97,7 @@ else
                           ThumbnailUrl="@console.ThumbnailUrl" Icon="@Icons.Material.Outlined.SportsEsports" Logo="true"
                           Status="console.Status" ShowStatus="false" Notes="@console.Notes"
                           OnOpen="() => OpenConsoleAsync(console)" OnDelete="() => DeleteConsoleAsync(console)"
-                          OnAcquire="() => AcquireConsoleAsync(console)">
-                    <ItemTags Region="console.Region" Completeness="console.Completeness" />
-                </ItemCard>
+                          OnAcquire="() => AcquireConsoleAsync(console)" />
             }
         </div>
     }
@@ -125,7 +124,7 @@ else
                           Status="accessory.Status" ShowStatus="false" Notes="@accessory.Notes"
                           OnOpen="() => OpenAccessoryAsync(accessory)" OnDelete="() => DeleteAccessoryAsync(accessory)"
                           OnAcquire="() => AcquireAccessoryAsync(accessory)">
-                    <ItemTags AccessoryType="accessory.Type" Region="accessory.Region" Completeness="accessory.Completeness" />
+                    <AccessoryTypeTag Type="accessory.Type" />
                 </ItemCard>
             }
         </div>

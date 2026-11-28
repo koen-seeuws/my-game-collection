@@ -1,0 +1,29 @@
+@using MyGameCollection.Application.Abstractions.Queries.GetMyGames
+@* The few tags on a game's card: how far it was played, a format other than physical, and its add-ons. *@
+@if (Game.PlayStatus is not null || Game.Format != GameFormat.Physical || Game.AddOns.Count > 0)
+{
+    <div class="item-tags">
+        @if (Game.PlayStatus is { } playStatus)
+        {
+            <span class="@($"item-tag play-status {playStatus.ToString().ToLowerInvariant()}")">
+                <MudIcon Icon="@playStatus.ToIcon()" Class="item-tag-icon" />
+                @playStatus.ToDisplayName()
+            </span>
+        }
+        @if (Game.Format != GameFormat.Physical)
+        {
+            <span class="@($"item-tag format {Game.Format.ToString().ToLowerInvariant()}")">@Game.Format.ToDisplayName()</span>
+        }
+        @if (Game.AddOns.Count > 0)
+        {
+            <span class="item-tag add-ons" title="@string.Join(", ", Game.AddOns.Select(a => a.Title))">
+                <MudIcon Icon="@Icons.Material.Outlined.Extension" Class="item-tag-icon" />
+                @DisplayNames.AddOns(Game.AddOns.Count)
+            </span>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public GameDto Game { get; set; } = default!;
+}

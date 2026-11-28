@@ -1,32 +1,45 @@
-@* A console's details, read-only, shown when opening it before choosing to edit. *@
+@* A console's details, read-only, shown when opening it before choosing to edit.
+   Grouped like the console form, so everything that was filled in can be found again. *@
 <div class="item-details">
     <ItemThumbnail Url="@Model.ThumbnailUrl" Icon="@Icons.Material.Outlined.SportsEsports" Alt="@Model.Name"
                    Class="item-details-thumbnail logo" />
     <div class="item-details-body">
-        <MudText Typo="Typo.body2" Color="Color.Secondary">
-            @string.Join(" · ", new[] { Model.Manufacturer, Model.Model, Model.Colour }.Where(t => !string.IsNullOrWhiteSpace(t)))
-        </MudText>
         <StatusChip Status="Model.Status" />
-        <ItemTags Region="Model.Region" Completeness="Model.Completeness"
-                  Condition="@(Owned ? Model.Condition : null)"
-                  Origin="@(Owned ? Model.PurchaseOrigin : null)" />
 
-        <MudGrid Spacing="2" Class="mt-2">
-            @if (Model.ReleaseDate is { } released)
+        <MudGrid Spacing="2" Class="mt-1">
+            <FormSection Title="Console" Icon="@Icons.Material.Outlined.SportsEsports" />
+            <DetailField Label="Manufacturer">@Model.Manufacturer</DetailField>
+            @if (!string.IsNullOrWhiteSpace(Model.Model))
             {
-                <DetailField Label="Released">@released</DetailField>
+                <DetailField Label="Model">@Model.Model</DetailField>
             }
-            @if (Owned && Model.PurchaseDate is { } purchased)
+            @if (!string.IsNullOrWhiteSpace(Model.Colour))
             {
-                <DetailField Label="Purchased">@DisplayNames.Date(DateOnly.FromDateTime(purchased))</DetailField>
+                <DetailField Label="Colour">@Model.Colour</DetailField>
             }
-            @if (Owned && Model.PurchasePrice is not null)
+            <DetailField Label="Released">@(Model.ReleaseDate?.ToString() ?? "Unknown")</DetailField>
+
+            <FormSection Title="Your copy" Icon="@Icons.Material.Outlined.Inventory2" />
+            <DetailField Label="Region">@Model.Region.ToDisplayName()</DetailField>
+            <DetailField Label="Completeness">@Model.Completeness.ToDisplayName()</DetailField>
+            @if (Owned)
             {
-                <DetailField Label="Price paid">@DisplayNames.Money(Model.PurchasePrice)</DetailField>
+                <DetailField Label="Condition">@Model.Condition.ToDisplayName()</DetailField>
+
+                <FormSection Title="Purchase" Icon="@Icons.Material.Outlined.ShoppingBag" />
+                <DetailField Label="Purchased">
+                    @(Model.PurchaseDate is { } purchased ? DisplayNames.Date(DateOnly.FromDateTime(purchased)) : "Unknown")
+                </DetailField>
+                <DetailField Label="Price paid">
+                    @(Model.PurchasePrice is not null ? DisplayNames.Money(Model.PurchasePrice) : "Unknown")
+                </DetailField>
+                <DetailField Label="Bought">@(Model.PurchaseOrigin?.ToDisplayName() ?? "Unknown")</DetailField>
             }
+
             @if (!string.IsNullOrWhiteSpace(Model.Notes))
             {
-                <DetailField Label="Notes" Wide="true"><span class="detail-notes">@Model.Notes</span></DetailField>
+                <FormSection Title="Notes" Icon="@Icons.Material.Outlined.StickyNote2" />
+                <DetailField Wide="true"><span class="detail-notes">@Model.Notes</span></DetailField>
             }
         </MudGrid>
     </div>
